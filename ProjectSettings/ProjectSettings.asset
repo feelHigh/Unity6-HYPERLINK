@@ -12,7 +12,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
+  companyName: 333Percent
   productName: HYPERLINK
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
@@ -833,7 +833,7 @@ PlayerSettings:
     PS4: DOTWEEN
     PS5: DOTWEEN
     QNX: DOTWEEN
-    Standalone: DOTWEEN;MAGICACLOTH2;ALLIN13DSHADER_URP
+    Standalone: DOTWEEN;MAGICACLOTH2
     VisionOS: DOTWEEN
     WebGL: DOTWEEN
     Windows Store Apps: DOTWEEN

@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/LoginScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/CharacterSelectionScene.unity
+    guid: adb89467ac70d2d468244dca76923f78
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/TestScene.unity
+    guid: ca40ea9f47c4bd64aa187aa9c45aa4a3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
