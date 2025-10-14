@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4739235269782592571}
   - component: {fileID: 59783467847375423}
-  - component: {fileID: 4526153229575229575}
+  - component: {fileID: 6145444384961602680}
   - component: {fileID: 1728384117610399209}
   m_Layer: 0
   m_Name: EquipmentItem_Prefab
@@ -55,7 +55,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 2
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4526153229575229575
+--- !u!114 &6145444384961602680
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
