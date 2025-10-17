@@ -554,10 +554,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 166850678}
-  - component: {fileID: 166850677}
   - component: {fileID: 166850676}
   m_Layer: 0
-  m_Name: Services
+  m_Name: GameSessionManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -573,18 +572,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1df8ae5d3853ffa4d82f428f8e4e2e69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &166850677
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 166850675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d93af8256e8737f47ac156069176aa25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!4 &166850678
@@ -1983,12 +1970,12 @@ MonoBehaviour:
   _deleteButton: {fileID: 2070465260}
   _warriorButton: {fileID: 1062640923}
   _mageButton: {fileID: 317208335}
-  _archerButton: {fileID: 317208335}
+  _archerButton: {fileID: 1791779431}
   _characterNameInput: {fileID: 1865959636}
   _createCharacterButton: {fileID: 634720423}
   _loadingText: {fileID: 1449219769}
   _errorText: {fileID: 955117820}
-  _gameScene: TestScene
+  _gameScene: TutorialTestScene
 --- !u!4 &828252831
 Transform:
   m_ObjectHideFlags: 0

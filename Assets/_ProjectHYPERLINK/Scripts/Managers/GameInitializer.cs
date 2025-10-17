@@ -7,16 +7,18 @@ using TMPro;
 /// 게임 씬 초기화 및 데이터 로드
 /// 
 /// 역할:
-/// - MainLevel 씬 진입 시 실행
+/// - TutorialTestScene 진입 시 실행
 /// - 캐릭터 데이터 로드
 /// - 시스템 초기화 조율
-/// - 로드 화면 제어 (Optional)
+/// - PlayerSpawner와 연동
+/// - 씬 전환 시 위치 저장
+/// - 로드 화면 제어
 /// 
 /// 위치:
-/// - MainLevel 씬의 빈 GameObject에 추가
+/// - TutorialTestScene의 GameManager GameObject에 추가
 /// 
 /// 실행 순서:
-/// 1. Awake: 로드 화면 활성화 (Optional)
+/// 1. Awake: 씬 전환 이벤트 등록
 /// 2. Start: 데이터 로드 및 초기화
 /// 3. 성공: 게임 시작
 /// 4. 실패: 캐릭터 선택 화면으로 복귀
@@ -24,7 +26,7 @@ using TMPro;
 public class GameInitializer : MonoBehaviour
 {
     [Header("씬 설정")]
-    [SerializeField] private string _characterSelectionScene = "CharacterSelection";
+    [SerializeField] private string _characterSelectionScene = "CharacterSelectionScene";
 
     [Header("로딩 UI (Optional)")]
     [SerializeField] private GameObject _loadingPanel;
@@ -33,9 +35,21 @@ public class GameInitializer : MonoBehaviour
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
 
+    private void Awake()
+    {
+        // 씬 전환 이벤트 등록 (위치 저장용)
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
+    }
+
     private async void Start()
     {
         await InitializeGame();
+    }
+
+    private void OnDestroy()
+    {
+        // 이벤트 등록 해제
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
     }
 
     /// <summary>
@@ -55,11 +69,11 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 2. 시스템 참조 설정
+            // 2. 시스템 참조 확인 (PlayerSpawner, EnemySpawner 등)
             UpdateLoadingText("시스템 로드 중...");
-            if (!InitializeSystemReferences())
+            if (!VerifyGameSystems())
             {
-                LogError("시스템 참조 설정 실패");
+                LogError("게임 시스템 확인 실패");
                 ReturnToCharacterSelection();
                 return;
             }
@@ -75,11 +89,19 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 4. 플레이어 위치 복원 (Optional)
-            UpdateLoadingText("월드 준비 중...");
-            RestorePlayerPosition();
+            // 4. 플레이어 캐릭터에 데이터 적용 대기
+            UpdateLoadingText("플레이어 준비 중...");
+            await WaitForPlayerSpawn();
 
-            // 5. 초기화 완료
+            // 5. 시스템 참조 설정
+            if (!InitializeSystemReferences())
+            {
+                LogError("시스템 참조 설정 실패");
+                ReturnToCharacterSelection();
+                return;
+            }
+
+            // 6. 초기화 완료
             UpdateLoadingText("게임 시작!");
             Log("게임 초기화 완료!");
 
@@ -116,7 +138,65 @@ public class GameInitializer : MonoBehaviour
     }
 
     /// <summary>
+    /// 게임 시스템 존재 확인
+    /// PlayerSpawner와 EnemySpawner가 씬에 있는지 검증
+    /// </summary>
+    private bool VerifyGameSystems()
+    {
+        // PlayerSpawner 확인
+        if (PlayerSpawner.Instance == null)
+        {
+            LogError("PlayerSpawner를 찾을 수 없습니다!");
+            return false;
+        }
+
+        // EnemySpawner 확인 (Optional)
+        var enemySpawner = FindFirstObjectByType<EnemySpawner>();
+        if (enemySpawner == null)
+        {
+            Log("EnemySpawner를 찾을 수 없습니다 (선택사항)");
+        }
+
+        // ItemSpawner 확인
+        if (ItemSpawner.Instance == null)
+        {
+            LogError("ItemSpawner를 찾을 수 없습니다!");
+            return false;
+        }
+
+        Log("모든 게임 시스템 확인 완료");
+        return true;
+    }
+
+    /// <summary>
+    /// 플레이어 스폰 대기
+    /// PlayerSpawner가 플레이어를 생성할 때까지 대기
+    /// </summary>
+    private async Task WaitForPlayerSpawn()
+    {
+        int maxAttempts = 50; // 5초 대기 (50 * 100ms)
+        int attempts = 0;
+
+        while (attempts < maxAttempts)
+        {
+            GameObject player = PlayerSpawner.Instance.GetPlayer();
+            if (player != null)
+            {
+                Log("플레이어 스폰 확인");
+                return;
+            }
+
+            await Task.Delay(100);
+            attempts++;
+        }
+
+        LogError("플레이어 스폰 타임아웃");
+        throw new System.Exception("Player spawn timeout");
+    }
+
+    /// <summary>
     /// 게임 시스템 참조 설정
+    /// PlayerCharacter에 데이터 적용
     /// </summary>
     private bool InitializeSystemReferences()
     {
@@ -126,46 +206,62 @@ public class GameInitializer : MonoBehaviour
             return false;
         }
 
+        // CharacterDataManager에서 시스템 참조 초기화
         CharacterDataManager.Instance.InitializeSystemReferences();
 
-        // 시스템 참조 확인
+        // 필수 시스템 확인
         var player = FindFirstObjectByType<PlayerCharacter>();
         var exp = FindFirstObjectByType<ExperienceManager>();
         var equip = FindFirstObjectByType<EquipmentManager>();
 
-        if (player == null || exp == null || equip == null)
+        if (player == null)
         {
-            LogError("필수 시스템을 찾을 수 없습니다");
+            LogError("PlayerCharacter를 찾을 수 없습니다");
             return false;
         }
 
+        if (exp == null)
+        {
+            LogError("ExperienceManager를 찾을 수 없습니다");
+            return false;
+        }
+
+        if (equip == null)
+        {
+            LogError("EquipmentManager를 찾을 수 없습니다");
+            return false;
+        }
+
+        Log("시스템 참조 설정 완료");
         return true;
     }
 
     /// <summary>
-    /// 플레이어 위치 복원
+    /// 씬 언로드 시 호출 (씬 전환 전)
+    /// 플레이어 위치를 자동으로 저장
     /// </summary>
-    private void RestorePlayerPosition()
+    private void OnSceneUnloaded(Scene scene)
     {
-        var characterData = CharacterDataManager.Instance.CurrentCharacterData;
-        if (characterData == null || characterData.position == null)
-            return;
-
-        var player = FindFirstObjectByType<PlayerCharacter>();
-        if (player != null)
+        // 현재 씬이 게임 씬이면 위치 저장
+        if (scene.name == "TutorialTestScene" ||
+            scene.name == "ForestScene" ||
+            scene.name == "CaveScene" ||
+            scene.name == "BossArena")
         {
-            Vector3 savedPosition = new Vector3(
-                characterData.position.x,
-                characterData.position.y,
-                characterData.position.z
-            );
+            SavePlayerPosition();
+        }
+    }
 
-            // 위치가 유효한지 확인
-            if (savedPosition != Vector3.zero)
-            {
-                player.transform.position = savedPosition;
-                Log($"플레이어 위치 복원: {savedPosition}");
-            }
+    /// <summary>
+    /// 플레이어 위치 저장
+    /// PlayerSpawner의 SavePlayerPosition 호출
+    /// </summary>
+    private void SavePlayerPosition()
+    {
+        if (PlayerSpawner.Instance != null)
+        {
+            PlayerSpawner.Instance.SavePlayerPosition();
+            Log("플레이어 위치 저장 완료");
         }
     }
 
@@ -177,6 +273,9 @@ public class GameInitializer : MonoBehaviour
         UpdateLoadingText("캐릭터 선택 화면으로 이동...");
         Log("캐릭터 선택 화면으로 복귀");
 
+        // 위치 저장 (Optional - 실패 시에도 저장할지 결정)
+        // SavePlayerPosition();
+
         // 짧은 딜레이 후 씬 전환
         Invoke(nameof(LoadCharacterSelectionScene), 2f);
     }
@@ -185,6 +284,32 @@ public class GameInitializer : MonoBehaviour
     {
         SceneManager.LoadScene(_characterSelectionScene);
     }
+
+    #region Public Methods (외부 호출용)
+
+    /// <summary>
+    /// 다른 씬으로 전환 (외부 호출용)
+    /// 자동으로 위치를 저장하고 씬 로드
+    /// </summary>
+    public void ChangeScene(string sceneName)
+    {
+        SavePlayerPosition();
+        SceneManager.LoadScene(sceneName);
+    }
+
+    /// <summary>
+    /// 특정 위치로 텔레포트 후 저장
+    /// </summary>
+    public void TeleportAndSave(string locationName)
+    {
+        if (PlayerSpawner.Instance != null)
+        {
+            PlayerSpawner.Instance.TeleportToLocation(locationName);
+            // PlayerSpawner.TeleportToLocation이 이미 저장하므로 추가 저장 불필요
+        }
+    }
+
+    #endregion
 
     #region UI 업데이트
 

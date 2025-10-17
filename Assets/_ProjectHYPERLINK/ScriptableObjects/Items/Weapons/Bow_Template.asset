@@ -17,7 +17,7 @@ MonoBehaviour:
   _description: "\uD3C9\uBC94\uD55C \uB098\uBB34\uB85C \uB9CC\uB4E0 \uD65C"
   _itemIcon: {fileID: 0}
   _quality: 0
-  _equipmentType: 3
+  _equipmentType: 1
   _requiredLevel: 1
   _itemModel: {fileID: 1273859374026350232, guid: fdcb36fdd5af54b4297bc7e9a1b5155d, type: 3}
   _gridSizeX: 1
