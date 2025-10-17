@@ -226,19 +226,19 @@ public class CharacterDataManager : MonoBehaviour
         // 경험치/레벨
         if (_experienceManager != null)
         {
-            _experienceManager.SaveToData(ref _currentCharacterData);
+            _experienceManager.SaveToData(_currentCharacterData);
         }
 
         // 캐릭터 상태 (스탯, 체력/마나, 스킬)
         if (_playerCharacter != null)
         {
-            _playerCharacter.SaveToData(ref _currentCharacterData);
+            _playerCharacter.SaveToData(_currentCharacterData);
         }
 
         // 장비
         if (_equipmentManager != null)
         {
-            _equipmentManager.SaveToData(ref _currentCharacterData);
+            _equipmentManager.SaveToData(_currentCharacterData);
         }
 
         // 위치 정보

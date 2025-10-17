@@ -10,19 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3aff889a311e8fb49b8bd8b3e87f1a22, type: 3}
-  m_Name: Sword_Template
+  m_Name: TestItemData
   m_EditorClassIdentifier: 
-  _itemNumber: 1001
-  _itemName: "\uCCA0 \uAC80"
-  _description: "\uC5B4\uB290 \uC9D1\uC774\uB4E0 \uD558\uB098 \uCBE4 \uC788\uB294
-    \uAC80"
+  _itemNumber: 100
+  _itemName: TestItem
+  _description: 
   _itemIcon: {fileID: 0}
   _quality: 0
-  _equipmentType: 1
+  _equipmentType: 0
   _requiredLevel: 1
-  _itemModel: {fileID: 1273859374026350232, guid: a408fb66763b2424497b3a5016e8b0d3, type: 3}
-  _gridSizeX: 1
-  _gridSizeY: 1
+  _itemModel: {fileID: 0}
+  _gridSizeX: 2
+  _gridSizeY: 2
   _baseStats: {fileID: 0}
   _proceduralStats: []
   _useProceduralStats: 0

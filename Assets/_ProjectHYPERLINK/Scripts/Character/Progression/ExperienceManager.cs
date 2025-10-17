@@ -142,7 +142,7 @@ public class ExperienceManager : MonoBehaviour
     /// - 레벨
     /// - 누적 경험치
     /// </summary>
-    public void SaveToData(ref CharacterSaveData data)
+    public void SaveToData(CharacterSaveData data)
     {
         if (data == null)
         {

@@ -47,7 +47,7 @@ public class CharacterSelectionController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _errorText;
 
     [Header("씬 설정")]
-    [SerializeField] private string _gameScene = "GameScene";
+    [SerializeField] private string _gameScene = "TutorialTestScene";
 
     private CharacterSaveData _currentCharacterData;
     private CharacterClass _selectedClass;

@@ -266,4 +266,18 @@ public class SkillSlotUI : MonoBehaviour
             _skillIcon.color = _isLocked ? _onCooldownColor : _availableColor;
         }
     }
+
+    /// <summary>
+    /// 스킬 슬롯 표시 갱신
+    /// 레벨업이나 스킬 언락 시 호출
+    /// </summary>
+    public void RefreshDisplay()
+    {
+        // 스킬이 할당되어 있고 언락되었다면 UI 업데이트
+        if (_skillData != null)
+        {
+            UpdateLockedState();
+            UpdateCooldown();
+        }
+    }
 }
