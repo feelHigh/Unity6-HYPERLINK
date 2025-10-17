@@ -1254,10 +1254,10 @@ PrefabInstance:
       addedObject: {fileID: 1775674440077147438}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18c90d4e4a89f69489651ada78ff91ed, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2625852160303332124}
+      addedObject: {fileID: 1301732046069131230}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18c90d4e4a89f69489651ada78ff91ed, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1301732046069131230}
+      addedObject: {fileID: 2625852160303332124}
   m_SourcePrefab: {fileID: 100100000, guid: 18c90d4e4a89f69489651ada78ff91ed, type: 3}
 --- !u!1 &75494029471422066 stripped
 GameObject:
@@ -1388,21 +1388,6 @@ MonoBehaviour:
   _levelUpData: {fileID: 0}
   _currentLevel: 1
   _currentExperience: 0
---- !u!114 &2625852160303332124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75494029471422066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c748d2550249f4429866af8cbe7c091, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _skillKeys: 710000007700000065000000
-  _skillCastEffect: {fileID: 0}
-  _castPoint: {fileID: 0}
 --- !u!114 &1301732046069131230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1417,6 +1402,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _equipmentSlots: []
   _itemDatabase: []
+  _playerCharacter: {fileID: 0}
+--- !u!114 &2625852160303332124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75494029471422066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c748d2550249f4429866af8cbe7c091, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerCharacter: {fileID: 0}
+  _skillSlots: []
 --- !u!4 &740813310412115144 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 18c90d4e4a89f69489651ada78ff91ed, type: 3}

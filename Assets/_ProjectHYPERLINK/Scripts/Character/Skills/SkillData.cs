@@ -52,6 +52,17 @@ public class SkillData : ScriptableObject
     [SerializeField] private float _range;             // 사거리/범위
     [SerializeField] private SkillType _skillType;     // 스킬 타입 (Melee/Ranged/AOE/Buff/Heal)
 
+    [Header("원거리 스킬 설정 (Ranged 타입 전용)")]
+    [Tooltip("투사체 프리팹 (Projectile 스크립트 포함 필수)")]
+    [SerializeField] private GameObject _projectilePrefab;
+
+    [Header("버프 스킬 설정 (Buff 타입 전용)")]
+    [Tooltip("버프 증가량 (주요 스탯에 추가)")]
+    [SerializeField] private float _buffAmount;
+
+    [Tooltip("버프 지속시간 (초)")]
+    [SerializeField] private float _buffDuration = 10f;
+
     #endregion
 
     #region Public 프로퍼티
@@ -171,7 +182,114 @@ public class SkillData : ScriptableObject
     /// </summary>
     public SkillType SkillType => _skillType;
 
+    /// <summary>
+    /// 투사체 프리팹
+    /// 
+    /// 원거리 스킬(Ranged) 전용
+    /// 
+    /// 요구사항:
+    /// - GameObject에 Projectile 스크립트 필수
+    /// - Rigidbody (Is Kinematic = true)
+    /// - Collider (Is Trigger = true)
+    /// - Trail Renderer (선택)
+    /// 
+    /// SkillActivationSystem.ExecuteRangedSkill()에서 사용
+    /// 
+    /// 설정 방법:
+    /// 1. Projectile 프리팹 생성
+    /// 2. Inspector에서 이 필드에 할당
+    /// 3. SkillType을 Ranged로 설정
+    /// </summary>
+    public GameObject ProjectilePrefab => _projectilePrefab;
+
+    /// <summary>
+    /// 버프 증가량
+    /// 
+    /// 버프 스킬(Buff) 전용
+    /// 
+    /// 적용 방식:
+    /// - Warrior: Strength + BuffAmount
+    /// - Mage: Intelligence + BuffAmount
+    /// - Archer: Dexterity + BuffAmount
+    /// 
+    /// 예시:
+    /// - BuffAmount = 50: 주요 스탯 +50
+    /// - BuffAmount = 100: 주요 스탯 +100
+    /// 
+    /// SkillActivationSystem.CreateBuffStats()에서 사용
+    /// </summary>
+    public float BuffAmount => _buffAmount;
+
+    /// <summary>
+    /// 버프 지속시간 (초)
+    /// 
+    /// 버프 스킬(Buff) 전용
+    /// 
+    /// 지속시간 동안:
+    /// - BuffAmount만큼 스탯 증가
+    /// - UI에 버프 아이콘 표시 (추후 구현)
+    /// - 지속시간 종료 시 자동 제거
+    /// 
+    /// 권장값:
+    /// - 약한 버프: 5-10초
+    /// - 강한 버프: 15-30초
+    /// - 궁극기 버프: 30-60초
+    /// 
+    /// SkillActivationSystem.ApplyTemporaryBuff()에서 사용
+    /// </summary>
+    public float BuffDuration => _buffDuration;
+
     #endregion
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Inspector 값 변경 시 유효성 검증 (Unity Editor 전용)
+    /// 
+    /// 검증 사항:
+    /// - 원거리 스킬은 투사체 프리팹 필수
+    /// - 버프 스킬은 BuffAmount와 BuffDuration > 0 필수
+    /// </summary>
+    private void OnValidate()
+    {
+        // 기존 검증 로직 유지
+        _manaCost = Mathf.Max(0f, _manaCost);
+        _cooldown = Mathf.Max(0f, _cooldown);
+        _damage = Mathf.Max(0f, _damage);
+        _range = Mathf.Max(0f, _range);
+
+        // 신규 검증 추가
+        _buffAmount = Mathf.Max(0f, _buffAmount);
+        _buffDuration = Mathf.Max(0f, _buffDuration);
+
+        // 타입별 경고
+        if (_skillType == SkillType.Ranged && _projectilePrefab == null)
+        {
+            Debug.LogWarning($"[{_skillName}] 원거리 스킬은 Projectile 프리팹이 필요합니다!", this);
+        }
+
+        if (_skillType == SkillType.Buff)
+        {
+            if (_buffAmount <= 0)
+            {
+                Debug.LogWarning($"[{_skillName}] 버프 스킬은 BuffAmount > 0이어야 합니다!", this);
+            }
+            if (_buffDuration <= 0)
+            {
+                Debug.LogWarning($"[{_skillName}] 버프 스킬은 BuffDuration > 0이어야 합니다!", this);
+            }
+        }
+
+        // 투사체 프리팹 검증
+        if (_projectilePrefab != null && _skillType == SkillType.Ranged)
+        {
+            Projectile projectile = _projectilePrefab.GetComponent<Projectile>();
+            if (projectile == null)
+            {
+                Debug.LogError($"[{_skillName}] 투사체 프리팹에 Projectile 스크립트가 없습니다!", this);
+            }
+        }
+    }
+#endif
 }
 
 /// <summary>
