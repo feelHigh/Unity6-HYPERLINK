@@ -36,7 +36,15 @@ public class ExperienceManager : MonoBehaviour
 
     private void Awake()
     {
-        _playerCharacter = GetComponent<PlayerCharacter>();
+        // 자동 검색 추가
+        if (_playerCharacter == null)
+        {
+            _playerCharacter = GetComponent<PlayerCharacter>();
+            if (_playerCharacter == null)
+            {
+                Debug.LogError("[ExperienceManager] PlayerCharacter를 찾을 수 없습니다!");
+            }
+        }
 
         if (_levelUpData == null)
         {

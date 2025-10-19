@@ -29,9 +29,14 @@ public class SkillActivationSystem : MonoBehaviour
 
     private void Awake()
     {
+        // 자동 검색 추가
         if (_playerCharacter == null)
         {
             _playerCharacter = GetComponent<PlayerCharacter>();
+            if (_playerCharacter == null)
+            {
+                Debug.LogError("[SkillActivationSystem] PlayerCharacter를 찾을 수 없습니다!");
+            }
         }
     }
 
