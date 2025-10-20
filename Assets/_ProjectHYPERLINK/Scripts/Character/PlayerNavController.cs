@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using DG.Tweening;
 
 /// <summary>
 /// Diablo 스타일 클릭 이동 및 전투 컨트롤러 (PlayerCharacter 리팩토링 반영)
@@ -37,7 +38,7 @@ public class PlayerNavController : MonoBehaviour
     [SerializeField] private float _attackAnimationDuration = 1.0f;
 
     [Header("전투 설정")]
-    [SerializeField] private float _attackRange = 2.5f;
+    [SerializeField] private float _attackRange = 1f;
     [SerializeField] private float _attackDamage = 25f;
     [SerializeField] private float _attackCooldown = 1.5f;
     [SerializeField] private LayerMask _enemyLayer = 1;
@@ -55,7 +56,7 @@ public class PlayerNavController : MonoBehaviour
         _animator.applyRootMotion = false;
         _agent.stoppingDistance = _attackRange;
     }
-
+    
     private void Update()
     {
         HandleMouseInput();

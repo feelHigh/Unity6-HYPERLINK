@@ -16,10 +16,14 @@ MonoBehaviour:
   _dexterity: 0
   _intelligence: 0
   _vitality: 1
+  _physicalAttack: 0
+  _magicalAttack: 0
+  _armor: 0
+  _allResistance: 0
   _criticalChance: 0
   _criticalDamage: 0
   _attackSpeed: 0
-  _maxHealth: 10
-  _maxMana: 0
+  _maxHealth: 20
+  _maxMana: 10
   _healthRegeneration: 0
   _manaRegeneration: 0
