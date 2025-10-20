@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91567915edb06042bea2e8f45173bd3, type: 3}
+  m_Name: SA_Water
+  m_EditorClassIdentifier: 
+  _epicEffect: {fileID: 9145572604598077285, guid: 8e90fd4d3f981544f88c057c76916e18, type: 3}
+  _type: 1
+  _coolTime: 10
+  _attackEffect: {fileID: 3286354774382137151, guid: 1006002f1a5ae974c9cf6a3db3aac0f6, type: 3}
+  _hitEffect: {fileID: 3479889138382906226, guid: 508d4996b5530b7489b534179dabaa22, type: 3}
+  _freezeEffect: {fileID: 2542977102590910287, guid: 83ac7e46c2c19b141a11f239d591f077, type: 3}
+  _slowEffect: {fileID: 3348595429294424279, guid: a698fc4ff06ab3142b20d8616524fdc2, type: 3}
