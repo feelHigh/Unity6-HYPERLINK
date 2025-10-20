@@ -21,7 +21,7 @@ MonoBehaviour:
   _chaseDistance: 40
   _patrolRadius: 3
   _patrolWaitTime: 1
-  _attackRange: 3
+  _attackRange: 1
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5

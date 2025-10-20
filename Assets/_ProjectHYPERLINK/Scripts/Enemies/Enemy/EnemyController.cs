@@ -84,7 +84,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         _attackRange = _data.AttackRange;
         _patrolRadius = _data.PatrolRadius;
         _agent.speed = _data.MoveSpeed;
-        _agent.stoppingDistance = _attackRange * 0.95f;
+        _agent.stoppingDistance = 0.25f;
 
         _expReward = _data.RewardExp * (_isEpic ? _data.EpicExpMultiplier : 1);
         _goldReward = _data.RewardGold * (_isEpic ? _data.EpicGoldMultiplier : 1);
