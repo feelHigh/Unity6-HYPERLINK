@@ -15,7 +15,11 @@ MonoBehaviour:
   _strength: 10
   _dexterity: 5
   _intelligence: 5
-  _vitality: 8
+  _vitality: 10
+  _physicalAttack: 0
+  _magicalAttack: 0
+  _armor: 0
+  _allResistance: 0
   _criticalChance: 5
   _criticalDamage: 50
   _attackSpeed: 1

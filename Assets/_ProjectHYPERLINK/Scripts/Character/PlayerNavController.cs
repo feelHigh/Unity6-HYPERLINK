@@ -37,7 +37,7 @@ public class PlayerNavController : MonoBehaviour
     [SerializeField] private float _attackAnimationDuration = 1.0f;
 
     [Header("전투 설정")]
-    [SerializeField] private float _attackRange = 2.5f;
+    [SerializeField] private float _attackRange = 1f;
     [SerializeField] private float _attackDamage = 25f;
     [SerializeField] private float _attackCooldown = 1.5f;
     [SerializeField] private LayerMask _enemyLayer = 1;

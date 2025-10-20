@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 6274837084202361495}
   - component: {fileID: 4529648162199723491}
   - component: {fileID: 1180839138950790797}
+  - component: {fileID: 6395200515974723187}
   m_Layer: 10
   m_Name: PlayableCharacter_Sword
   m_TagString: Player
@@ -127,7 +128,7 @@ NavMeshAgent:
   m_Acceleration: 50
   avoidancePriority: 50
   m_AngularSpeed: 800
-  m_StoppingDistance: 2.5
+  m_StoppingDistance: 0.1
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -149,7 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animationDampTime: 0.1
   _attackAnimationDuration: 1
-  _attackRange: 2.5
+  _attackRange: 1
   _attackDamage: 25
   _attackCooldown: 1.5
   _enemyLayer:
@@ -168,7 +169,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterClass: 0
-  _baseStats: {fileID: 11400000, guid: 38346ee3018657d40ab1b90433dc3071, type: 2}
+  _baseStats: {fileID: 0}
   _availableSkills:
   - {fileID: 11400000, guid: a40bafd756b16f54ea8d07683d6cacc5, type: 2}
   - {fileID: 11400000, guid: 83f286b5d1716bf49a3e53e3f97c3239, type: 2}
@@ -203,7 +204,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelUpData: {fileID: 11400000, guid: f6de5328a1d812745a648a855c86edc8, type: 2}
   _currentLevel: 1
-  _currentExperience: 100
+  _currentExperience: 0
 --- !u!114 &1180839138950790797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,6 +220,28 @@ MonoBehaviour:
   _equipmentSlots: []
   _itemDatabase: []
   _playerCharacter: {fileID: 0}
+--- !u!114 &6395200515974723187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e739476a9a2f51a4782c9575992dd402, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interactionKey: 101
+  _useRaycast: 0
+  _raycastDistance: 3.5
+  _useOverlapSphere: 1
+  _overlapRadius: 3
+  _interactableLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  _enableDebugLogs: 1
+  _showDebugRay: 1
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -227,6 +250,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3210946814110231900}
     m_Modifications:
+    - target: {fileID: 7488165525126081958, guid: fcac9217d65ec7e48b917678e613fbf6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8213672252208699091, guid: fcac9217d65ec7e48b917678e613fbf6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
