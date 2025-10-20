@@ -10,16 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20fc9c8b8a3576c499132a23b6b55ad6, type: 3}
-  m_Name: BaseWarriorStatGain
+  m_Name: SwordClassData
   m_EditorClassIdentifier: 
-  _strength: 2
+  _strength: 0
   _dexterity: 0
   _intelligence: 0
-  _vitality: 1
+  _vitality: 0
+  _physicalAttack: 0
+  _magicalAttack: 0
+  _armor: 0
+  _allResistance: 0
   _criticalChance: 0
   _criticalDamage: 0
   _attackSpeed: 0
-  _maxHealth: 10
-  _maxMana: 0
+  _maxHealth: 100
+  _maxMana: 50
   _healthRegeneration: 0
   _manaRegeneration: 0

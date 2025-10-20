@@ -2,10 +2,15 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 플레이어 스폰 / 텔레포트 시스템
+/// 플레이어 스폰 / 텔레포트 시스템 (리팩토링)
+/// 
+/// 변경사항:
+/// - 단일 프리팹 → 직업별 프리팹 배열로 변경
+/// - GameSessionManager에서 선택된 직업 정보 읽기
+/// - 직업에 맞는 프리팹 자동 선택
 /// 
 /// 기능:
-/// - 지정한 위치에 플레이어 스폰
+/// - 지정한 위치에 직업별 플레이어 스폰
 /// - 위치 간의 텔레포트 관리
 /// - 싱글톤 구조
 /// </summary>
@@ -13,8 +18,15 @@ public class PlayerSpawner : MonoBehaviour
 {
     public static PlayerSpawner Instance { get; private set; }
 
-    [Header("Player Settings")]
-    [SerializeField] private GameObject _playerPrefab;
+    [Header("Player Prefabs - 직업별")]
+    [Tooltip("Warrior 프리팹")]
+    [SerializeField] private GameObject _warriorPrefab;
+    [Tooltip("Mage 프리팹")]
+    [SerializeField] private GameObject _magePrefab;
+    [Tooltip("Archer 프리팹")]
+    [SerializeField] private GameObject _archerPrefab;
+
+    [Header("Spawn Settings")]
     [SerializeField] private Transform _defaultSpawnPoint;
 
     [Header("Teleport Points")]
@@ -40,6 +52,7 @@ public class PlayerSpawner : MonoBehaviour
 
     /// <summary>
     /// 디폴트 지점에 플레이어 스폰
+    /// GameSessionManager에서 직업 정보를 가져와서 올바른 프리팹 스폰
     /// </summary>
     public void SpawnPlayerAtDefault()
     {
@@ -54,19 +67,83 @@ public class PlayerSpawner : MonoBehaviour
 
     /// <summary>
     /// 특정 위치에 플레이어 스폰
+    /// GameSessionManager의 캐릭터 데이터에서 직업 읽기
     /// </summary>
     public void SpawnPlayer(Vector3 position, Quaternion rotation)
     {
-        // Destroy existing player if any
+        // 기존 플레이어 제거
         if (_currentPlayer != null)
         {
             Destroy(_currentPlayer);
         }
 
-        // 플레이어 인스턴스화
-        _currentPlayer = Instantiate(_playerPrefab, position, rotation);
+        // GameSessionManager에서 선택된 직업 가져오기
+        GameObject prefabToSpawn = GetPrefabForSelectedClass();
 
-        Debug.Log($"Player spawned at {position}");
+        if (prefabToSpawn == null)
+        {
+            Debug.LogError("선택된 직업에 해당하는 프리팹을 찾을 수 없습니다!");
+            return;
+        }
+
+        // 플레이어 인스턴스화
+        _currentPlayer = Instantiate(prefabToSpawn, position, rotation);
+
+        Debug.Log($"Player spawned at {position} - Prefab: {prefabToSpawn.name}");
+    }
+
+    /// <summary>
+    /// GameSessionManager의 캐릭터 데이터에서 직업에 맞는 프리팹 반환
+    /// </summary>
+    private GameObject GetPrefabForSelectedClass()
+    {
+        // GameSessionManager가 없으면 기본값 (Warrior)
+        if (GameSessionManager.Instance == null)
+        {
+            Debug.LogWarning("GameSessionManager가 없습니다. Warrior 프리팹 사용");
+            return _warriorPrefab;
+        }
+
+        // 캐릭터 데이터가 없으면 기본값
+        CharacterSaveData characterData = GameSessionManager.Instance.CurrentCharacterData;
+        if (characterData == null)
+        {
+            Debug.LogWarning("캐릭터 데이터가 없습니다. Warrior 프리팹 사용");
+            return _warriorPrefab;
+        }
+
+        // 저장된 직업 문자열을 CharacterClass enum으로 변환
+        string classString = characterData.character.characterClass;
+        CharacterClass characterClass;
+
+        if (!System.Enum.TryParse(classString, out characterClass))
+        {
+            Debug.LogError($"알 수 없는 직업: {classString}. Warrior 프리팹 사용");
+            return _warriorPrefab;
+        }
+
+        // 직업에 맞는 프리팹 반환
+        switch (characterClass)
+        {
+            case CharacterClass.Warrior:
+                if (_warriorPrefab == null)
+                    Debug.LogError("Warrior 프리팹이 할당되지 않았습니다!");
+                return _warriorPrefab;
+
+            case CharacterClass.Mage:
+                if (_magePrefab == null)
+                    Debug.LogError("Mage 프리팹이 할당되지 않았습니다!");
+                return _magePrefab;
+
+            case CharacterClass.Archer:
+                if (_archerPrefab == null)
+                    Debug.LogError("Archer 프리팹이 할당되지 않았습니다!");
+                return _archerPrefab;
+
+            default:
+                Debug.LogWarning($"처리되지 않은 직업: {characterClass}. Warrior 프리팹 사용");
+                return _warriorPrefab;
+        }
     }
 
     /// <summary>
