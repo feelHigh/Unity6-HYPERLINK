@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60e16f716f8a6c4fa1c49bd1c53c586, type: 3}
+  m_Name: SA_Wood
+  m_EditorClassIdentifier: 
+  _epicEffect: {fileID: 6250747027149468508, guid: 914afb8c60afc0c47bdd62badc44fad3, type: 3}
+  _type: 3
+  _coolTime: 10
+  _aoePrefab: {fileID: 5270648413212700517, guid: 001a88e342cd8fd49b013607cff6e4d0, type: 3}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _rootEffect: {fileID: 4581489971288674818, guid: 874d5065da05bec4c9f7dbb450f5ecc0, type: 3}
+  _defenseDebuffEffect: {fileID: 690973771237170886, guid: 173f9545bf819e04299c093434279c3c, type: 3}

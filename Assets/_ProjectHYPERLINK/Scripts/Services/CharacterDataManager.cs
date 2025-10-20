@@ -218,8 +218,12 @@ public class CharacterDataManager : MonoBehaviour
         return success;
     }
 
+
     /// <summary>
-    /// 각 시스템에서 현재 상태 수집
+    /// 각 시스템에서 현재 상태 수집 (개선됨)
+    /// 
+    /// 변경사항:
+    /// - PositionData.scene에 현재 씬 이름 저장 추가
     /// </summary>
     private void CollectDataFromSystems()
     {
@@ -241,13 +245,18 @@ public class CharacterDataManager : MonoBehaviour
             _equipmentManager.SaveToData(_currentCharacterData);
         }
 
-        // 위치 정보
+        // 위치 정보 (개선됨)
         if (_playerCharacter != null)
         {
+            // ✅ 현재 씬 이름 저장 추가
+            _currentCharacterData.position.scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
             Transform playerTransform = _playerCharacter.transform;
             _currentCharacterData.position.x = playerTransform.position.x;
             _currentCharacterData.position.y = playerTransform.position.y;
             _currentCharacterData.position.z = playerTransform.position.z;
+
+            Debug.Log($"위치 저장: 씬={_currentCharacterData.position.scene}, 좌표=({_currentCharacterData.position.x:F2}, {_currentCharacterData.position.y:F2}, {_currentCharacterData.position.z:F2})");
         }
 
         // TODO: InventoryManager에서 인벤토리 수집

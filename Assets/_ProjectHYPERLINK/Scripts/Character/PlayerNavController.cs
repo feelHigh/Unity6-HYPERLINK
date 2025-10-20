@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using DG.Tweening;
 
 /// <summary>
 /// Diablo 스타일 클릭 이동 및 전투 컨트롤러 (PlayerCharacter 리팩토링 반영)
@@ -55,7 +56,7 @@ public class PlayerNavController : MonoBehaviour
         _animator.applyRootMotion = false;
         _agent.stoppingDistance = _attackRange;
     }
-
+    
     private void Update()
     {
         HandleMouseInput();

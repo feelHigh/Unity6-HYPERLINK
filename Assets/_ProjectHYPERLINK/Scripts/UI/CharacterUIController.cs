@@ -11,11 +11,7 @@ using System.Collections.Generic;
 /// - Player 태그 기반 검색
 /// - 설정 가능한 재시도 간격 및 최대 횟수
 /// - 상세한 디버그 로그
-/// 
-/// 기존 기능 유지:
-/// - 선택적 UI 업데이트 (변경된 값만)
-/// - GC 할당 감소 (80% 절감)
-/// - 성능 최적화
+/// - 스킬 슬롯 인덱스 기반 초기화 (키 바인드 연동)
 /// </summary>
 public class CharacterUIController : MonoBehaviour
 {
@@ -72,9 +68,6 @@ public class CharacterUIController : MonoBehaviour
         // 패널 초기 상태 (닫힘)
         if (_characterPanel != null)
             _characterPanel.SetActive(false);
-
-        if (_skillPanel != null)
-            _skillPanel.SetActive(false);
     }
 
     private void Start()
@@ -212,6 +205,7 @@ public class CharacterUIController : MonoBehaviour
 
         if (_experienceManager != null)
         {
+            // Action<int, int, int> - (current, required, level)
             ExperienceManager.OnExperienceChanged += UpdateExperience;
             ExperienceManager.OnLevelUp += OnLevelUp;
         }
@@ -246,20 +240,55 @@ public class CharacterUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// 스킬 슬롯 초기화
+    /// 스킬 슬롯 초기화 (키 바인드 연동)
+    /// 
+    /// 변경사항:
+    /// - foreach → for 루프로 변경하여 인덱스 사용
+    /// - Initialize(skillData, slotIndex) 호출로 키 바인드 연동
+    /// - SkillActivationSystem에 슬롯 등록
     /// </summary>
     private void InitializeSkillSlots()
     {
         if (_skillSlots == null || _skillSlots.Count == 0)
             return;
 
-        foreach (SkillSlotUI slot in _skillSlots)
+        for (int i = 0; i < _skillSlots.Count; i++)
         {
-            if (slot != null && _skillActivationSystem != null)
+            SkillSlotUI slot = _skillSlots[i];
+
+            if (slot != null)
             {
-                _skillActivationSystem.RegisterSkillSlot(slot);
+                // 슬롯 인덱스
+                int slotIndex = i;
+
+                // 스킬 데이터 가져오기
+                SkillData skillData = GetSkillDataForSlot(slotIndex);
+
+                // 슬롯 초기화 (인덱스 전달)
+                slot.Initialize(skillData, slotIndex);
+
+                // SkillActivationSystem에 등록
+                if (_skillActivationSystem != null)
+                {
+                    _skillActivationSystem.RegisterSkillSlot(slot);
+                }
             }
         }
+
+        Log($"스킬 슬롯 {_skillSlots.Count}개 초기화 완료");
+    }
+
+    /// <summary>
+    /// 슬롯에 맞는 스킬 데이터 가져오기
+    /// 
+    /// 현재는 단순히 null을 반환합니다.
+    /// 스킬은 PlayerCharacter.OnSkillUnlocked 이벤트를 통해
+    /// SkillSlotUI에 직접 할당됩니다.
+    /// </summary>
+    private SkillData GetSkillDataForSlot(int slotIndex)
+    {
+        // 스킬 데이터는 스킬 언락 시 자동으로 할당됨
+        return null;
     }
 
     #endregion
@@ -285,6 +314,29 @@ public class CharacterUIController : MonoBehaviour
         {
             _previousMana = current;
             _previousMaxMana = max;
+        }
+    }
+
+    private void UpdateExperience(int current, int required, int level)
+    {
+        if (!_isInitialized ||
+            _previousExperience != current ||
+            _previousExperienceRequired != required ||
+            _previousLevel != level)
+        {
+            _previousExperience = current;
+            _previousExperienceRequired = required;
+            _previousLevel = level;
+
+            if (_experienceBar != null)
+            {
+                _experienceBar.fillAmount = (float)current / required;
+            }
+
+            if (_experienceText != null)
+            {
+                _experienceText.text = $"{current} / {required}";
+            }
         }
     }
 
@@ -377,45 +429,25 @@ public class CharacterUIController : MonoBehaviour
             _critDamageText.text = $"크리 데미지: {stats.CriticalDamage:F0}%";
     }
 
-    private void UpdateExperience(int current, int required, int level)
-    {
-        if (!_isInitialized ||
-            _previousExperience != current ||
-            _previousExperienceRequired != required)
-        {
-            if (_experienceBar != null)
-            {
-                float fillAmount = (float)current / required;
-                _experienceBar.fillAmount = fillAmount;
-            }
-
-            if (_experienceText != null)
-            {
-                _experienceText.text = $"{current} / {required}";
-            }
-
-            _previousExperience = current;
-            _previousExperienceRequired = required;
-        }
-    }
-
-    private void ForceUpdateAll()
+    /// <summary>
+    /// 모든 UI 강제 업데이트
+    /// 패널 열 때 호출
+    /// </summary>
+    public void ForceUpdateAll()
     {
         if (_playerCharacter != null)
         {
-            UpdateHealth(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
-            UpdateMana(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
-            UpdateAllStats(_playerCharacter.GetTotalStats());
+            UpdateAllStats(_playerCharacter.CurrentStats);
+            _previousStats = _playerCharacter.CurrentStats.Clone();
         }
 
         if (_experienceManager != null)
         {
-            UpdateExperience(
-                _experienceManager.CurrentExperience,
-                _experienceManager.ExperienceToNextLevel,
-                _experienceManager.CurrentLevel
-            );
+            int required = _experienceManager.ExperienceToNextLevel + _experienceManager.CurrentExperience;
+            UpdateExperience(_experienceManager.CurrentExperience, required, _experienceManager.CurrentLevel);
         }
+
+        RefreshSkillSlots();
     }
 
     #endregion
@@ -424,7 +456,7 @@ public class CharacterUIController : MonoBehaviour
 
     private void OnLevelUp(int oldLevel, int newLevel)
     {
-        Log($"레벨 업! {oldLevel} → {newLevel}");
+        Log($"레벨업! {oldLevel} → {newLevel}");
     }
 
     private void OnSkillUnlocked(SkillData skill)

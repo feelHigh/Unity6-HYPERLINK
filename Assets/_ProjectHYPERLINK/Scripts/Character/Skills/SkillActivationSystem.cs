@@ -6,10 +6,17 @@ using UnityEngine;
 /// <summary>
 /// 스킬 활성화 시스템
 /// 
-/// 완성된 기능:
+/// 핵심 기능:
+/// - 키 바인드 기반 스킬 활성화 (Q/W/E 설정 가능)
 /// - ExecuteRangedSkill(): 투사체 발사 및 추적
+/// - ExecuteAOESkill(): 광역 공격 실행
 /// - ExecuteBuffSkill(): 임시 스탯 증가
 /// - ApplyTemporaryBuff(): 버프 지속시간 관리
+/// 
+/// 최근 변경사항:
+/// - 키 바인드 시스템 추가 (설정 가능)
+/// - AOE 스킬 실행 로직 구현
+/// - 디버그 기능 강화
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
@@ -19,11 +26,34 @@ public class SkillActivationSystem : MonoBehaviour
     [Header("스킬 슬롯")]
     [SerializeField] private List<SkillSlotUI> _skillSlots = new List<SkillSlotUI>();
 
+    [Header("키 바인드 설정")]
+    [Tooltip("첫 번째 스킬 슬롯 키 (기본: Q)")]
+    [SerializeField] private KeyCode _skill1Key = KeyCode.Q;
+
+    [Tooltip("두 번째 스킬 슬롯 키 (기본: W)")]
+    [SerializeField] private KeyCode _skill2Key = KeyCode.W;
+
+    [Tooltip("세 번째 스킬 슬롯 키 (기본: E)")]
+    [SerializeField] private KeyCode _skill3Key = KeyCode.E;
+
+    [Header("AOE 스킬 설정")]
+    [Tooltip("AOE 스킬 이펙트 프리팹 (선택 사항)")]
+    [SerializeField] private GameObject _aoeEffectPrefab;
+
+    [Tooltip("AOE 이펙트 지속 시간")]
+    [SerializeField] private float _aoeEffectDuration = 2f;
+
+    [Header("디버그 설정")]
+    [SerializeField] private bool _showDebugGizmos = true;
+
     // 스킬 쿨다운 추적
     private Dictionary<SkillData, float> _skillCooldowns = new Dictionary<SkillData, float>();
 
     // 현재 활성화된 버프 목록
     private Dictionary<SkillData, Coroutine> _activeBuffs = new Dictionary<SkillData, Coroutine>();
+
+    // 키 바인드 목록 (인덱스로 접근)
+    private KeyCode[] _skillKeys;
 
     #region 초기화
 
@@ -38,11 +68,74 @@ public class SkillActivationSystem : MonoBehaviour
                 Debug.LogError("[SkillActivationSystem] PlayerCharacter를 찾을 수 없습니다!");
             }
         }
+
+        // 키 바인드 배열 초기화
+        _skillKeys = new KeyCode[] { _skill1Key, _skill2Key, _skill3Key };
     }
 
     private void Update()
     {
         UpdateCooldowns();
+        HandleSkillInput();
+    }
+
+    #endregion
+
+    #region 입력 처리
+
+    /// <summary>
+    /// 스킬 키 입력 처리
+    /// 
+    /// 각 스킬 슬롯에 할당된 키를 확인하여
+    /// 해당 스킬을 활성화합니다.
+    /// 
+    /// 기본 키:
+    /// - Q: 첫 번째 스킬
+    /// - W: 두 번째 스킬
+    /// - E: 세 번째 스킬
+    /// </summary>
+    private void HandleSkillInput()
+    {
+        // 각 스킬 슬롯에 대해 키 입력 확인
+        for (int i = 0; i < _skillSlots.Count && i < _skillKeys.Length; i++)
+        {
+            if (Input.GetKeyDown(_skillKeys[i]))
+            {
+                SkillSlotUI slot = _skillSlots[i];
+
+                // 슬롯이 유효하고 스킬이 할당되어 있는지 확인
+                if (slot != null && slot.SkillData != null && !slot.IsLocked)
+                {
+                    ActivateSkill(slot.SkillData);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 특정 슬롯의 키 바인드 가져오기
+    /// SkillSlotUI에서 키 표시용으로 사용
+    /// </summary>
+    public KeyCode GetSkillKey(int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < _skillKeys.Length)
+        {
+            return _skillKeys[slotIndex];
+        }
+        return KeyCode.None;
+    }
+
+    /// <summary>
+    /// 특정 슬롯의 키 바인드 변경 (런타임)
+    /// 향후 키 설정 UI에서 사용 가능
+    /// </summary>
+    public void SetSkillKey(int slotIndex, KeyCode newKey)
+    {
+        if (slotIndex >= 0 && slotIndex < _skillKeys.Length)
+        {
+            _skillKeys[slotIndex] = newKey;
+            Debug.Log($"스킬 슬롯 {slotIndex + 1} 키 변경: {newKey}");
+        }
     }
 
     #endregion
@@ -126,6 +219,7 @@ public class SkillActivationSystem : MonoBehaviour
     private void ExecuteMeleeSkill(SkillData skill)
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, skill.Range);
+        int enemyCount = 0;
 
         foreach (Collider hit in hits)
         {
@@ -134,8 +228,11 @@ public class SkillActivationSystem : MonoBehaviour
             {
                 float damage = CalculateSkillDamage(skill);
                 enemy.TakeDamage(damage);
+                enemyCount++;
             }
         }
+
+        Debug.Log($"[{skill.SkillName}] {enemyCount}명의 적에게 타격!");
     }
 
     /// <summary>
@@ -152,11 +249,6 @@ public class SkillActivationSystem : MonoBehaviour
     /// - SkillData.ProjectilePrefab 설정 필요
     /// - Projectile 스크립트 필요
     /// - 투사체는 Rigidbody + Trigger Collider 필요
-    /// 
-    /// 사용 예:
-    /// - 화살 발사
-    /// - 마법 탄환
-    /// - 에너지 볼
     /// </summary>
     private void ExecuteRangedSkill(SkillData skill)
     {
@@ -167,43 +259,58 @@ public class SkillActivationSystem : MonoBehaviour
             return;
         }
 
-        // 발사 위치 계산 (플레이어 앞 1m)
-        Vector3 spawnPosition = transform.position + transform.forward * 1f + Vector3.up * 1f;
-        Quaternion spawnRotation = transform.rotation;
+        // 발사 위치 계산 (플레이어 앞 1유닛, 높이 1.5유닛)
+        Vector3 spawnOffset = transform.forward * 1f + Vector3.up * 1.5f;
+        Vector3 spawnPosition = transform.position + spawnOffset;
 
         // 투사체 생성
         GameObject projectileObj = Instantiate(
             skill.ProjectilePrefab,
             spawnPosition,
-            spawnRotation
+            transform.rotation
         );
 
-        // Projectile 컴포넌트 확인 및 초기화
+        // Projectile 컴포넌트 초기화
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
             float damage = CalculateSkillDamage(skill);
             projectile.Initialize(damage, skill.Range, _playerCharacter);
+
+            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F0}");
         }
         else
         {
-            Debug.LogError($"[{skill.SkillName}] 투사체에 Projectile 스크립트가 없습니다!");
+            Debug.LogError($"[{skill.SkillName}] 투사체 프리팹에 Projectile 스크립트가 없습니다!");
             Destroy(projectileObj);
         }
     }
 
     /// <summary>
-    /// 광역 스킬 실행
+    /// 광역 스킬 실행 (신규 구현)
     /// 
-    /// 처리:
-    /// - 플레이어 중심 또는 타겟 위치
-    /// - 범위 내 모든 적에게 데미지
+    /// 처리 과정:
+    /// 1. 플레이어 중심 범위 내 모든 적 탐색
+    /// 2. 각 적에게 계산된 데미지 적용
+    /// 3. 선택적으로 AOE 이펙트 생성
+    /// 
+    /// Melee와의 차이점:
+    /// - AOE는 더 넓은 범위 (일반적으로 Range가 더 큼)
+    /// - 시각적 이펙트 생성
+    /// - 더 높은 마나 소비/쿨다운
+    /// 
+    /// 사용 예:
+    /// - 폭발 마법
+    /// - 지진
+    /// - 회오리바람
     /// </summary>
     private void ExecuteAOESkill(SkillData skill)
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, skill.Range);
+        Vector3 centerPosition = transform.position;
+        Collider[] hits = Physics.OverlapSphere(centerPosition, skill.Range);
+        int enemyCount = 0;
 
-        int hitCount = 0;
+        // 범위 내 모든 적에게 데미지 적용
         foreach (Collider hit in hits)
         {
             Enemy enemy = hit.GetComponent<Enemy>();
@@ -211,89 +318,64 @@ public class SkillActivationSystem : MonoBehaviour
             {
                 float damage = CalculateSkillDamage(skill);
                 enemy.TakeDamage(damage);
-                hitCount++;
+                enemyCount++;
             }
         }
 
-        Debug.Log($"광역 스킬: {hitCount}명의 적 타격");
+        // AOE 이펙트 생성 (프리팹이 설정된 경우)
+        if (_aoeEffectPrefab != null)
+        {
+            GameObject effectObj = Instantiate(_aoeEffectPrefab, centerPosition, Quaternion.identity);
+
+            // 범위에 맞게 스케일 조정
+            effectObj.transform.localScale = Vector3.one * (skill.Range * 2f);
+
+            // 일정 시간 후 자동 삭제
+            Destroy(effectObj, _aoeEffectDuration);
+        }
+
+        Debug.Log($"[{skill.SkillName}] 광역 공격! {enemyCount}명의 적 타격, 범위: {skill.Range}m");
     }
 
     /// <summary>
-    /// 버프 스킬 실행 (완전 구현)
+    /// 버프 스킬 실행
     /// 
-    /// 처리 과정:
-    /// 1. 버프 데이터 검증
-    /// 2. 코루틴으로 버프 적용
-    /// 3. 지속시간 관리
-    /// 4. 버프 종료 후 제거
-    /// 
-    /// 요구사항:
-    /// - SkillData.BuffAmount > 0
-    /// - SkillData.BuffDuration > 0
-    /// - PlayerCharacter에 AddTemporaryStats/RemoveTemporaryStats 필요
-    /// 
-    /// 버프 중첩:
-    /// - 같은 버프 재사용 시 기존 버프 중단하고 새로 시작
-    /// - 다른 버프는 동시 적용 가능
+    /// 처리:
+    /// - 이미 활성화된 버프가 있으면 중복 방지
+    /// - Coroutine으로 버프 지속시간 관리
     /// </summary>
     private void ExecuteBuffSkill(SkillData skill)
     {
-        // 버프 데이터 검증
-        if (skill.BuffAmount <= 0 || skill.BuffDuration <= 0)
+        // 중복 버프 방지
+        if (_activeBuffs.ContainsKey(skill))
         {
-            Debug.LogError($"[{skill.SkillName}] 버프 데이터가 올바르지 않습니다! " +
-                          $"Amount: {skill.BuffAmount}, Duration: {skill.BuffDuration}");
+            Debug.Log($"[{skill.SkillName}] 이미 활성화된 버프입니다!");
             return;
         }
 
-        // 기존 버프가 있으면 중단
-        if (_activeBuffs.ContainsKey(skill))
-        {
-            StopCoroutine(_activeBuffs[skill]);
-            _activeBuffs.Remove(skill);
-            Debug.Log($"[{skill.SkillName}] 기존 버프 중단");
-        }
-
-        // 새 버프 시작
+        // 버프 적용
         Coroutine buffCoroutine = StartCoroutine(ApplyTemporaryBuff(skill));
-        _activeBuffs[skill] = buffCoroutine;
+        _activeBuffs.Add(skill, buffCoroutine);
     }
 
     /// <summary>
-    /// 힐 스킬 실행
+    /// 회복 스킬 실행
     /// </summary>
     private void ExecuteHealSkill(SkillData skill)
     {
-        _playerCharacter.Heal(skill.Damage);
-        Debug.Log($"체력 회복: {skill.Damage}");
+        float healAmount = skill.Damage; // 힐 스킬은 Damage 값을 회복량으로 사용
+        _playerCharacter.Heal(healAmount);
+        Debug.Log($"[{skill.SkillName}] 체력 회복: {healAmount}");
     }
 
-    #endregion
-
-    #region 버프 시스템 (신규 구현)
-
     /// <summary>
-    /// 임시 버프 적용 코루틴 (신규)
+    /// 임시 버프 적용 (Coroutine)
     /// 
-    /// 처리 과정:
-    /// 1. 버프 스탯 생성
+    /// 처리 순서:
+    /// 1. 버프용 CharacterStats 생성
     /// 2. PlayerCharacter에 스탯 추가
     /// 3. 지속시간 대기
     /// 4. 스탯 제거
-    /// 5. 활성 버프 목록에서 제거
-    /// 
-    /// 버프 스탯 계산:
-    /// - BuffAmount가 주요 스탯에 추가
-    /// - 직업별 스탯 적용:
-    ///   * Warrior: Strength + BuffAmount
-    ///   * Mage: Intelligence + BuffAmount
-    ///   * Archer: Dexterity + BuffAmount
-    /// 
-    /// 사용 예:
-    /// - 스킬: "전투 분노" (힘 +50, 10초)
-    /// - BuffAmount = 50
-    /// - BuffDuration = 10
-    /// - 결과: 10초간 힘 +50
     /// </summary>
     private IEnumerator ApplyTemporaryBuff(SkillData skill)
     {
@@ -319,14 +401,12 @@ public class SkillActivationSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 버프용 CharacterStats 생성 (신규)
+    /// 버프용 CharacterStats 생성
     /// 
     /// 직업별 스탯 증가:
     /// - Warrior: Strength
     /// - Mage: Intelligence
     /// - Archer: Dexterity
-    /// 
-    /// CharacterStats Builder 패턴 사용
     /// </summary>
     private CharacterStats CreateBuffStats(float buffAmount)
     {
@@ -384,12 +464,6 @@ public class SkillActivationSystem : MonoBehaviour
     /// 2. 주요 스탯 보너스 = 기본 × (1 + 주요스탯/100)
     /// 3. 크리티컬 체크
     /// 4. 크리티컬 시 = 데미지 × (1 + 크리데미지/100)
-    /// 
-    /// 예시:
-    /// - 기본 데미지: 50
-    /// - 주요 스탯: 100 (2배)
-    /// - 크리티컬: 150% (2.5배)
-    /// - 최종: 50 × 2 × 2.5 = 250
     /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
@@ -475,8 +549,7 @@ public class SkillActivationSystem : MonoBehaviour
     /// </summary>
     private void ShowManaCostWarning(SkillData skill)
     {
-        // UI 피드백 (UI 시스템이 있으면 활성화)
-        // UIManager.Instance.ShowWarning($"마나 부족! 필요: {skill.ManaCost}");
+        Debug.Log($"마나 부족! 현재: {_playerCharacter.CurrentMana:F0} / 필요: {skill.ManaCost}");
 
         // 스킬 슬롯에 붉은색 플래시 효과
         foreach (SkillSlotUI slot in _skillSlots)
@@ -527,6 +600,13 @@ public class SkillActivationSystem : MonoBehaviour
         Debug.Log($"쿨다운 추적 중: {_skillCooldowns.Count}개");
         Debug.Log($"활성 버프: {_activeBuffs.Count}개");
 
+        // 키 바인드 정보
+        Debug.Log("--- 키 바인드 ---");
+        for (int i = 0; i < _skillKeys.Length; i++)
+        {
+            Debug.Log($"  슬롯 {i + 1}: {_skillKeys[i]}");
+        }
+
         if (_activeBuffs.Count > 0)
         {
             Debug.Log("--- 활성 버프 목록 ---");
@@ -545,6 +625,28 @@ public class SkillActivationSystem : MonoBehaviour
                 {
                     Debug.Log($"  - {cooldown.Key.SkillName}: {cooldown.Value:F1}초 남음");
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Scene 뷰에서 스킬 범위 시각화
+    /// </summary>
+    private void OnDrawGizmosSelected()
+    {
+        if (!_showDebugGizmos)
+            return;
+
+        // 각 스킬의 범위를 다른 색상으로 표시
+        Color[] colors = { Color.red, Color.blue, Color.green };
+
+        for (int i = 0; i < _skillSlots.Count; i++)
+        {
+            if (_skillSlots[i] != null && _skillSlots[i].SkillData != null)
+            {
+                SkillData skill = _skillSlots[i].SkillData;
+                Gizmos.color = colors[i % colors.Length];
+                Gizmos.DrawWireSphere(transform.position, skill.Range);
             }
         }
     }
