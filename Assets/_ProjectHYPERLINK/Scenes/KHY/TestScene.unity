@@ -1527,10 +1527,12 @@ MonoBehaviour:
   _cooldownOverlay: {fileID: 0}
   _cooldownText: {fileID: 0}
   _manaCostText: {fileID: 0}
+  _keyBindText: {fileID: 0}
   _lockedOverlay: {fileID: 0}
   _availableColor: {r: 1, g: 1, b: 1, a: 1}
   _onCooldownColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   _insufficientManaColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _skillActivationSystem: {fileID: 0}
 --- !u!114 &682884216
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4249,7 +4251,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 1736332394}
+    TrackingTarget: {fileID: 0}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -4572,118 +4574,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7c03271d68215c247a44abcdd67eb50a, type: 3}
---- !u!1001 &1736332393
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 75494029471422066, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_Name
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 3.69
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1775674440077147438, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: _levelUpData
-      value: 
-      objectReference: {fileID: 11400000, guid: f6de5328a1d812745a648a855c86edc8, type: 2}
-    - target: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: _baseStats
-      value: 
-      objectReference: {fileID: 11400000, guid: 38346ee3018657d40ab1b90433dc3071, type: 2}
-    - target: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: _availableSkills.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: '_availableSkills.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: a40bafd756b16f54ea8d07683d6cacc5, type: 2}
-    - target: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: '_availableSkills.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 83f286b5d1716bf49a3e53e3f97c3239, type: 2}
-    - target: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: '_availableSkills.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: d2bf3faee885c9444a54e2e7dbf62ec7, type: 2}
-    - target: {fileID: 8751744013994165778, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-      propertyPath: _enemyLayer.m_Bits
-      value: 2048
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
---- !u!4 &1736332394 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 740813310412115144, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-  m_PrefabInstance: {fileID: 1736332393}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1736332396 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2625852160303332124, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-  m_PrefabInstance: {fileID: 1736332393}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c748d2550249f4429866af8cbe7c091, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1736332398 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6624955870333991343, guid: 5b0b47697efcbbd4fa6d4d33604bbfe7, type: 3}
-  m_PrefabInstance: {fileID: 1736332393}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71f9f721ec154024180526d2ab240e36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1754986209
 GameObject:
   m_ObjectHideFlags: 0
@@ -5256,10 +5146,12 @@ MonoBehaviour:
   _cooldownOverlay: {fileID: 0}
   _cooldownText: {fileID: 0}
   _manaCostText: {fileID: 0}
+  _keyBindText: {fileID: 0}
   _lockedOverlay: {fileID: 0}
   _availableColor: {r: 1, g: 1, b: 1, a: 1}
   _onCooldownColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   _insufficientManaColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _skillActivationSystem: {fileID: 0}
 --- !u!114 &1934358897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5804,10 +5696,12 @@ MonoBehaviour:
   _cooldownOverlay: {fileID: 0}
   _cooldownText: {fileID: 0}
   _manaCostText: {fileID: 0}
+  _keyBindText: {fileID: 0}
   _lockedOverlay: {fileID: 0}
   _availableColor: {r: 1, g: 1, b: 1, a: 1}
   _onCooldownColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   _insufficientManaColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _skillActivationSystem: {fileID: 0}
 --- !u!114 &2070258615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6194,7 +6088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec548e39372c04f41a81647660e2043d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: {fileID: 1736332394}
+  _player: {fileID: 0}
   _activationDistance: 20
 --- !u!4 &2135365831
 Transform:
@@ -6240,8 +6134,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9aa551ef4d43841479fd6a85cf7aa6d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerCharacter: {fileID: 1736332398}
-  _skillActivationSystem: {fileID: 1736332396}
+  _playerTag: Player
+  _retryInterval: 0.5
+  _maxRetries: 20
+  _enableDebugLogs: 1
+  _playerCharacter: {fileID: 0}
+  _skillActivationSystem: {fileID: 0}
   _experienceManager: {fileID: 0}
   _healthManaBar: {fileID: 567233529}
   _characterPanel: {fileID: 1996843848}
@@ -6293,6 +6191,5 @@ SceneRoots:
   - {fileID: 1810247792}
   - {fileID: 1321807169}
   - {fileID: 1328285261}
-  - {fileID: 1736332393}
   - {fileID: 1795839018}
   - {fileID: 1724623626}

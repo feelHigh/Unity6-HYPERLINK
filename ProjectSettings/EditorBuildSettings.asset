@@ -12,8 +12,8 @@ EditorBuildSettings:
     path: Assets/_ProjectHYPERLINK/Scenes/CharacterSelectionScene.unity
     guid: adb89467ac70d2d468244dca76923f78
   - enabled: 1
-    path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TutorialTestScene.unity
-    guid: d13564ce3fd0e5740b3455042b9276d9
+    path: Assets/_ProjectHYPERLINK/Scenes/KHH/TheFirstStage.unity
+    guid: f87d55dcc2e4ffd4abbc0631c7e22b87
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

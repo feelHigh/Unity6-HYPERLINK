@@ -8,6 +8,7 @@ public class EnemyGroup : MonoBehaviour
 
     private void Start()
     {
+
         //자식으로 있는 모든 EnemyController를 찾아 리스트에 등록
         GetComponentsInChildren<EnemyController>(_enemies);
     }
