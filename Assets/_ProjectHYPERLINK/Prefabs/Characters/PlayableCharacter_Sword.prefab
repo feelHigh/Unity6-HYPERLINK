@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 4529648162199723491}
   - component: {fileID: 1180839138950790797}
   - component: {fileID: 6395200515974723187}
+  - component: {fileID: -659526161995910388}
   m_Layer: 10
   m_Name: PlayableCharacter_Sword
   m_TagString: Player
@@ -190,6 +191,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
   _skillSlots: []
+  _skill1Key: 113
+  _skill2Key: 119
+  _skill3Key: 101
+  _aoeEffectPrefab: {fileID: 0}
+  _aoeEffectDuration: 2
+  _showDebugGizmos: 1
 --- !u!114 &4529648162199723491
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,6 +249,22 @@ MonoBehaviour:
     m_Bits: 4096
   _enableDebugLogs: 1
   _showDebugRay: 1
+--- !u!114 &-659526161995910388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b3459792c84e134891e6fa1ba9061a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rb: {fileID: 0}
+  _maxHp: 0
+  _curHp: 0
+  _gold: 0
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0
