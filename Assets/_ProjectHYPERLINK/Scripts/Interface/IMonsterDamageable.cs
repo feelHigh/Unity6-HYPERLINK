@@ -13,6 +13,4 @@ public interface IMonsterDamageable
     /// </summary>
     /// <param name="attack"></param>
     void ApplySpecialEffect(SpecialAttackBase attack);
-
-    void Die();
 }
