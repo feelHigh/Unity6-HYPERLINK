@@ -19,11 +19,11 @@ public class PlayerSpawner : MonoBehaviour
     public static PlayerSpawner Instance { get; private set; }
 
     [Header("Player Prefabs - 직업별")]
-    [Tooltip("Warrior 프리팹")]
+    [Tooltip("Laon 프리팹")]
     [SerializeField] private GameObject _warriorPrefab;
-    [Tooltip("Mage 프리팹")]
+    [Tooltip("Sian 프리팹")]
     [SerializeField] private GameObject _magePrefab;
-    [Tooltip("Archer 프리팹")]
+    [Tooltip("Yujin 프리팹")]
     [SerializeField] private GameObject _archerPrefab;
 
     [Header("Spawn Settings")]
@@ -97,10 +97,10 @@ public class PlayerSpawner : MonoBehaviour
     /// </summary>
     private GameObject GetPrefabForSelectedClass()
     {
-        // GameSessionManager가 없으면 기본값 (Warrior)
+        // GameSessionManager가 없으면 기본값 (Laon)
         if (GameSessionManager.Instance == null)
         {
-            Debug.LogWarning("GameSessionManager가 없습니다. Warrior 프리팹 사용");
+            Debug.LogWarning("GameSessionManager가 없습니다. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
@@ -108,7 +108,7 @@ public class PlayerSpawner : MonoBehaviour
         CharacterSaveData characterData = GameSessionManager.Instance.CurrentCharacterData;
         if (characterData == null)
         {
-            Debug.LogWarning("캐릭터 데이터가 없습니다. Warrior 프리팹 사용");
+            Debug.LogWarning("캐릭터 데이터가 없습니다. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
@@ -118,30 +118,30 @@ public class PlayerSpawner : MonoBehaviour
 
         if (!System.Enum.TryParse(classString, out characterClass))
         {
-            Debug.LogError($"알 수 없는 직업: {classString}. Warrior 프리팹 사용");
+            Debug.LogError($"알 수 없는 직업: {classString}. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
         // 직업에 맞는 프리팹 반환
         switch (characterClass)
         {
-            case CharacterClass.Warrior:
+            case CharacterClass.Laon:
                 if (_warriorPrefab == null)
-                    Debug.LogError("Warrior 프리팹이 할당되지 않았습니다!");
+                    Debug.LogError("Laon 프리팹이 할당되지 않았습니다!");
                 return _warriorPrefab;
 
-            case CharacterClass.Mage:
+            case CharacterClass.Sian:
                 if (_magePrefab == null)
-                    Debug.LogError("Mage 프리팹이 할당되지 않았습니다!");
+                    Debug.LogError("Sian 프리팹이 할당되지 않았습니다!");
                 return _magePrefab;
 
-            case CharacterClass.Archer:
+            case CharacterClass.Yujin:
                 if (_archerPrefab == null)
-                    Debug.LogError("Archer 프리팹이 할당되지 않았습니다!");
+                    Debug.LogError("Yujin 프리팹이 할당되지 않았습니다!");
                 return _archerPrefab;
 
             default:
-                Debug.LogWarning($"처리되지 않은 직업: {characterClass}. Warrior 프리팹 사용");
+                Debug.LogWarning($"처리되지 않은 직업: {characterClass}. Laon 프리팹 사용");
                 return _warriorPrefab;
         }
     }

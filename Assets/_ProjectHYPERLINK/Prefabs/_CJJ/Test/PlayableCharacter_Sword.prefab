@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3210946814110231900}
   - component: {fileID: 8015958755211429487}
   - component: {fileID: 3046726209654251968}
-  - component: {fileID: 8228738727775491665}
   - component: {fileID: 1803515443096613692}
   - component: {fileID: 1492089533889283871}
   - component: {fileID: 3735128981493473489}
@@ -19,6 +18,7 @@ GameObject:
   - component: {fileID: 4529648162199723491}
   - component: {fileID: 1180839138950790797}
   - component: {fileID: 6395200515974723187}
+  - component: {fileID: 1237584802716128544}
   - component: {fileID: -659526161995910388}
   m_Layer: 10
   m_Name: PlayableCharacter_Sword
@@ -88,33 +88,6 @@ CapsuleCollider:
   m_Height: 1.8
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
---- !u!54 &8228738727775491665
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8470624065522552731}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
 --- !u!195 &1803515443096613692
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -136,7 +109,7 @@ NavMeshAgent:
   m_Height: 1.8
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 0
 --- !u!114 &1492089533889283871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,6 +130,11 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 2048
+  _attackIndicator: {fileID: 0}
+  _indicatorDisplayTime: 0.3
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &3735128981493473489
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -177,6 +155,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 90362dc3bc91f3e44a532314451bc317, type: 2}
   _currentHealth: 0
   _currentMana: 0
+  _redSoda: 3
+  _redSodaHealAmount: 50
 --- !u!114 &6274837084202361495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,6 +229,19 @@ MonoBehaviour:
     m_Bits: 4096
   _enableDebugLogs: 1
   _showDebugRay: 1
+--- !u!114 &1237584802716128544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1377eb8590dad0438721db8fb27d0ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _characterPanel: {fileID: 0}
 --- !u!114 &-659526161995910388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -262,8 +255,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rb: {fileID: 0}
-  _maxHp: 0
-  _curHp: 0
+  _playerCharacter: {fileID: 0}
   _gold: 0
 --- !u!1001 &309975090714692918
 PrefabInstance:

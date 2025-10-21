@@ -65,9 +65,9 @@ public class CharacterSelectionController : MonoBehaviour
         _continueButton.onClick.AddListener(OnContinueClicked);
         _deleteButton.onClick.AddListener(OnDeleteClicked);
 
-        _warriorButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Warrior));
-        _mageButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Mage));
-        _archerButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Archer));
+        _warriorButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Laon));
+        _mageButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Sian));
+        _archerButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Yujin));
 
         _createCharacterButton.onClick.AddListener(OnCreateCharacterClicked);
     }
