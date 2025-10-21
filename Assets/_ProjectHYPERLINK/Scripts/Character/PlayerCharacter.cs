@@ -399,7 +399,6 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// SaveData에 현재 상태 저장
-    /// ⭐ Red Soda 저장 추가
     /// </summary>
     public void SaveToData(CharacterSaveData data)
     {
