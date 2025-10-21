@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 public class EnemyGroup : MonoBehaviour
 {
-   [SerializeField] List<EnemyController> _enemies = new List<EnemyController>();
-    bool _hasAggro = false;
+    [SerializeField] List<EnemyController> _enemies = new List<EnemyController>();
+    [SerializeField] bool _hasAggro = false;
+    public bool HasAggro => _hasAggro;
 
     private void Start()
     {
-
         //자식으로 있는 모든 EnemyController를 찾아 리스트에 등록
         GetComponentsInChildren<EnemyController>(_enemies);
     }
@@ -24,7 +24,7 @@ public class EnemyGroup : MonoBehaviour
         {
             if (enemy != null && enemy.CurState != EnemyController.EnemyState.Dead)
             {
-                if (enemy.CurState != EnemyController.EnemyState.Patrol)
+                if (enemy.CurState != EnemyController.EnemyState.Idle)
                 {
                     allMembersPatrolling = false;
                     break;
@@ -45,9 +45,6 @@ public class EnemyGroup : MonoBehaviour
     /// <param name="target"></param>
     public void ShareAggro(Transform target)
     {
-        //이미 어그로 상태이면 리턴
-        if (_hasAggro) return;
-
         _hasAggro = true;
 
         //그룹 네 모든 멤버에게 타겟을 알리고 추격 명령을 내림

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -15,12 +16,12 @@ public class EnemyController : MonoBehaviour, IDamageable
     
     public enum EnemyState
     {
-        Patrol,
+        Idle,
         Chase,
         Attack,
         Dead
     }
-    [SerializeField] EnemyState _curState = EnemyState.Patrol;
+    [SerializeField] EnemyState _curState = EnemyState.Idle;
     public EnemyState CurState => _curState;
 
     [Header("----- 전투 -----")]
@@ -41,15 +42,17 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     float _atk;
     float _attackRange;
-    float _patrolRadius;
+    Vector3 _spawnPos;      //스폰될 때의 위치
 
     int _expReward;
     int _goldReward;
 
-    // 타이머 및 쿨타임 //
-    float _patrolWaitTimer;
+    // 타이머 및 쿨타임 관리 //
     float _lastAttackTime;
     float _lastSpecialAttackTime;
+    float _backToSpawnTimer;
+    float _pathCheckTimer;
+    int _pathCheckCount = 0;
 
     // 애니메이터 파라미터 해시값 //
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");
@@ -61,7 +64,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        _curState = EnemyState.Patrol;
+        _curState = EnemyState.Idle;
     }
 
     /// <summary>
@@ -82,9 +85,9 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         _atk = _data.Atk * (_isEpic ? _data.EpicAtkMultiplier : 1);
         _attackRange = _data.AttackRange;
-        _patrolRadius = _data.PatrolRadius;
         _agent.speed = _data.MoveSpeed;
-        _agent.stoppingDistance = 0.25f;
+
+        _spawnPos = transform.position;
 
         _expReward = _data.RewardExp * (_isEpic ? _data.EpicExpMultiplier : 1);
         _goldReward = _data.RewardGold * (_isEpic ? _data.EpicGoldMultiplier : 1);
@@ -128,8 +131,8 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         switch (_curState)
         {
-            case EnemyState.Patrol:
-                UpdatePatrolState();
+            case EnemyState.Idle:
+                UpdateIdleState();
                 break;
             case EnemyState.Chase:
                 UpdateChaseState();
@@ -145,9 +148,9 @@ public class EnemyController : MonoBehaviour, IDamageable
     // 상태 별 행동 함수 //
 
     /// <summary>
-    /// 배회 상태일 때 실행되는 함수
+    /// 대기 상태일 때 실행되는 함수
     /// </summary>
-    void UpdatePatrolState()
+    void UpdateIdleState()
     {
         //감지 범위 내에서 플레이어를 찾는다.
         Collider[] colliders = Physics.OverlapSphere(transform.position, _data.DetectionRange, _playerLayerMask);
@@ -158,26 +161,29 @@ public class EnemyController : MonoBehaviour, IDamageable
             //플레이어를 타겟으로 설정
             _target = colliders[0].transform;
 
-            //상태를 추격 상태로 바꾸기
-            ChangeState(EnemyState.Chase);
-
-            //그룹에 타겟 공유
-            if (_group != null)
+            //플레이어를 향한 경로가 유효하면
+            if (CheckPath(_target.position))
             {
-                _group.ShareAggro(_target);
-            }
+                //상태를 추격 상태로 바꾸기
+                ChangeState(EnemyState.Chase);
 
-            return;
+                //그룹에 타겟 공유
+                if (_group != null)
+                {
+                    _group.ShareAggro(_target);
+                }
+
+                return;
+            }
         }
 
-        if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+        //Idle 상태에서 3초가 지나면
+        _backToSpawnTimer += Time.deltaTime;
+        if (_backToSpawnTimer >= 5)
         {
-            _patrolWaitTimer += Time.deltaTime;
-            if (_patrolWaitTimer >= _data.PatrolWaitTime)
-            {
-                SetNewPatrolPoint();
-                _patrolWaitTimer = 0;
-            }
+            //스폰 위치로 돌아가기
+            _agent.SetDestination(_spawnPos);
+            _backToSpawnTimer = 0;
         }
     }
 
@@ -187,23 +193,12 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <param name="target"></param>
     public void ActivateChase(Transform target)
     {
-        if (_curState == EnemyState.Patrol)
+        if (_curState == EnemyState.Idle)
         {
+            Debug.Log("ShareAggro! " + transform.localPosition);
+
             _target = target;
             ChangeState(EnemyState.Chase);
-        }
-    }
-
-    /// <summary>
-    /// 배회 지점을 새로 설정하는 함수
-    /// </summary>
-    void SetNewPatrolPoint()
-    {
-        Vector3 ranDir = Random.insideUnitSphere * _patrolRadius;
-        ranDir += transform.position;
-        if (NavMesh.SamplePosition(ranDir, out NavMeshHit hit, _patrolRadius, NavMesh.AllAreas))
-        {
-            _agent.SetDestination(hit.position);
         }
     }
 
@@ -216,40 +211,62 @@ public class EnemyController : MonoBehaviour, IDamageable
         if (_target == null)
         {
             //상태를 배회 상태로 바꾸고 리턴
-            ChangeState(EnemyState.Patrol);
+            ChangeState(EnemyState.Idle);
             return;
         }
 
-        NavMeshPath path = new NavMeshPath();
-        if (_agent.CalculatePath(_target.position, path) && path.status == NavMeshPathStatus.PathComplete)
+        //경로가 유효하면 타겟을 따라가도록 설정
+        _agent.isStopped = false;
+        _agent.SetDestination(_target.position);
+
+        //0.5초마다 경로 유효성 확인
+        _pathCheckTimer += Time.deltaTime;
+        if (_pathCheckTimer >= 0.5f)
         {
-            //타겟을 따라가도록 설정
-            _agent.isStopped = false;
-            _agent.SetDestination(_target.position);
+            _pathCheckTimer = 0;
 
-            //자신과 타겟 사이의 거리 구하기
-            float distance = Vector3.Distance(transform.position, _target.position);
+            //NavMesh 경로가 막혀있다면
+            if (!CheckPath(_target.position))
+            {
+                //경로 확인 횟수 +1
+                _pathCheckCount++;
 
+                //3번 연속 경로 찾기 실패 시
+                if (_pathCheckCount >= 3)
+                {
+                    //상태를 대기 상태로 바꾸고 리턴
+                    ChangeState(EnemyState.Idle);
+                    _pathCheckCount = 0;
+                    return;
+                }
+            }
+            else
+            {
+                _pathCheckCount = 0;
+            }
+        }
+
+        //자신과 타겟 사이의 거리 구하기
+        float distance = Vector3.Distance(transform.position, _target.position);
+
+        if (!_group.HasAggro)
+        {
             //자신과 타겟 사이의 거리가 감지 범위보다 크다면
             if (distance > _data.ChaseDistance)
             {
                 Debug.Log("타겟을 찾을 수 없음. 추격 중지");
 
-                //상태를 배회 상태로 바꾸고 리턴
-                ChangeState(EnemyState.Patrol);
+                //상태를 대기 상태로 바꾸고 리턴
+                ChangeState(EnemyState.Idle);
                 return;
             }
-
-            //자신과 타겟 사이의 거리가 공격 범위보다 작다면
-            if (distance <= _attackRange)
-            {
-                //상태를 공격 상태로 변경
-                ChangeState(EnemyState.Attack);
-            }
         }
-        else
+
+        //자신과 타겟 사이의 거리가 공격 범위보다 작다면
+        if (distance <= _attackRange)
         {
-            ChangeState(EnemyState.Patrol);
+            //상태를 공격 상태로 변경
+            ChangeState(EnemyState.Attack);
         }
     }
 
@@ -260,26 +277,18 @@ public class EnemyController : MonoBehaviour, IDamageable
     {
         if (_target == null)
         {
-            ChangeState(EnemyState.Patrol);
+            ChangeState(EnemyState.Idle);
             return;
         }
 
         //타겟을 바라보도록 설정
-        transform.LookAt(_target);
+        Vector3 changePos = _target.position;
+        changePos.y += 1f;
+        transform.LookAt(changePos);
+
         //위치는 제자리 고정
         _agent.SetDestination(transform.position);
         _agent.isStopped = true;
-
-        //자신과 타겟 사이의 거리 구하기
-        float distance = Vector3.Distance(transform.position, _target.position);
-        
-        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면
-        if (distance > _attackRange)
-        {
-            //상태를 추격 상태로 바꾸고 리턴
-            ChangeState(EnemyState.Chase);
-            return;
-        }
 
         //만약 에픽 몬스터이고, 특수 공격 쿨타임이 다 찼다면
         if (_isEpic && _specialAttack != null && Time.time >= _lastSpecialAttackTime + _specialAttack.CoolTime)
@@ -292,6 +301,17 @@ public class EnemyController : MonoBehaviour, IDamageable
         {
             //일반 공격 실행
             PerformBasicAttack();
+        }
+
+        //자신과 타겟 사이의 거리 구하기
+        float distance = Vector3.Distance(transform.position, _target.position);
+
+        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면
+        if (distance > _attackRange)
+        {
+            //상태를 추격 상태로 바꾸고 리턴
+            ChangeState(EnemyState.Chase);
+            return;
         }
     }
 
@@ -332,16 +352,39 @@ public class EnemyController : MonoBehaviour, IDamageable
     void ChangeState(EnemyState state)
     {
         if (_curState == state) return;
+
         _curState = state;
 
-        //상태가 배회 상태로 변경되면
-        if (_curState == EnemyState.Patrol)
+        //상태가 대기 상태로 변경되면
+        if (_curState == EnemyState.Idle)
         {
             //타겟을 비우고
             _target = null;
+
             //네이게이션 경로 초기화
             _agent.ResetPath();
+
+            Debug.Log("대기 상태 전환 완료");
         }
+    }
+
+    /// <summary>
+    /// 목표 지점까지의 NavMesh 경로가 유효한지 체크하는 함수
+    /// </summary>
+    /// <param name="targetPos"></param>
+    /// <returns></returns>
+    bool CheckPath(Vector3 targetPos)
+    {
+        NavMeshPath path = new NavMeshPath();
+
+        //최단 경로를 찾지 못한 경우 바로 false
+        if (!_agent.CalculatePath(targetPos, path))
+        {
+            return false;
+        }
+
+        //찾은 경로가 막혀잇으면 false, 아무 이상 없으면 true
+        return path.status == NavMeshPathStatus.PathComplete;
     }
 
     public void TakeDamage(float damage)
@@ -362,7 +405,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         }
     }
 
-    public void Die()
+    void Die()
     {
         //현재 상태가 죽음 상태면 리턴
         if (_curState == EnemyState.Dead) return;
@@ -402,6 +445,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         _agent.isStopped = true;
         //콜라이더 비활성화
         GetComponent<Collider>().enabled = false;
+        
 
         //애니메이션 재생
         _animator.SetTrigger(_hashDie);

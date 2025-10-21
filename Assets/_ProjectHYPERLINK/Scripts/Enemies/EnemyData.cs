@@ -16,8 +16,6 @@ public class EnemyData : ScriptableObject
     [Header("----- 행동 패턴 -----")]
     [SerializeField] float _detectionRange;     //탐지 사거리
     [SerializeField] float _chaseDistance;      //추격 유지 사거리
-    [SerializeField] float _patrolRadius;       //배회 사거리
-    [SerializeField] float _patrolWaitTime;     //배회 쿨타임
 
     [Header("----- 전투 -----")]
     [SerializeField] float _attackRange;        //공격 사거리
@@ -39,8 +37,6 @@ public class EnemyData : ScriptableObject
     public float Atk => _atk;
     public float DetectionRange => _detectionRange;
     public float ChaseDistance => _chaseDistance;
-    public float PatrolRadius => _patrolRadius;
-    public float PatrolWaitTime => _patrolWaitTime;
     public float AttackRange => _attackRange;
     public float AttackCoolTime => _attackCoolTime;
     public int RewardExp => _rewardExp;
