@@ -171,7 +171,7 @@ public class Projectile : MonoBehaviour
             return;
 
         // Enemy인지 확인
-        Enemy enemy = other.GetComponent<Enemy>();
+        EnemyController enemy = other.GetComponent<EnemyController>();
         if (enemy == null)
             return;
 
