@@ -17,11 +17,11 @@ MonoBehaviour:
   _maxHp: 100
   _moveSpeed: 5
   _atk: 5
-  _detectionRange: 15
-  _chaseDistance: 40
+  _detectionRange: 8
+  _chaseDistance: 10
   _patrolRadius: 3
   _patrolWaitTime: 1
-  _attackRange: 1
+  _attackRange: 3
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5

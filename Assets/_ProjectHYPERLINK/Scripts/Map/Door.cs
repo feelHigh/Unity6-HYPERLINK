@@ -1,58 +1,80 @@
 using DG.Tweening;
-using Unity.VisualScripting;
 using UnityEngine;
- 
+
+/// <summary>
+/// 문 상호작용 구현
+/// 
+/// ⭐ Task 3 업데이트:
+/// - GetInteractionType() 구현
+/// - GetInteractionName() 구현
+/// </summary>
 public class Door : MonoBehaviour, IInteractable
 {
-   
-    [SerializeField] float _doorTime;
-    [SerializeField] Ease _doorEase;
+    [Header("문 설정")]
+    [SerializeField] private string _doorName = "문";
+    [SerializeField] private float _doorTime = 0.5f;
+    [SerializeField] private Ease _doorEase = Ease.OutQuad;
+    [SerializeField] private float _interactionRange = 3.0f;
 
-    bool _isopening = false;
-    bool _doorOpen = false;
+    private bool _isOpening = false;
+    private bool _doorOpen = false;
 
-
-    void DoorOpen()
-    {
-        if (_isopening) return;
-        _isopening = true;
-        Vector3 rotate = transform.rotation.eulerAngles;
-        _doorOpen = !_doorOpen;
-        if (_doorOpen)
-        {
-            rotate.y += 90;
-        }
-        else
-        {
-            rotate.y -= 90;
-        }
-        transform.DORotate(rotate, _doorTime).SetEase(_doorEase)
-            .OnComplete(() => _isopening = false
-            );
-    }
-
-    private void OnDestroy()
-    {
-        transform.DOKill();
-    }
+    #region IInteractable 구현
 
     public void Interact(PlayerCharacter player)
     {
-        DoorOpen();
+        ToggleDoor();
     }
 
     public string GetInteractionPrompt()
     {
-        return "hi";
+        // 호환성 유지용 (더 이상 사용 안 함)
+        return _doorOpen ? "문 닫기" : "문 열기";
     }
 
     public bool CanInteract(PlayerCharacter player)
     {
-        return true;
+        return !_isOpening;
     }
 
     public float GetInteractionRange()
     {
-        return 10f;
+        return _interactionRange;
+    }
+
+    public InteractionType GetInteractionType()
+    {
+        return InteractionType.Door;
+    }
+
+    public string GetInteractionName()
+    {
+        return _doorName;
+    }
+
+    #endregion
+
+    #region 문 동작
+
+    private void ToggleDoor()
+    {
+        if (_isOpening) return;
+
+        _isOpening = true;
+        _doorOpen = !_doorOpen;
+
+        Vector3 rotation = transform.rotation.eulerAngles;
+        rotation.y += _doorOpen ? 90 : -90;
+
+        transform.DORotate(rotation, _doorTime)
+            .SetEase(_doorEase)
+            .OnComplete(() => _isOpening = false);
+    }
+
+    #endregion
+
+    private void OnDestroy()
+    {
+        transform.DOKill();
     }
 }
