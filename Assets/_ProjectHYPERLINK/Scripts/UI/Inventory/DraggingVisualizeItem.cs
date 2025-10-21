@@ -19,6 +19,9 @@ public class DraggingVisualizeItem : MonoBehaviour
         _image.sprite = item.Icon.sprite;
         _image.rectTransform.sizeDelta = item.Icon.rectTransform.sizeDelta;
     }
-
+    public void ChangeColor(bool on)
+    {
+        _image.color = on ? Color.white : Color.red;
+    }
    
 }

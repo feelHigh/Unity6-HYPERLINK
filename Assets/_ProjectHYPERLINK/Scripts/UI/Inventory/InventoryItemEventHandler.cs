@@ -32,7 +32,18 @@ public class InventoryItemEventHandler : MonoBehaviour
     public void OnDrag(PointerEventData eventData)
     {
         _dragItem.transform.position = eventData.position;
-        _inventory.OnDrag(_ownerSlot.Data, _dragItem.CheckPos);
+        switch (_inventory.OnDrag(_ownerSlot.Data, _dragItem.CheckPos)
+)
+        {
+            case ItemDragState.Possible:
+                _dragItem.ChangeColor(true);
+                break;
+            case ItemDragState.Impossible:
+                _dragItem.ChangeColor(false);
+                break;
+            case ItemDragState.Same:
+                break;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData, InventoryItemPrefab item)

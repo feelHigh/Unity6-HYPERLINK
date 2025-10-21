@@ -26,9 +26,9 @@ public class InventorySlot : Slot
     {
         _data = data;
     }
-    public void TestSet(bool on)
+    public void IGotItem(bool on)
     {
-        _Icon.color = on ? Color.green : Color.white;
+        _Icon.color = Color.white;
 
         _hasItem = on;
     }

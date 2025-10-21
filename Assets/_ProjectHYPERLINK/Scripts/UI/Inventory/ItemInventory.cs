@@ -62,7 +62,7 @@ public class ItemInventory : MonoBehaviour
                 {
                     for (int j = 0; j < slot.Size.y; j++)
                     {
-                        _slots[pos.x + i, pos.y + j].TestSet(true);
+                        _slots[pos.x + i, pos.y + j].IGotItem(true);
                     }
                 }
             }
@@ -74,7 +74,7 @@ public class ItemInventory : MonoBehaviour
         _sideLength = coners[3].x - coners[1].x;
         _startPosition = coners[1];
     }
-    
+
     public void GetItem(ItemData data)
     {
         foreach (InventorySlot slot in _slots)
@@ -113,7 +113,7 @@ public class ItemInventory : MonoBehaviour
         {
             for (int j = 0; j < size.y; j++)
             {
-                _slots[pos.x + i, pos.y + j].TestSet(get);
+                _slots[pos.x + i, pos.y + j].IGotItem(get);
             }
         }
     }
@@ -122,33 +122,13 @@ public class ItemInventory : MonoBehaviour
     {
         Vector2Int pos = slot.Pos;
         Vector2Int size = data.GridSize;
-        for (int i = pos.x; i < pos.x+size.x; i++)
+        for (int i = pos.x; i < pos.x + size.x; i++)
         {
             if (i >= _slots.GetLength(0)) break;
-            for (int j = pos.y; j < pos.y+size.y; j++)
+            for (int j = pos.y; j < pos.y + size.y; j++)
             {
                 if (j >= _slots.GetLength(1)) break;
                 _slots[i, j].SetColor(get);
-            }
-        }
-    }
-
-    void DropItem(Slot originSlot, InventorySlot newSlot, InventoryItemPrefab item)
-    {
-        if (originSlot is InventorySlot slot)
-        {
-            if (ChekCanDrop(slot.Data, newSlot))
-            {
-                PlaceItem(slot.Data, slot, false);
-                PlaceItem(slot.ReturnDataAndRemove(), newSlot, true);
-                Vector2Int pos = newSlot.Pos;
-                Vector2Int size = newSlot.Data.GridSize;
-                InventorySlot lastSlot = _slots[pos.x + size.x - 1, pos.y + size.y - 1];
-                item.ChangePos(newSlot, lastSlot);
-            }
-            else
-            {
-                PlaceItem(slot.Data, slot, true);
             }
         }
     }
@@ -182,14 +162,17 @@ public class ItemInventory : MonoBehaviour
 
     public ItemDragState OnDrag(ItemData data, Vector2 pos)
     {
+        Vector2Int size = data.GridSize;
         int x = -Mathf.RoundToInt((_startPosition.x - pos.x) / _sideLength);
         int y = Mathf.RoundToInt((_startPosition.y - pos.y) / _sideLength);
-        if (x < 0 || x >= _slots.GetLength(0) || y < 0 || y >= _slots.GetLength(1))
+        if (x < 0 || x > _slots.GetLength(0)- size.x || y < 0 || y > _slots.GetLength(1)-size.y)
         {
-            if (_currentSlot != null)
+            if(_currentSlot != null)
             {
                 ChangeSlotColor(data, _currentSlot, false);
+                _currentSlot = null;
             }
+
             return ItemDragState.Impossible;
         }
 
@@ -197,7 +180,6 @@ public class ItemInventory : MonoBehaviour
         {
             return ItemDragState.Same;
         }
-
         if (_currentSlot != null)
         {
             ChangeSlotColor(data, _currentSlot, false);
@@ -207,7 +189,6 @@ public class ItemInventory : MonoBehaviour
         if (ChekCanDrop(data, _currentSlot))
         {
             Vector2Int slotPos = _currentSlot.Pos;
-            Vector2Int size = data.GridSize;
             for (int i = 0; i < size.x; i++)
             {
                 for (int j = 0; j < size.y; j++)
@@ -227,10 +208,22 @@ public class ItemInventory : MonoBehaviour
 
     public void OnDrop(Vector2 pos, Slot ownerSlot, InventoryItemPrefab item)
     {
-        int x = -Mathf.RoundToInt((_startPosition.x - pos.x) / _sideLength);
-        int y = Mathf.RoundToInt((_startPosition.y - pos.y) / _sideLength);
-        if (x < 0 || x >= _slots.GetLength(0)) return;
-        if (y < 0 || y >= _slots.GetLength(1)) return;
-        DropItem(ownerSlot, _slots[x, y], item);
+        if (ownerSlot is InventorySlot slot)
+        {
+            if (_currentSlot != null)
+            {
+                if (ChekCanDrop(slot.Data, _currentSlot))
+                {
+                    PlaceItem(slot.Data, slot, false);
+                    PlaceItem(slot.ReturnDataAndRemove(), _currentSlot, true);
+                    Vector2Int posx = _currentSlot.Pos;
+                    Vector2Int size = _currentSlot.Data.GridSize;
+                    InventorySlot lastSlot = _slots[posx.x + size.x - 1, posx.y + size.y - 1];
+                    item.ChangePos(_currentSlot, lastSlot);
+                    return;
+                }
+            }
+            PlaceItem(slot.Data, slot, true);
+        }
     }
 }
