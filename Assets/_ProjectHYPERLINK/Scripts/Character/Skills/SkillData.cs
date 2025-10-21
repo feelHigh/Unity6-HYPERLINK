@@ -208,9 +208,9 @@ public class SkillData : ScriptableObject
     /// 버프 스킬(Buff) 전용
     /// 
     /// 적용 방식:
-    /// - Warrior: Strength + BuffAmount
-    /// - Mage: Intelligence + BuffAmount
-    /// - Archer: Dexterity + BuffAmount
+    /// - Laon: Strength + BuffAmount
+    /// - Sian: Intelligence + BuffAmount
+    /// - Yujin: Dexterity + BuffAmount
     /// 
     /// 예시:
     /// - BuffAmount = 50: 주요 스탯 +50

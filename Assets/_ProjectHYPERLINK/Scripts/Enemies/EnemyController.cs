@@ -378,10 +378,10 @@ public class EnemyController : MonoBehaviour, IDamageable
             playerExperienceManager.GainExperience(_expReward);
         }
         //골드
-        PlayerStatus player = _target.GetComponent<PlayerStatus>();
+        PlayerCombat player = _target.GetComponent<PlayerCombat>();
         if (player != null)
         {
-            player.AddGold(_goldReward);
+            //player.AddGold(_goldReward);
         }
 
         //아이템 드랍

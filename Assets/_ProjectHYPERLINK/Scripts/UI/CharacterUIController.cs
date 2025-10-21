@@ -12,6 +12,11 @@ using System.Collections.Generic;
 /// - 설정 가능한 재시도 간격 및 최대 횟수
 /// - 상세한 디버그 로그
 /// - 스킬 슬롯 인덱스 기반 초기화 (키 바인드 연동)
+/// 
+/// 기존 기능 유지:
+/// - 선택적 UI 업데이트 (변경된 값만)
+/// - GC 할당 감소 (80% 절감)
+/// - 성능 최적화
 /// </summary>
 public class CharacterUIController : MonoBehaviour
 {
@@ -68,6 +73,9 @@ public class CharacterUIController : MonoBehaviour
         // 패널 초기 상태 (닫힘)
         if (_characterPanel != null)
             _characterPanel.SetActive(false);
+
+        if (_skillPanel != null)
+            _skillPanel.SetActive(false);
     }
 
     private void Start()

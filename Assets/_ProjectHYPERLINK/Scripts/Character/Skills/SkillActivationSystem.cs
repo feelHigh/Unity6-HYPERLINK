@@ -404,9 +404,9 @@ public class SkillActivationSystem : MonoBehaviour
     /// 버프용 CharacterStats 생성
     /// 
     /// 직업별 스탯 증가:
-    /// - Warrior: Strength
-    /// - Mage: Intelligence
-    /// - Archer: Dexterity
+    /// - Laon: Strength
+    /// - Sian: Intelligence
+    /// - Yujin: Dexterity
     /// </summary>
     private CharacterStats CreateBuffStats(float buffAmount)
     {
@@ -414,17 +414,17 @@ public class SkillActivationSystem : MonoBehaviour
 
         switch (playerClass)
         {
-            case CharacterClass.Warrior:
+            case CharacterClass.Laon:
                 return new CharacterStatsBuilder()
                     .SetStrength((int)buffAmount)
                     .Build();
 
-            case CharacterClass.Mage:
+            case CharacterClass.Sian:
                 return new CharacterStatsBuilder()
                     .SetIntelligence((int)buffAmount)
                     .Build();
 
-            case CharacterClass.Archer:
+            case CharacterClass.Yujin:
                 return new CharacterStatsBuilder()
                     .SetDexterity((int)buffAmount)
                     .Build();

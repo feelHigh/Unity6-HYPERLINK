@@ -1,7 +1,7 @@
 using DG.Tweening;
 using Unity.VisualScripting;
 using UnityEngine;
-
+ 
 public class Door : MonoBehaviour, IInteractable
 {
    

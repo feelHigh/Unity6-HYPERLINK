@@ -1,9 +1,6 @@
 /// <summary>
 /// 통합 장비 타입 시스템
 /// 
-/// 이전: EquipmentType, EquipType 중복 정의
-/// 현재: ItemEnums.cs에 통합
-/// 
 /// 슬롯 종류:
 /// - None: 장비 아님
 /// - Weapon: 무기 (검, 활, 지팡이 등)
@@ -40,35 +37,26 @@ public enum EquipmentType
 }
 
 /// <summary>
-/// 통합 아이템 등급/희귀도 시스템
+/// 엠블렘 기반 아이템 등급 시스템
 /// 
-/// 이전: ItemQuality, Rarity 중복 정의
-/// 현재: ItemEnums.cs에 통합
-/// 
-/// Diablo 3 등급 시스템 기반:
-/// - Normal (흰색): 기본 아이템, 추가 스탯 없음
-/// - Magic (파란색): 1-2개 추가 스탯
-/// - Rare (노란색): 3-4개 추가 스탯
-/// - Epic (보라색): 4-5개 추가 스탯 (Diablo에는 없음)
-/// - Legendary (주황색): 5-6개 스탯 + 고유 능력
-/// - Set (초록색): 세트 보너스 (여러 개 착용 시)
+/// 등급 체계:
+/// - StandardEmblem (표준): 기본 아이템, 0-1개 추가 스탯
+/// - SilverEmblem (실버): 2-3개 추가 스탯
+/// - GoldEmblem (골드): 4-5개 추가 스탯
+/// - DiamondEmblem (다이아): 6-7개 스탯 + 특수 효과
 /// 
 /// 드랍 확률 예시:
-/// - Normal: 60%
-/// - Magic: 30%
-/// - Rare: 9%
-/// - Epic: 0.7%
-/// - Legendary: 0.29%
-/// - Set: 0.01%
+/// - StandardEmblem: 60%
+/// - SilverEmblem: 30%
+/// - GoldEmblem: 9%
+/// - DiamondEmblem: 1%
 /// </summary>
 public enum ItemQuality
 {
-    Normal,      // 일반 (흰색)
-    Magic,       // 마법 (파란색)
-    Rare,        // 희귀 (노란색)
-    Epic,        // 영웅 (보라색)
-    Legendary,   // 전설 (주황색)
-    Set          // 세트 (초록색)
+    StandardEmblem,   // 표준 엠블렘 (흰색)
+    SilverEmblem,     // 실버 엠블렘 (회색)
+    GoldEmblem,       // 골드 엠블렘 (금색)
+    DiamondEmblem     // 다이아몬드 엠블렘 (청록색)
 }
 
 /// <summary>
