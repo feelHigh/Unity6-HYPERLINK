@@ -1649,8 +1649,8 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 25
+  m_VertexColorAlwaysGammaSpace: 1
+  m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -1746,7 +1746,6 @@ MonoBehaviour:
   _promptText: {fileID: 23812493702699265}
   _objectNameText: {fileID: 0}
   _promptFormat: '[F] {0}'
-  _keyName: F
   _useFade: 1
   _fadeSpeed: 5
   _enableDebugLogs: 1

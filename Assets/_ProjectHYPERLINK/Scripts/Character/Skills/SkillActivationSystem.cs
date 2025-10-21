@@ -223,7 +223,7 @@ public class SkillActivationSystem : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            Enemy enemy = hit.GetComponent<Enemy>();
+            EnemyController enemy = hit.GetComponent<EnemyController>();
             if (enemy != null)
             {
                 float damage = CalculateSkillDamage(skill);
@@ -313,7 +313,7 @@ public class SkillActivationSystem : MonoBehaviour
         // 범위 내 모든 적에게 데미지 적용
         foreach (Collider hit in hits)
         {
-            Enemy enemy = hit.GetComponent<Enemy>();
+            EnemyController enemy = hit.GetComponent<EnemyController>();
             if (enemy != null)
             {
                 float damage = CalculateSkillDamage(skill);
