@@ -1,20 +1,14 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
-/// Diablo 스타일 클릭 이동 및 전투 컨트롤러 (PlayerCharacter 리팩토링 반영)
+/// 플레이어 마우스 컨트롤 시스템
 /// 
-/// 주요 변경사항:
-/// - PlayerCharacter.GetMainStat() 사용
-/// - PlayerCharacter.CurrentStats 접근 방식 업데이트
-/// 
-/// 핵심 기능:
-/// - 지형 클릭: 해당 위치로 이동 (NavMeshAgent)
-/// - 적 클릭: 적에게 이동 후 자동 공격
-/// - 대시 공격: Root Motion 돌진
-/// - 데미지 계산: 스탯 + 크리티컬
+/// 좌클릭: 이동 & 상호작용
+/// 우클릭: 회전 & 전방 원뿔 범위 공격
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -33,15 +27,27 @@ public class PlayerNavController : MonoBehaviour
     private Transform _currentTarget = null;
     private bool _isOnCooldown = false;
 
+    // 상호작용 시스템
+    private IInteractable _pendingInteraction;
+    private Coroutine _interactionCoroutine;
+
     [Header("애니메이션 설정")]
     [SerializeField] private float _animationDampTime = 0.1f;
     [SerializeField] private float _attackAnimationDuration = 1.0f;
 
     [Header("전투 설정")]
+    [Tooltip("공격 범위 (미터)")]
     [SerializeField] private float _attackRange = 1f;
+
+    [Tooltip("공격 각도 (전방 원뿔 범위, 90° = 전방 1/4 원)")]
+    [SerializeField] private float _attackAngle = 90f;
+
     [SerializeField] private float _attackDamage = 25f;
     [SerializeField] private float _attackCooldown = 1.5f;
     [SerializeField] private LayerMask _enemyLayer = 1;
+
+    [Header("레이어 설정")]
+    [SerializeField] private LayerMask _groundLayer = ~0;
 
     private void Awake()
     {
@@ -56,7 +62,7 @@ public class PlayerNavController : MonoBehaviour
         _animator.applyRootMotion = false;
         _agent.stoppingDistance = _attackRange;
     }
-    
+
     private void Update()
     {
         HandleMouseInput();
@@ -68,174 +74,429 @@ public class PlayerNavController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 마우스 입력 처리
-    /// </summary>
+    #region 마우스 입력
+
     private void HandleMouseInput()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+        // 좌클릭: 이동 & 상호작용
+        if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            HandleLeftClick();
+        }
 
-            // 적 클릭
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, _enemyLayer))
+        // 우클릭: 회전 & 공격
+        if (Input.GetMouseButtonDown(1))
+        {
+            HandleRightClick();
+        }
+    }
+
+    /// <summary>
+    /// 좌클릭 처리: IInteractable 우선, 없으면 이동
+    /// </summary>
+    private void HandleLeftClick()
+    {
+        Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        // 1순위: 상호작용 가능한 오브젝트 체크
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+
+            if (interactable != null && interactable.CanInteract(_playerCharacter))
             {
-                if (hit.collider.CompareTag("Enemy"))
-                {
-                    _currentTarget = hit.collider.transform;
-                    _agent.SetDestination(_currentTarget.position);
-                }
-            }
-            // 지형 클릭
-            else if (Input.GetMouseButtonDown(0))
-            {
+                // 상호작용 대상으로 이동
+                _agent.SetDestination(hit.point);
                 _currentTarget = null;
 
-                if (Physics.Raycast(ray, out hit))
+                // 기존 상호작용 취소
+                if (_interactionCoroutine != null)
                 {
-                    _agent.SetDestination(hit.point);
+                    StopCoroutine(_interactionCoroutine);
                 }
+
+                _interactionCoroutine = StartCoroutine(MoveAndInteract(hit.collider.gameObject, interactable));
+                return;
+            }
+        }
+
+        // 2순위: 지형 이동
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
+        {
+            _agent.SetDestination(hit.point);
+            _currentTarget = null;
+
+            // 상호작용 취소
+            if (_interactionCoroutine != null)
+            {
+                StopCoroutine(_interactionCoroutine);
+                _interactionCoroutine = null;
+                _pendingInteraction = null;
             }
         }
     }
 
     /// <summary>
-    /// 타겟 추적 및 자동 공격
+    /// 우클릭 처리: 전방 원뿔 범위 내 모든 적 공격
+    /// </summary>
+    private void HandleRightClick()
+    {
+        Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+            // 클릭 위치 바라보기
+            Vector3 lookDirection = hit.point - transform.position;
+            lookDirection.y = 0; // y축 회전만
+
+            if (lookDirection != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDirection);
+            }
+
+            // 전방 원뿔 범위 내 적 탐색
+            List<Transform> enemiesInFront = GetEnemiesInFrontCone();
+
+            if (enemiesInFront.Count > 0)
+            {
+                // 범위 내 모든 적 공격
+                PerformMultiAttack(enemiesInFront);
+            }
+            else
+            {
+                // 적 없으면 헛스윙
+                PerformAttack(null);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 전방 원뿔 범위 내 적 탐색
+    /// 
+    /// 작동 방식:
+    /// 1. OverlapSphere로 범위 내 모든 적 찾기
+    /// 2. Vector3.Angle로 플레이어 전방과의 각도 계산
+    /// 3. 각도가 _attackAngle/2 이하인 적만 반환
+    /// </summary>
+    private List<Transform> GetEnemiesInFrontCone()
+    {
+        List<Transform> validEnemies = new List<Transform>();
+
+        // 범위 내 모든 적 찾기
+        Collider[] enemies = Physics.OverlapSphere(transform.position, _attackRange, _enemyLayer);
+
+        foreach (Collider enemy in enemies)
+        {
+            // 적 방향 벡터 계산 (수평만)
+            Vector3 directionToEnemy = enemy.transform.position - transform.position;
+            directionToEnemy.y = 0;
+
+            // 전방과의 각도 계산
+            float angleToEnemy = Vector3.Angle(transform.forward, directionToEnemy);
+
+            // 원뿔 범위 내에 있는지 체크
+            if (angleToEnemy <= _attackAngle / 2f)
+            {
+                validEnemies.Add(enemy.transform);
+            }
+        }
+
+        return validEnemies;
+    }
+
+    #endregion
+
+    #region 상호작용 시스템
+
+    /// <summary>
+    /// 목표까지 이동 후 상호작용 실행
+    /// </summary>
+    private IEnumerator MoveAndInteract(GameObject target, IInteractable interactable)
+    {
+        _pendingInteraction = interactable;
+        float interactionRange = interactable.GetInteractionRange();
+
+        // 목표 범위 도달까지 대기
+        while (Vector3.Distance(transform.position, target.transform.position) > interactionRange)
+        {
+            // 이동 중 취소 체크
+            if (_pendingInteraction == null)
+                yield break;
+
+            yield return null;
+        }
+
+        // 도착 후 상호작용
+        if (_pendingInteraction != null)
+        {
+            interactable.Interact(_playerCharacter);
+            _pendingInteraction = null;
+        }
+
+        _interactionCoroutine = null;
+    }
+
+    #endregion
+
+    #region 공격 시스템
+
+    /// <summary>
+    /// 단일 공격 (헛스윙용)
+    /// </summary>
+    private void PerformAttack(Transform target)
+    {
+        if (_isAttacking || _isOnCooldown) return;
+
+        StartCoroutine(AttackSequence(target));
+    }
+
+    /// <summary>
+    /// 다중 공격 (범위 내 모든 적)
+    /// </summary>
+    private void PerformMultiAttack(List<Transform> targets)
+    {
+        if (_isAttacking || _isOnCooldown) return;
+
+        StartCoroutine(MultiAttackSequence(targets));
+    }
+
+    /// <summary>
+    /// 단일 공격 시퀀스
+    /// </summary>
+    private IEnumerator AttackSequence(Transform target)
+    {
+        _isAttacking = true;
+        _isOnCooldown = true;
+
+        _agent.isStopped = true;
+        _animator.SetTrigger(ATTACK_HASH);
+
+        // 데미지 타이밍까지 대기
+        yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
+
+        // 데미지 적용
+        if (target != null)
+        {
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            if (damageable != null)
+            {
+                float damage = CalculateDamage();
+                damageable.TakeDamage(damage);
+            }
+        }
+
+        // 애니메이션 종료 대기
+        yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
+
+        _isAttacking = false;
+        _agent.isStopped = false;
+
+        // 쿨다운 대기
+        yield return new WaitForSeconds(_attackCooldown - _attackAnimationDuration);
+
+        _isOnCooldown = false;
+    }
+
+    /// <summary>
+    /// 다중 공격 시퀀스
+    /// 
+    /// 타이밍:
+    /// 0.0s: 애니메이션 시작
+    /// 0.5s: 모든 적에게 데미지 적용
+    /// 1.0s: 애니메이션 종료, 이동 가능
+    /// 1.5s: 쿨다운 종료, 재공격 가능
+    /// </summary>
+    private IEnumerator MultiAttackSequence(List<Transform> targets)
+    {
+        _isAttacking = true;
+        _isOnCooldown = true;
+
+        _agent.isStopped = true;
+        _animator.SetTrigger(ATTACK_HASH);
+
+        yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
+
+        // 모든 적에게 데미지 적용
+        float damage = CalculateDamage();
+        int hitCount = 0;
+
+        foreach (Transform target in targets)
+        {
+            if (target == null) continue;
+
+            IDamageable damageable = target.GetComponent<IDamageable>();
+            if (damageable != null)
+            {
+                damageable.TakeDamage(damage);
+                hitCount++;
+            }
+        }
+
+        if (hitCount > 0)
+        {
+            Debug.Log($"{hitCount}명의 적 공격!");
+        }
+
+        yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
+
+        _isAttacking = false;
+        _agent.isStopped = false;
+
+        yield return new WaitForSeconds(_attackCooldown - _attackAnimationDuration);
+
+        _isOnCooldown = false;
+    }
+
+    /// <summary>
+    /// 데미지 계산
+    /// 
+    /// 공식: 기본 데미지 × (1 + 주요스탯/100) × 크리티컬 배율
+    /// </summary>
+    private float CalculateDamage()
+    {
+        // 주요 스탯 보너스 적용
+        int mainStat = _playerCharacter.GetMainStat();
+        float damage = _attackDamage * (1f + mainStat / 100f);
+
+        // 크리티컬 판정
+        CharacterStats stats = _playerCharacter.CurrentStats;
+        if (Random.Range(0f, 100f) < stats.CriticalChance)
+        {
+            damage *= (1f + stats.CriticalDamage / 100f);
+            Debug.Log("크리티컬 히트!");
+        }
+
+        return damage;
+    }
+
+    /// <summary>
+    /// 타겟 추적 (적 클릭 시)
     /// </summary>
     private void FollowTarget()
     {
         if (_currentTarget == null)
             return;
 
-        if (!_isAttacking && !_agent.isStopped)
+        float distance = Vector3.Distance(transform.position, _currentTarget.position);
+
+        if (distance > _attackRange && !_isAttacking)
         {
             _agent.SetDestination(_currentTarget.position);
         }
-
-        float distanceToTarget = Vector3.Distance(transform.position, _currentTarget.position);
-
-        if (distanceToTarget <= _attackRange && !_isAttacking && !_isOnCooldown)
+        else if (distance <= _attackRange && !_isAttacking && !_isOnCooldown)
         {
-            StartCoroutine(PerformDashAttack());
+            // 범위 내 도달 시 전방 원뿔 공격
+            List<Transform> enemies = GetEnemiesInFrontCone();
+            if (enemies.Count > 0)
+            {
+                PerformMultiAttack(enemies);
+            }
         }
     }
 
-    /// <summary>
-    /// 애니메이터 업데이트
-    /// </summary>
+    #endregion
+
+    #region 애니메이션
+
     private void UpdateAnimator()
     {
-        if (_isAttacking)
-            return;
-
-        float currentSpeed = _agent.velocity.magnitude / _agent.speed;
-        _animator.SetFloat(SPEED_HASH, currentSpeed, _animationDampTime, Time.deltaTime);
+        float speed = _agent.velocity.magnitude;
+        _animator.SetFloat(SPEED_HASH, speed, _animationDampTime, Time.deltaTime);
     }
 
-    /// <summary>
-    /// 대시 공격 코루틴
-    /// </summary>
-    private IEnumerator PerformDashAttack()
-    {
-        _isAttacking = true;
+    #endregion
 
-        // 1. 이동 멈춤
-        _agent.isStopped = true;
-        _agent.ResetPath();
-
-        // 2. 타겟 방향으로 회전
-        if (_currentTarget != null)
-        {
-            Vector3 dir = (_currentTarget.position - transform.position).normalized;
-            dir.y = 0;
-            if (dir != Vector3.zero)
-            {
-                transform.rotation = Quaternion.LookRotation(dir);
-            }
-        }
-
-        // 3. Root Motion 활성화 + 공격 애니메이션
-        _animator.applyRootMotion = true;
-        _animator.SetTrigger(ATTACK_HASH);
-
-        // 4. 50% 지점까지 대기 (돌진)
-        yield return new WaitForSeconds(_attackAnimationDuration * ATTACK_DAMAGE_TIMING);
-
-        // 5. 데미지 적용
-        if (_currentTarget != null)
-        {
-            Enemy enemyScript = _currentTarget.GetComponent<Enemy>();
-            if (enemyScript != null)
-            {
-                float totalDamage = GetCalculatedDamage();
-                enemyScript.TakeDamage(totalDamage);
-            }
-        }
-
-        // 6. 나머지 애니메이션 재생
-        yield return new WaitForSeconds(_attackAnimationDuration * (1f - ATTACK_DAMAGE_TIMING));
-
-        // 7. 정리
-        _animator.applyRootMotion = false;
-        _agent.isStopped = false;
-        _agent.Warp(transform.position);
-        _isAttacking = false;
-
-        // 8. 쿨다운 시작
-        StartCoroutine(AttackCooldownTimer());
-    }
+    #region 디버그 시각화
 
     /// <summary>
-    /// 데미지 계산 (Diablo 3 공식)
+    /// 씬 뷰에서 공격 범위 시각화
     /// 
-    /// 공식:
-    /// 1. 기본 데미지
-    /// 2. 주요 스탯 보너스 (1% per point)
-    /// 3. 크리티컬 체크
-    /// </summary>
-    private float GetCalculatedDamage()
-    {
-        // 1. 기본 데미지
-        float baseValue = _attackDamage;
-
-        // 2. 주요 스탯 가져오기 (직업별)
-        int mainStat = _playerCharacter != null ? _playerCharacter.GetMainStat() : 0;
-
-        // 3. 스탯으로 데미지 증폭
-        float valueWithStat = baseValue * (1f + mainStat / 100f);
-        float finalDamage = valueWithStat;
-
-        // 4. 크리티컬 스탯
-        float critChance = _playerCharacter?.CurrentStats.CriticalChance ?? 0f;
-        float critDamage = _playerCharacter?.CurrentStats.CriticalDamage ?? 0f;
-
-        // 5. 크리티컬 체크
-        if (Random.Range(0f, 100f) < critChance)
-        {
-            finalDamage *= (1f + critDamage / 100f);
-            Debug.Log("크리티컬 히트!");
-        }
-
-        return finalDamage;
-    }
-
-    /// <summary>
-    /// 공격 쿨다운 타이머
-    /// </summary>
-    private IEnumerator AttackCooldownTimer()
-    {
-        _isOnCooldown = true;
-        yield return new WaitForSeconds(_attackCooldown);
-        _isOnCooldown = false;
-    }
-
-    /// <summary>
-    /// 공격 범위 시각화 (Scene 뷰)
+    /// 표시 내용:
+    /// - 빨간 원: 공격 범위
+    /// - 노란 원뿔: 공격 각도
+    /// - 빨간 선/구체: 공격 가능한 적
     /// </summary>
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
+        if (!Application.isPlaying) return;
+
+        Vector3 position = transform.position;
+
+        // 1. 공격 범위 구체 (외곽선)
+        Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+        Gizmos.DrawWireSphere(position, _attackRange);
+
+        // 2. 공격 원뿔 그리기
+        DrawAttackCone(position);
+
+        // 3. 범위 내 적 강조
+        DrawEnemiesInCone();
     }
+
+    /// <summary>
+    /// 공격 원뿔 시각화
+    /// </summary>
+    private void DrawAttackCone(Vector3 position)
+    {
+        Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+
+        Vector3 forward = transform.forward * _attackRange;
+        int segments = 20; // 원뿔 부드러움
+        float angleStep = _attackAngle / segments;
+
+        // 원뿔 외곽선 그리기
+        Vector3 prevPoint = position + Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = -_attackAngle / 2f + (angleStep * i);
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * forward;
+            Vector3 point = position + direction;
+
+            // 원뿔 가장자리 연결
+            Gizmos.DrawLine(prevPoint, point);
+
+            // 중심에서 가장자리로 선 (5개마다)
+            if (i % 5 == 0)
+            {
+                Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
+                Gizmos.DrawLine(position, point);
+                Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+            }
+
+            prevPoint = point;
+        }
+
+        // 원뿔 경계선 강조
+        Gizmos.color = Color.yellow;
+        Vector3 leftBound = Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
+        Vector3 rightBound = Quaternion.Euler(0, _attackAngle / 2f, 0) * forward;
+        Gizmos.DrawLine(position, position + leftBound);
+        Gizmos.DrawLine(position, position + rightBound);
+    }
+
+    /// <summary>
+    /// 공격 가능한 적 강조 표시
+    /// </summary>
+    private void DrawEnemiesInCone()
+    {
+        List<Transform> enemiesInCone = GetEnemiesInFrontCone();
+
+        foreach (Transform enemy in enemiesInCone)
+        {
+            if (enemy == null) continue;
+
+            // 플레이어에서 적으로 선
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, enemy.position);
+
+            // 적 위치에 구체
+            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
+            Gizmos.DrawSphere(enemy.position, 0.5f);
+        }
+    }
+
+    #endregion
 }

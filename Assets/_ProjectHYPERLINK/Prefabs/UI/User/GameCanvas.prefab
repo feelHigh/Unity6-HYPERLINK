@@ -1437,7 +1437,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 100 / 100
+  m_text: 0 / 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -1597,7 +1597,6 @@ GameObject:
   - component: {fileID: 4285466548154735879}
   - component: {fileID: 4800264697458284258}
   - component: {fileID: 3949054636495800351}
-  - component: {fileID: 1767181942410105285}
   - component: {fileID: 1310824457158690043}
   m_Layer: 5
   m_Name: GameCanvas
@@ -1731,20 +1730,6 @@ MonoBehaviour:
   - {fileID: 242415467860325898}
   - {fileID: 1179624683755729849}
   - {fileID: 3153354719028355159}
---- !u!114 &1767181942410105285
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3166794165661102886}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1871a1d5da670f42aeb8afc4279337a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _characterPanel: {fileID: 5984431588645740818}
-  _skillPanel: {fileID: 4778235510115689695}
 --- !u!114 &1310824457158690043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1760,8 +1745,8 @@ MonoBehaviour:
   _promptPanel: {fileID: 4801119945243904156}
   _promptText: {fileID: 23812493702699265}
   _objectNameText: {fileID: 0}
-  _promptFormat: '[E] {0}'
-  _keyName: E
+  _promptFormat: '[F] {0}'
+  _keyName: F
   _useFade: 1
   _fadeSpeed: 5
   _enableDebugLogs: 1
@@ -4823,7 +4808,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 50 / 50
+  m_text: 0 / 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}

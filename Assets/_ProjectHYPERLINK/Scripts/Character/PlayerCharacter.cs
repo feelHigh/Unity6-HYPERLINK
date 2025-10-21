@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class PlayerCharacter : MonoBehaviour
 {
     [Header("캐릭터 설정")]
-    [SerializeField] private CharacterClass _characterClass = CharacterClass.Warrior;
+    [SerializeField] private CharacterClass _characterClass = CharacterClass.Laon;
     [SerializeField] private CharacterStats _baseStats;
     [SerializeField] private SkillData[] _availableSkills;
 
@@ -17,10 +17,15 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private float _currentHealth;
     [SerializeField] private float _currentMana;
 
+    [Header("소비 아이템")]
+    [SerializeField] private int _redSoda = 3;
+    [SerializeField] private float _redSodaHealAmount = 50f;
+
     // 이벤트
     public static event Action<float, float> OnHealthChanged;
     public static event Action<float, float> OnManaChanged;
     public static event Action<CharacterStats> OnStatsChanged;
+    public static event Action<int> OnRedSodaChanged;
     public static event Action<SkillData> OnSkillUnlocked;
 
     // 스탯
@@ -47,6 +52,7 @@ public class PlayerCharacter : MonoBehaviour
     public float MaxHealth => _maxHealth;
     public float CurrentMana => _currentMana;
     public float MaxMana => _maxMana;
+    public int RedSoda => _redSoda;
     public List<SkillData> UnlockedSkills => _unlockedSkills;
     public bool IsAlive => _currentHealth > 0;
     public float HealthPercentage => _maxHealth > 0 ? _currentHealth / _maxHealth : 0f;
@@ -166,11 +172,11 @@ public class PlayerCharacter : MonoBehaviour
 
         switch (_characterClass)
         {
-            case CharacterClass.Warrior:
+            case CharacterClass.Laon:
                 return totalStats.Strength;
-            case CharacterClass.Mage:
+            case CharacterClass.Sian:
                 return totalStats.Intelligence;
-            case CharacterClass.Archer:
+            case CharacterClass.Yujin:
                 return totalStats.Dexterity;
             default:
                 return totalStats.Strength;
@@ -376,6 +382,40 @@ public class PlayerCharacter : MonoBehaviour
         Debug.Log($"=== 캐릭터 로드 완료 ===");
         Debug.Log($"HP: {_currentHealth}/{_maxHealth}, MP: {_currentMana}/{_maxMana}");
         Debug.Log($"스탯 - STR: {_currentStats.Strength}, DEX: {_currentStats.Dexterity}, INT: {_currentStats.Intelligence}, VIT: {_currentStats.Vitality}");
+    }
+
+    /// <summary>
+    /// 레드 소다 사용 (Number 1 키)
+    /// </summary>
+    public void UseRedSoda()
+    {
+        if (_redSoda <= 0)
+        {
+            Debug.Log("레드 소다가 없습니다!");
+            return;
+        }
+
+        if (_currentHealth >= _maxHealth)
+        {
+            Debug.Log("체력이 가득 찼습니다!");
+            return;
+        }
+
+        _redSoda--;
+        Heal(_redSodaHealAmount);
+
+        Debug.Log($"레드 소다 사용! 체력 {_redSodaHealAmount} 회복 (남은 개수: {_redSoda})");
+        OnRedSodaChanged?.Invoke(_redSoda);
+    }
+
+    /// <summary>
+    /// 레드 소다 추가 (드랍/구매)
+    /// </summary>
+    public void AddRedSoda(int amount)
+    {
+        _redSoda += amount;
+        Debug.Log($"레드 소다 {amount}개 획득! (총: {_redSoda})");
+        OnRedSodaChanged?.Invoke(_redSoda);
     }
 
     /// <summary>

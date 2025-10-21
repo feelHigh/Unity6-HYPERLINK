@@ -1,13 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>
-/// 캐릭터 세이브 데이터 구조 (최종 수정 완료)
-/// 
-/// 변경사항:
-/// 1. CharacterInfo.experience: int → long (경험치 오버플로우 방지)
-/// 2. CharacterStatsData에 maxHealth, maxMana 추가
-/// </summary>
 [Serializable]
 public class CharacterSaveData
 {
@@ -43,10 +36,9 @@ public class CharacterSaveData
     {
         public float currentHealth;
         public float currentMana;
+        public int redSoda;  // ← NEW: Red Soda count
         public BaseStats baseStats;
         public SecondaryStats secondaryStats;
-
-        // ⭐ MaxHealth/MaxMana 저장
         public float maxHealth;
         public float maxMana;
 
@@ -120,9 +112,6 @@ public class CharacterSaveData
         public List<string> questsCompleted = new List<string>();
     }
 
-    /// <summary>
-    /// 새 캐릭터 생성
-    /// </summary>
     public static CharacterSaveData CreateNew(string characterName, CharacterClass characterClass)
     {
         return new CharacterSaveData
@@ -139,7 +128,7 @@ public class CharacterSaveData
                 characterName = characterName,
                 characterClass = characterClass.ToString(),
                 level = 1,
-                experience = 0  // long 타입으로 자동 처리
+                experience = 0
             },
             stats = CreateInitialStats(characterClass),
             progression = new ProgressionData(),
@@ -156,6 +145,7 @@ public class CharacterSaveData
         {
             currentHealth = 100,
             currentMana = 50,
+            redSoda = 3,  // ← NEW: Start with 3 Red Sodas
             baseStats = new CharacterStatsData.BaseStats(),
             secondaryStats = new CharacterStatsData.SecondaryStats
             {
@@ -169,21 +159,21 @@ public class CharacterSaveData
 
         switch (characterClass)
         {
-            case CharacterClass.Warrior:
+            case CharacterClass.Laon:
                 stats.baseStats.strength = 15;
                 stats.baseStats.dexterity = 8;
                 stats.baseStats.intelligence = 5;
                 stats.baseStats.vitality = 12;
                 break;
 
-            case CharacterClass.Mage:
+            case CharacterClass.Sian:
                 stats.baseStats.strength = 5;
                 stats.baseStats.dexterity = 8;
                 stats.baseStats.intelligence = 15;
                 stats.baseStats.vitality = 10;
                 break;
 
-            case CharacterClass.Archer:
+            case CharacterClass.Yujin:
                 stats.baseStats.strength = 8;
                 stats.baseStats.dexterity = 15;
                 stats.baseStats.intelligence = 7;
