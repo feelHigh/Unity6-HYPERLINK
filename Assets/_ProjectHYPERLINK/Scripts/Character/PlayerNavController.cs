@@ -9,6 +9,11 @@ using DG.Tweening;
 /// 
 /// 좌클릭: 이동 & 상호작용
 /// 우클릭: 회전 & 전방 원뿔 범위 공격
+/// 
+/// 최근 변경사항:
+/// - 피격/사망 애니메이션 지원
+/// - 스킬 실행 중 이동 제한
+/// - PlayerCharacter 이벤트 구독
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -24,6 +29,8 @@ public class PlayerNavController : MonoBehaviour
     private PlayerCharacter _playerCharacter;
 
     private bool _isAttacking = false;
+    private bool _isPerformingSkill = false;
+    private bool _isDead = false;
     private Transform _currentTarget = null;
     private bool _isOnCooldown = false;
 
@@ -49,6 +56,8 @@ public class PlayerNavController : MonoBehaviour
     [Header("레이어 설정")]
     [SerializeField] private LayerMask _groundLayer = ~0;
 
+    #region 초기화
+
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
@@ -63,8 +72,92 @@ public class PlayerNavController : MonoBehaviour
         _agent.stoppingDistance = _attackRange;
     }
 
+    private void OnEnable()
+    {
+        // PlayerCharacter 이벤트 구독
+        PlayerCharacter.OnPlayerDead += HandlePlayerDead;
+
+        // SkillActivationSystem 이벤트 구독
+        SkillActivationSystem.OnSkillExecuted += HandleSkillExecuted;
+    }
+
+    private void OnDisable()
+    {
+        // 이벤트 구독 해제
+        PlayerCharacter.OnPlayerDead -= HandlePlayerDead;
+        SkillActivationSystem.OnSkillExecuted -= HandleSkillExecuted;
+    }
+
+    #endregion
+
+    #region 이벤트 핸들러
+
+    /// <summary>
+    /// 플레이어 사망 시 처리
+    /// - 모든 이동/공격 정지
+    /// - NavMeshAgent 비활성화
+    /// </summary>
+    private void HandlePlayerDead()
+    {
+        _isDead = true;
+
+        // NavMeshAgent 완전 정지
+        if (_agent != null)
+        {
+            _agent.isStopped = true;
+            _agent.enabled = false;
+        }
+
+        // 실행 중인 코루틴 정지
+        StopAllCoroutines();
+
+        _isAttacking = false;
+        _currentTarget = null;
+        _pendingInteraction = null;
+        _interactionCoroutine = null;
+
+        Debug.Log("[PlayerNavController] 사망 - 모든 행동 정지");
+    }
+
+    /// <summary>
+    /// 스킬 실행 시 처리
+    /// - 스킬 실행 중 플래그 설정
+    /// - NavMeshAgent는 SkillAnimationController에서 제어
+    /// </summary>
+    private void HandleSkillExecuted(SkillData skill)
+    {
+        _isPerformingSkill = true;
+
+        // 스킬 실행 중 이동/공격 취소
+        _currentTarget = null;
+
+        if (_interactionCoroutine != null)
+        {
+            StopCoroutine(_interactionCoroutine);
+            _interactionCoroutine = null;
+            _pendingInteraction = null;
+        }
+
+        // 스킬 애니메이션이 끝날 때까지 대기 (대략적인 시간)
+        StartCoroutine(ResetSkillFlag(1.5f));
+    }
+
+    /// <summary>
+    /// 스킬 실행 플래그 리셋
+    /// </summary>
+    private IEnumerator ResetSkillFlag(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        _isPerformingSkill = false;
+    }
+
+    #endregion
+
     private void Update()
     {
+        // 사망 시 모든 입력 무시
+        if (_isDead) return;
+
         HandleMouseInput();
         UpdateAnimator();
 
@@ -78,6 +171,9 @@ public class PlayerNavController : MonoBehaviour
 
     private void HandleMouseInput()
     {
+        // 스킬 실행 중에는 입력 무시
+        if (_isPerformingSkill) return;
+
         // 좌클릭: 이동 & 상호작용
         if (Input.GetMouseButtonDown(0))
         {
@@ -90,7 +186,7 @@ public class PlayerNavController : MonoBehaviour
             HandleRightClick();
         }
     }
-
+    
     /// <summary>
     /// 좌클릭 처리: IInteractable 우선, 없으면 이동
     /// </summary>
@@ -222,14 +318,14 @@ public class PlayerNavController : MonoBehaviour
         while (Vector3.Distance(transform.position, target.transform.position) > interactionRange)
         {
             // 이동 중 취소 체크
-            if (_pendingInteraction == null)
+            if (_pendingInteraction == null || _isDead)
                 yield break;
 
             yield return null;
         }
 
         // 도착 후 상호작용
-        if (_pendingInteraction != null)
+        if (_pendingInteraction != null && !_isDead)
         {
             interactable.Interact(_playerCharacter);
             _pendingInteraction = null;
@@ -247,7 +343,7 @@ public class PlayerNavController : MonoBehaviour
     /// </summary>
     private void PerformAttack(Transform target)
     {
-        if (_isAttacking || _isOnCooldown) return;
+        if (_isAttacking || _isOnCooldown || _isDead) return;
 
         StartCoroutine(AttackSequence(target));
     }
@@ -257,7 +353,7 @@ public class PlayerNavController : MonoBehaviour
     /// </summary>
     private void PerformMultiAttack(List<Transform> targets)
     {
-        if (_isAttacking || _isOnCooldown) return;
+        if (_isAttacking || _isOnCooldown || _isDead) return;
 
         StartCoroutine(MultiAttackSequence(targets));
     }
@@ -277,7 +373,7 @@ public class PlayerNavController : MonoBehaviour
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
         // 데미지 적용
-        if (target != null)
+        if (target != null && !_isDead)
         {
             IDamageable damageable = target.GetComponent<IDamageable>();
             if (damageable != null)
@@ -291,7 +387,12 @@ public class PlayerNavController : MonoBehaviour
         yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
 
         _isAttacking = false;
-        _agent.isStopped = false;
+
+        // ⭐ 사망 시 NavMeshAgent 재활성화하지 않음
+        if (!_isDead)
+        {
+            _agent.isStopped = false;
+        }
 
         // 쿨다운 대기
         yield return new WaitForSeconds(_attackCooldown - _attackAnimationDuration);
@@ -319,30 +420,38 @@ public class PlayerNavController : MonoBehaviour
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
         // 모든 적에게 데미지 적용
-        float damage = CalculateDamage();
-        int hitCount = 0;
-
-        foreach (Transform target in targets)
+        if (!_isDead)
         {
-            if (target == null) continue;
+            float damage = CalculateDamage();
+            int hitCount = 0;
 
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            if (damageable != null)
+            foreach (Transform target in targets)
             {
-                damageable.TakeDamage(damage);
-                hitCount++;
-            }
-        }
+                if (target == null) continue;
 
-        if (hitCount > 0)
-        {
-            Debug.Log($"{hitCount}명의 적 공격!");
+                IDamageable damageable = target.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(damage);
+                    hitCount++;
+                }
+            }
+
+            if (hitCount > 0)
+            {
+                Debug.Log($"{hitCount}명의 적 공격!");
+            }
         }
 
         yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
 
         _isAttacking = false;
-        _agent.isStopped = false;
+
+        // 사망 시 NavMeshAgent 재활성화하지 않음
+        if (!_isDead)
+        {
+            _agent.isStopped = false;
+        }
 
         yield return new WaitForSeconds(_attackCooldown - _attackAnimationDuration);
 
@@ -376,7 +485,7 @@ public class PlayerNavController : MonoBehaviour
     /// </summary>
     private void FollowTarget()
     {
-        if (_currentTarget == null)
+        if (_currentTarget == null || _isDead)
             return;
 
         float distance = Vector3.Distance(transform.position, _currentTarget.position);

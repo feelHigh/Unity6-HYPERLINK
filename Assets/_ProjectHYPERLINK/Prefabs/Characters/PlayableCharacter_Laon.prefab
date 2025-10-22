@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 6395200515974723187}
   - component: {fileID: 1237584802716128544}
   - component: {fileID: -659526161995910388}
+  - component: {fileID: 341333240480795390}
   m_Layer: 10
   m_Name: PlayableCharacter_Laon
   m_TagString: Player
@@ -124,14 +125,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animationDampTime: 0.1
   _attackAnimationDuration: 1
-  _attackRange: 1
+  _attackRange: 3
+  _attackAngle: 90
   _attackDamage: 25
-  _attackCooldown: 1.5
+  _attackCooldown: 1
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 2048
-  _attackIndicator: {fileID: 0}
-  _indicatorDisplayTime: 0.3
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -170,7 +170,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
-  _skillSlots: []
+  _skillSlots:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   _skill1Key: 113
   _skill2Key: 119
   _skill3Key: 101
@@ -189,7 +192,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da7dbcb8870bcc4994ee4570fb3ccb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelUpData: {fileID: 11400000, guid: f6de5328a1d812745a648a855c86edc8, type: 2}
+  _levelUpData: {fileID: 11400000, guid: 8425db460a0e2884da3eab65ae77dce7, type: 2}
   _currentLevel: 1
   _currentExperience: 0
 --- !u!114 &1180839138950790797
@@ -219,9 +222,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e739476a9a2f51a4782c9575992dd402, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interactionKey: 101
-  _useRaycast: 0
-  _raycastDistance: 3.5
+  _useMouseRaycast: 1
+  _raycastDistance: 20
   _useOverlapSphere: 1
   _overlapRadius: 3
   _interactableLayer:
@@ -241,7 +243,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1377eb8590dad0438721db8fb27d0ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _characterPanel: {fileID: 0}
 --- !u!114 &-659526161995910388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,9 +255,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b3459792c84e134891e6fa1ba9061a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rb: {fileID: 0}
   _playerCharacter: {fileID: 0}
-  _gold: 0
+--- !u!114 &341333240480795390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d180bce239ab04aa2209ed467eeca0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _animator: {fileID: 0}
+  _skillActivationSystem: {fileID: 0}
+  _disableAgentDuringSkill: 0
+  _rotateTowardsMouse: 1
+  _rotationSpeed: 720
+  _enableDebugLogs: 1
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0

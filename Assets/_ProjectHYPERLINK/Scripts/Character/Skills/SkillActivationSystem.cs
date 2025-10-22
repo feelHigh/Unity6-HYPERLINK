@@ -55,6 +55,9 @@ public class SkillActivationSystem : MonoBehaviour
     // 키 바인드 목록 (인덱스로 접근)
     private KeyCode[] _skillKeys;
 
+    // 이벤트: 스킬 실행 시 발생
+    public static event System.Action<SkillData> OnSkillExecuted;
+
     #region 초기화
 
     private void Awake()
@@ -102,6 +105,25 @@ public class SkillActivationSystem : MonoBehaviour
             if (Input.GetKeyDown(_skillKeys[i]))
             {
                 SkillSlotUI slot = _skillSlots[i];
+
+                // 디버그: 슬롯 유효성 검증
+                if (slot == null)
+                {
+                    Debug.LogWarning($"[SkillActivation] 슬롯 {i}가 null입니다!");
+                    continue;
+                }
+
+                if (slot.SkillData == null)
+                {
+                    Debug.LogWarning($"[SkillActivation] 슬롯 {i}의 SkillData가 null입니다!");
+                    continue;
+                }
+
+                if (slot.IsLocked)
+                {
+                    Debug.Log($"[SkillActivation] {slot.SkillData.SkillName}이(가) 잠겨있습니다!");
+                    continue;
+                }
 
                 // 슬롯이 유효하고 스킬이 할당되어 있는지 확인
                 if (slot != null && slot.SkillData != null && !slot.IsLocked)
@@ -203,6 +225,9 @@ public class SkillActivationSystem : MonoBehaviour
                 ExecuteHealSkill(skill);
                 break;
         }
+
+        // 애니메이션 컨트롤러 알림
+        OnSkillExecuted?.Invoke(skill);
     }
 
     #endregion
