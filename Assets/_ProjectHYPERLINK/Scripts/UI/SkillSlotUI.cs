@@ -64,16 +64,7 @@ public class SkillSlotUI : MonoBehaviour
     public SkillData SkillData => _skillData;
     public bool IsOnCooldown => _currentCooldown > 0f;
     public bool IsLocked => _isLocked;
-
-    private void Awake()
-    {
-        // SkillActivationSystem 자동 검색
-        if (_skillActivationSystem == null)
-        {
-            _skillActivationSystem = FindObjectOfType<SkillActivationSystem>();
-        }
-    }
-
+    
     private void Update()
     {
         // 매 프레임 쿨다운 업데이트

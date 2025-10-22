@@ -118,6 +118,22 @@ public class CharacterUIController : MonoBehaviour
     {
         CancelInvoke(nameof(TryFindPlayerAndSystems));
         UnsubscribeFromEvents();
+
+        ClearSkillSlots();
+    }
+
+    private void ClearSkillSlots()
+    {
+        if (_skillActivationSystem != null)
+        {
+            foreach (var slot in _skillSlots)
+            {
+                if (slot != null)
+                {
+                    _skillActivationSystem.UnregisterSkillSlot(slot);
+                }
+            }
+        }
     }
 
     private void TryFindPlayerAndSystems()
@@ -217,7 +233,12 @@ public class CharacterUIController : MonoBehaviour
                 // 이미 언락된 스킬은 즉시 Unlock 호출 (잠금 해제)
                 _skillSlots[i].Unlock();
 
-                Log($"  슬롯 {i}: {unlockedSkills[i].SkillName} 초기화 완료");
+                // SkillActivationSystem에 등록
+                if (_skillActivationSystem != null)
+                {
+                    _skillActivationSystem.RegisterSkillSlot(_skillSlots[i]);
+                    Log($"  슬롯 {i}: {unlockedSkills[i].SkillName} → SkillActivationSystem 등록 완료");
+                }
             }
         }
     }
