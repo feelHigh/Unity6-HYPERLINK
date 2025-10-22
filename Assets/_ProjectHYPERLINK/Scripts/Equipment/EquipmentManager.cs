@@ -213,6 +213,20 @@ public class EquipmentManager : MonoBehaviour
 
     #endregion
 
+    /// <summary>
+    /// ItemNumber로 ItemData 찾기 (인벤토리 로드용)
+    /// </summary>
+    public ItemData FindItemByNumber(string itemNumber)
+    {
+        if (_itemLookup.TryGetValue(itemNumber, out ItemData item))
+        {
+            return item;
+        }
+
+        Debug.LogWarning($"[EquipmentManager] 아이템을 찾을 수 없음: {itemNumber}");
+        return null;
+    }
+
     #region Cloud Save 연동
 
     /// CharacterSaveData에서 장비 로드

@@ -21,12 +21,16 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private int _redSoda = 3;
     [SerializeField] private float _redSodaHealAmount = 50f;
 
-    // 이벤트
+    // 기존 이벤트
     public static event Action<float, float> OnHealthChanged;
     public static event Action<float, float> OnManaChanged;
     public static event Action<CharacterStats> OnStatsChanged;
     public static event Action<int> OnRedSodaChanged;
     public static event Action<SkillData> OnSkillUnlocked;
+
+    // 전투 작용 이벤트
+    public static event Action<float> OnPlayerHit;  // 피격 시 (데미지량 전달)
+    public static event Action OnPlayerDead;        // 사망 시
 
     // 스탯
     private CharacterStats _currentStats;
@@ -58,6 +62,8 @@ public class PlayerCharacter : MonoBehaviour
     public float HealthPercentage => _maxHealth > 0 ? _currentHealth / _maxHealth : 0f;
     public float ManaPercentage => _maxMana > 0 ? _currentMana / _maxMana : 0f;
 
+    #region 초기화
+
     private void Awake()
     {
         InitializeCharacter();
@@ -86,7 +92,29 @@ public class PlayerCharacter : MonoBehaviour
         RecalculateResources();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
+
+        // 초기 스킬 언락 (게임 시작 시 레벨 1 스킬 자동 언락)
+        UnlockInitialSkills();
     }
+
+    /// <summary>
+    /// 게임 시작 시 레벨 1 스킬 언락
+    /// 
+    /// 역할:
+    /// - CharacterUIController보다 먼저 실행되어 스킬 슬롯 초기화 준비
+    /// - ExperienceManager가 초기화되기 전에 기본 스킬 제공
+    /// 
+    /// 참고: 저장된 캐릭터를 로드할 때는 LoadFromSaveData()가 스킬 복원
+    /// </summary>
+    private void UnlockInitialSkills()
+    {
+        UnlockSkillsForLevel(1);
+        Debug.Log($"[PlayerCharacter] 초기 스킬 언락 완료: {_unlockedSkills.Count}개");
+    }
+
+    #endregion
+
+    #region 스탯 관리
 
     public void AddLevelUpStats(CharacterStats statGains)
     {
@@ -192,6 +220,10 @@ public class PlayerCharacter : MonoBehaviour
         _currentMana = Mathf.Min(_currentMana, _maxMana);
     }
 
+    #endregion
+
+    #region 리소스 재생
+
     private void HandleRegeneration()
     {
         if (!IsAlive) return;
@@ -223,6 +255,10 @@ public class PlayerCharacter : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region 스킬 관리
+
     public void UnlockSkillsForLevel(int level)
     {
         foreach (SkillData skill in _availableSkills)
@@ -236,12 +272,23 @@ public class PlayerCharacter : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region 전투 시스템
+
+    /// <summary>
+    /// 데미지 받기
+    /// OnPlayerHit 이벤트 발생 추가
+    /// </summary>
     public void TakeDamage(float amount)
     {
         if (!IsAlive) return;
 
         _currentHealth = Mathf.Max(0, _currentHealth - amount);
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+
+        // ⭐ 피격 이벤트 발생 (SkillAnimationController가 수신)
+        OnPlayerHit?.Invoke(amount);
 
         if (_currentHealth <= 0)
         {
@@ -306,11 +353,22 @@ public class PlayerCharacter : MonoBehaviour
         OnRedSodaChanged?.Invoke(_redSoda);
     }
 
+    /// <summary>
+    /// 사망 처리
+    /// ⭐ OnPlayerDead 이벤트 발생 추가
+    /// </summary>
     private void Die()
     {
         Debug.Log("플레이어 사망!");
         ClearAllTemporaryBuffs();
+
+        // ⭐ 사망 이벤트 발생 (SkillAnimationController가 수신)
+        OnPlayerDead?.Invoke();
     }
+
+    #endregion
+
+    #region UI 업데이트
 
     private void UpdateUI()
     {
@@ -319,11 +377,18 @@ public class PlayerCharacter : MonoBehaviour
         OnStatsChanged?.Invoke(GetTotalStats());
     }
 
+    #endregion
+
     #region Cloud Save 통합
 
     /// <summary>
     /// CharacterSaveData에서 데이터 로드
-    /// Red Soda 로드 추가
+    /// 
+    /// 중첩 구조 호환:
+    /// - data.stats.baseStats → CharacterStats 변환
+    /// - data.stats.currentHealth/currentMana/redSoda
+    /// - data.stats.maxHealth/maxMana 반영
+    /// - data.progression.unlockedSkills → 스킬 언락
     /// </summary>
     public void LoadFromSaveData(CharacterSaveData data)
     {
@@ -333,72 +398,67 @@ public class PlayerCharacter : MonoBehaviour
             return;
         }
 
-        // 신규 캐릭터 감지
-        bool isNewCharacter = data.character.level == 1 && data.character.experience == 0;
-
-        if (isNewCharacter && _baseStats != null)
+        // 스탯 로드 (BaseStats → CharacterStats 변환)
+        if (data.stats?.baseStats != null)
         {
-            // 신규 캐릭터: 프리팹 BaseStats 우선 사용
-            Debug.Log("신규 캐릭터 감지 - 프리팹 BaseStats 사용");
-            _currentStats = _baseStats.Clone();
-            RecalculateResources();
-            _currentHealth = Mathf.Min(data.stats.currentHealth, _maxHealth);
-            _currentMana = Mathf.Min(data.stats.currentMana, _maxMana);
-        }
-        else
-        {
-            // 기존 캐릭터: SaveData 사용
-            Debug.Log("기존 캐릭터 감지 - SaveData 사용");
             _currentStats = new CharacterStatsBuilder()
                 .SetStrength(data.stats.baseStats.strength)
                 .SetDexterity(data.stats.baseStats.dexterity)
                 .SetIntelligence(data.stats.baseStats.intelligence)
                 .SetVitality(data.stats.baseStats.vitality)
-                .SetCriticalChance(data.stats.secondaryStats.criticalChance)
-                .SetCriticalDamage(data.stats.secondaryStats.criticalDamage)
-                .SetAttackSpeed(data.stats.secondaryStats.attackSpeed)
                 .SetMaxHealth(data.stats.maxHealth)
                 .SetMaxMana(data.stats.maxMana)
                 .Build();
-
-            RecalculateResources();
-            _currentHealth = Mathf.Clamp(data.stats.currentHealth, 1f, _maxHealth);
-            _currentMana = Mathf.Clamp(data.stats.currentMana, 0f, _maxMana);
         }
 
-        // RED SODA 로드 추가
+        // 2차 스탯 로드 (있으면)
+        if (data.stats?.secondaryStats != null)
+        {
+            CharacterStats secondaryStats = new CharacterStatsBuilder()
+                .SetCriticalChance(data.stats.secondaryStats.criticalChance)
+                .SetCriticalDamage(data.stats.secondaryStats.criticalDamage)
+                .SetAttackSpeed(data.stats.secondaryStats.attackSpeed)
+                .Build();
+
+            _currentStats = _currentStats.AddStats(secondaryStats);
+        }
+
+        // 리소스 로드
+        RecalculateResources();
+        _currentHealth = data.stats.currentHealth;
+        _currentMana = data.stats.currentMana;
+
+        // Red Soda 로드
         _redSoda = data.stats.redSoda;
-        Debug.Log($"Red Soda 로드: {_redSoda}개");
-        OnRedSodaChanged?.Invoke(_redSoda);
 
-        // 장비 스탯 초기화
-        if (_equipmentStats == null)
-        {
-            _equipmentStats = ScriptableObject.CreateInstance<CharacterStats>();
-        }
-
-        // 스킬 언락 복원
+        // 스킬 언락 (progression.unlockedSkills 기반)
         _unlockedSkills.Clear();
-        if (data.progression.unlockedSkills != null)
+        if (data.progression?.unlockedSkills != null)
         {
-            foreach (string skillName in data.progression.unlockedSkills)
+            foreach (SkillData skill in _availableSkills)
             {
-                SkillData skill = System.Array.Find(_availableSkills, s => s.SkillName == skillName);
-                if (skill != null)
+                // 스킬 이름이 언락 리스트에 있는지 확인
+                if (data.progression.unlockedSkills.Contains(skill.SkillName))
                 {
                     _unlockedSkills.Add(skill);
-                    Debug.Log($"스킬 복원: {skillName}");
                 }
             }
         }
 
         UpdateUI();
-        Debug.Log($"=== 캐릭터 로드 완료 ===");
-        Debug.Log($"HP: {_currentHealth}/{_maxHealth}, MP: {_currentMana}/{_maxMana}, Red Soda: {_redSoda}");
+        Debug.Log($"캐릭터 데이터 로드 완료 (레벨: {data.character.level})");
     }
 
     /// <summary>
-    /// SaveData에 현재 상태 저장
+    /// CharacterSaveData에 현재 상태 저장
+    /// 
+    /// 중첩 구조 호환:
+    /// - CharacterStats → data.stats.baseStats 변환
+    /// - currentHealth/currentMana/redSoda → data.stats
+    /// - maxHealth/maxMana → data.stats
+    /// - unlockedSkills → data.progression.unlockedSkills
+    /// 
+    /// 주의: CharacterDataManager에서 호출 (SaveToData 시그니처)
     /// </summary>
     public void SaveToData(CharacterSaveData data)
     {
@@ -408,34 +468,57 @@ public class PlayerCharacter : MonoBehaviour
             return;
         }
 
+        // stats 초기화 (null 체크)
+        if (data.stats == null)
+        {
+            data.stats = new CharacterSaveData.CharacterStatsData();
+        }
+
+        // 기본 스탯 저장 (CharacterStats → BaseStats 변환)
         CharacterStats totalStats = GetTotalStats();
 
-        // 기본 스탯 저장
+        if (data.stats.baseStats == null)
+        {
+            data.stats.baseStats = new CharacterSaveData.CharacterStatsData.BaseStats();
+        }
+
         data.stats.baseStats.strength = _currentStats.Strength;
         data.stats.baseStats.dexterity = _currentStats.Dexterity;
         data.stats.baseStats.intelligence = _currentStats.Intelligence;
         data.stats.baseStats.vitality = _currentStats.Vitality;
 
         // 2차 스탯 저장
+        if (data.stats.secondaryStats == null)
+        {
+            data.stats.secondaryStats = new CharacterSaveData.CharacterStatsData.SecondaryStats();
+        }
+
         data.stats.secondaryStats.criticalChance = totalStats.CriticalChance;
         data.stats.secondaryStats.criticalDamage = totalStats.CriticalDamage;
         data.stats.secondaryStats.attackSpeed = totalStats.AttackSpeed;
 
         // 리소스 저장
-        data.stats.maxHealth = _currentStats.MaxHealth;
-        data.stats.maxMana = _currentStats.MaxMana;
         data.stats.currentHealth = _currentHealth;
         data.stats.currentMana = _currentMana;
+        data.stats.maxHealth = _maxHealth;
+        data.stats.maxMana = _maxMana;
+
+        // Red Soda 저장
         data.stats.redSoda = _redSoda;
 
-        // 스킬 저장
+        // 스킬 언락 저장 (progression.unlockedSkills)
+        if (data.progression == null)
+        {
+            data.progression = new CharacterSaveData.ProgressionData();
+        }
+
         data.progression.unlockedSkills.Clear();
         foreach (SkillData skill in _unlockedSkills)
         {
             data.progression.unlockedSkills.Add(skill.SkillName);
         }
 
-        Debug.Log($"캐릭터 데이터 저장 완료 - HP: {_currentHealth}/{_maxHealth}, MP: {_currentMana}/{_maxMana}, Red Soda: {_redSoda}");
+        Debug.Log($"캐릭터 데이터 저장 완료 (스킬: {_unlockedSkills.Count}개)");
     }
 
     #endregion
