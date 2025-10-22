@@ -445,6 +445,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ef27ac9a813e1df4fa004474e7650f26, type: 3}
+--- !u!114 &704510174 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 242415467860325898, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
+  m_PrefabInstance: {fileID: 2800867797015280785}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 177e5803ed66687418db135d8d4fca43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &749762191
 GameObject:
   m_ObjectHideFlags: 0
@@ -527,10 +538,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6395200515974723187, guid: b7177324362ab934e8497245e31834ec, type: 3}
-      propertyPath: _raycastDistance
-      value: 20
-      objectReference: {fileID: 0}
+    - target: {fileID: 6274837084202361495, guid: b7177324362ab934e8497245e31834ec, type: 3}
+      propertyPath: '_skillSlots.Array.data[0]'
+      value: 
+      objectReference: {fileID: 704510174}
+    - target: {fileID: 6274837084202361495, guid: b7177324362ab934e8497245e31834ec, type: 3}
+      propertyPath: '_skillSlots.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1678770995}
+    - target: {fileID: 6274837084202361495, guid: b7177324362ab934e8497245e31834ec, type: 3}
+      propertyPath: '_skillSlots.Array.data[2]'
+      value: 
+      objectReference: {fileID: 875346465}
     - target: {fileID: 8470624065522552731, guid: b7177324362ab934e8497245e31834ec, type: 3}
       propertyPath: m_Name
       value: PlayableCharacter_Laon
@@ -540,6 +559,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b7177324362ab934e8497245e31834ec, type: 3}
+--- !u!114 &875346465 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3153354719028355159, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
+  m_PrefabInstance: {fileID: 2800867797015280785}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 177e5803ed66687418db135d8d4fca43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!20 &1185160747 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 3526240727481827166, guid: ef27ac9a813e1df4fa004474e7650f26, type: 3}
@@ -951,6 +981,17 @@ Transform:
   - {fileID: 269239026}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1678770995 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1179624683755729849, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
+  m_PrefabInstance: {fileID: 2800867797015280785}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 177e5803ed66687418db135d8d4fca43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1810247788
 GameObject:
   m_ObjectHideFlags: 0
@@ -1189,10 +1230,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1878972196319307878, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: m_AdditionalShaderChannelsFlag
-      value: 25
-      objectReference: {fileID: 0}
     - target: {fileID: 3166794165661102886, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
       propertyPath: m_Name
       value: GameCanvas
@@ -1277,10 +1314,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 1310824457158690043, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-    m_RemovedGameObjects:
-    - {fileID: 4801119945243904156, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}

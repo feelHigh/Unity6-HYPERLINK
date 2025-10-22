@@ -1,11 +1,17 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 아이템 인벤토리
+/// 아이템 인벤토리 (싱글톤 패턴)
+/// GameCanvas에 통합됨
 /// </summary>
 public class ItemInventory : MonoBehaviour
 {
+    #region 싱글톤
+    public static ItemInventory Instance { get; private set; }
+    #endregion
+
     [Header("참조")]
     [SerializeField] InventoryItemEventHandler _itemEventHandler;
 
@@ -18,21 +24,44 @@ public class ItemInventory : MonoBehaviour
     [Header("슬롯 한 변의 길이")]
     [SerializeField] float _itemSize;
 
-    // SerializeFiled 지울 예정
     [SerializeField] InventorySlot[] _inventory;
     [SerializeField] InventorySlot[,] _slots = new InventorySlot[10, 6];
 
-    // 인벤토리 한 변의 길이를 저장하는 함수
     float _sideLength;
-
-    // 아이템 이동에 필요한 인벤토리의 맨 왼쪽 윗 부분의 위치
     Vector2 _startPosition = new Vector2();
-
     InventorySlot _currentSlot = null;
 
     void Awake()
     {
+        // 싱글톤 초기화
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         Initilize();
+    }
+
+    void Start()
+    {
+        // 자동 참조 검색
+        if (_itemEventHandler == null)
+        {
+            _itemEventHandler = GetComponentInChildren<InventoryItemEventHandler>();
+        }
+
+        if (_itemVisualizeField == null)
+        {
+            _itemVisualizeField = GetComponentInChildren<ItemVisualizeField>();
+        }
+
+        // 슬롯 배열 검증
+        if (_inventory == null || _inventory.Length != 60)
+        {
+            Debug.LogError("[ItemInventory] InventorySlot 배열이 60개여야 합니다!");
+        }
     }
 
     public void Initilize()
@@ -45,14 +74,13 @@ public class ItemInventory : MonoBehaviour
         int num = 0;
         for (int i = 0; i < _slots.GetLength(0); i++)
         {
-
             for (int j = 0; j < _slots.GetLength(1); j++)
             {
                 _slots[i, j] = _inventory[num++];
-
                 _slots[i, j].Initialize(i, j);
             }
         }
+
         foreach (InventorySlot slot in _slots)
         {
             if (slot.HasItem)
@@ -67,6 +95,7 @@ public class ItemInventory : MonoBehaviour
                 }
             }
         }
+
         yield return new WaitForEndOfFrame();
 
         Vector3[] coners = new Vector3[4];
@@ -75,7 +104,11 @@ public class ItemInventory : MonoBehaviour
         _startPosition = coners[1];
     }
 
-    public void GetItem(ItemData data)
+    /// <summary>
+    /// 아이템을 인벤토리에 추가
+    /// ItemPickupManager에서 호출
+    /// </summary>
+    public bool GetItem(ItemData data)
     {
         foreach (InventorySlot slot in _slots)
         {
@@ -91,18 +124,106 @@ public class ItemInventory : MonoBehaviour
                     item.Spawn(data, slot, lastSlot, _itemSize);
                     slot.GetData(data);
                     PlaceItem(data, slot, true);
-                    break;
+
+                    Debug.Log($"[ItemInventory] 아이템 추가 성공: {data.ItemName}");
+                    return true;
                 }
             }
         }
+
+        Debug.LogWarning($"[ItemInventory] 인벤토리 가득 찬 상태 - {data.ItemName} 추가 실패");
+        return false;
     }
 
     /// <summary>
-    /// 아이템 데이터와 아이템 슬롯을 받아, 아이템 데이터를 기반으로 bool 값에 따라 아이템 제거 또는 부여를함
+    /// 저장용: 모든 아이템 데이터 반환
+    /// CharacterDataManager에서 호출
     /// </summary>
-    /// <param name="data">전달 되는 값 (이거 없으면 크기를 모름)</param>
-    /// <param name="slot">값이 변경되는 슬롯</param>
-    /// <param name="state">아이템이 들어오는지, 나가는지</param>
+    public List<(ItemData data, int slotIndex)> GetAllItems()
+    {
+        List<(ItemData, int)> items = new List<(ItemData, int)>();
+
+        for (int i = 0; i < _inventory.Length; i++)
+        {
+            if (_inventory[i].HasItem && _inventory[i].Data != null)
+            {
+                items.Add((_inventory[i].Data, i));
+            }
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// 로드용: 특정 슬롯에 아이템 직접 배치
+    /// CharacterDataManager에서 호출
+    /// </summary>
+    public bool LoadItemToSlot(ItemData data, int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= _inventory.Length)
+        {
+            Debug.LogError($"[ItemInventory] 잘못된 슬롯 인덱스: {slotIndex}");
+            return false;
+        }
+
+        // 슬롯을 2D 좌표로 변환 (10x6 그리드)
+        int x = slotIndex % 10;
+        int y = slotIndex / 10;
+
+        if (x >= _slots.GetLength(0) || y >= _slots.GetLength(1))
+        {
+            Debug.LogError($"[ItemInventory] 슬롯 좌표 범위 초과: ({x}, {y})");
+            return false;
+        }
+
+        InventorySlot slot = _slots[x, y];
+
+        // 아이템 배치 가능 확인
+        if (ChekCanDrop(data, slot))
+        {
+            InventoryItemPrefab item = Instantiate(_itemPrefab, _itemVisualizeField.transform);
+            _itemVisualizeField.AddItem(item);
+
+            Vector2Int pos = slot.Pos;
+            Vector2Int size = data.GridSize;
+            InventorySlot lastSlot = _slots[pos.x + size.x - 1, pos.y + size.y - 1];
+
+            item.Spawn(data, slot, lastSlot, _itemSize);
+            slot.GetData(data);
+            PlaceItem(data, slot, true);
+
+            Debug.Log($"[ItemInventory] 로드 성공: {data.ItemName} → 슬롯 {slotIndex}");
+            return true;
+        }
+
+        Debug.LogWarning($"[ItemInventory] 로드 실패: {data.ItemName} → 슬롯 {slotIndex} (공간 부족)");
+        return false;
+    }
+
+    /// <summary>
+    /// 인벤토리 초기화 (로드 전 호출)
+    /// </summary>
+    public void ClearInventory()
+    {
+        // 모든 아이템 프리팹 제거
+        if (_itemVisualizeField != null)
+        {
+            foreach (Transform child in _itemVisualizeField.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        // 모든 슬롯 초기화
+        foreach (InventorySlot slot in _inventory)
+        {
+            slot.GetData(null);
+            slot.IGotItem(false);
+        }
+
+        Debug.Log("[ItemInventory] 인벤토리 초기화 완료");
+    }
+
     void PlaceItem(ItemData data, InventorySlot slot, bool get)
     {
         if (get) slot.GetData(data);
@@ -165,9 +286,10 @@ public class ItemInventory : MonoBehaviour
         Vector2Int size = data.GridSize;
         int x = -Mathf.RoundToInt((_startPosition.x - pos.x) / _sideLength);
         int y = Mathf.RoundToInt((_startPosition.y - pos.y) / _sideLength);
-        if (x < 0 || x > _slots.GetLength(0)- size.x || y < 0 || y > _slots.GetLength(1)-size.y)
+
+        if (x < 0 || x > _slots.GetLength(0) - size.x || y < 0 || y > _slots.GetLength(1) - size.y)
         {
-            if(_currentSlot != null)
+            if (_currentSlot != null)
             {
                 ChangeSlotColor(data, _currentSlot, false);
                 _currentSlot = null;
@@ -180,10 +302,12 @@ public class ItemInventory : MonoBehaviour
         {
             return ItemDragState.Same;
         }
+
         if (_currentSlot != null)
         {
             ChangeSlotColor(data, _currentSlot, false);
         }
+
         _currentSlot = _slots[x, y];
 
         if (ChekCanDrop(data, _currentSlot))

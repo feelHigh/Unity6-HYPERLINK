@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
@@ -29,6 +30,10 @@ public class SpawnerManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+    }
+
+    private void Start()
+    {
         if (_player == null)
         {
             _player = GameObject.FindGameObjectWithTag("Player").transform;

@@ -1975,7 +1975,7 @@ MonoBehaviour:
   _createCharacterButton: {fileID: 634720423}
   _loadingText: {fileID: 1449219769}
   _errorText: {fileID: 955117820}
-  _gameScene: TheFirstStage
+  _gameScene: TutorialScene
 --- !u!4 &828252831
 Transform:
   m_ObjectHideFlags: 0

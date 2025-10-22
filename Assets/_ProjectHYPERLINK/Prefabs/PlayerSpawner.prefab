@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9d8eb021f609e7448ee2babfbe6683a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _warriorPrefab: {fileID: 8470624065522552731, guid: 34eac14f0a0f5de40bc9a442836f5ee3, type: 3}
+  _warriorPrefab: {fileID: 8470624065522552731, guid: b7177324362ab934e8497245e31834ec, type: 3}
   _magePrefab: {fileID: 0}
   _archerPrefab: {fileID: 0}
   _defaultSpawnPoint: {fileID: 0}

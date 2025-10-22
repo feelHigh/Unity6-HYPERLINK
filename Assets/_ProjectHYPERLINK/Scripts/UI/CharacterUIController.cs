@@ -3,28 +3,30 @@ using TMPro;
 using System.Collections.Generic;
 
 /// <summary>
-/// 캐릭터 UI 컨트롤러 (플레이어 자동 검색 리팩토링 완료)
+/// 캐릭터 UI 컨트롤러 (통합 키 바인딩)
 /// 
-/// 주요 개선사항:
-/// - CinemachineTargetSetter 스타일의 플레이어 자동 검색
-/// - InvokeRepeating을 사용한 주기적 재시도
-/// - Player 태그 기반 검색
-/// - 설정 가능한 재시도 간격 및 최대 횟수
-/// - 상세한 디버그 로그
-/// - 스킬 슬롯 인덱스 기반 초기화 (키 바인드 연동)
+/// 기능:
+/// - 플레이어 자동 검색
+/// - 모든 UI 키 바인딩 통합 관리
+/// - 캐릭터 스탯 실시간 업데이트
+/// - 경험치 바 표시
+/// - 스킬 슬롯 관리
 /// 
-/// 기존 기능 유지:
-/// - 선택적 UI 업데이트 (변경된 값만)
-/// - GC 할당 감소 (80% 절감)
-/// - 성능 최적화
+/// 키 바인딩:
+/// - C: 캐릭터 패널 토글
+/// - K: 스킬 패널 토글
+/// - I: 인벤토리 패널 토글
+/// - Tab: 미니맵 토글 (TODO)
+/// - M: 맵 & 퀘스트 패널 토글 (TODO)
+/// - ESC: 모든 패널 닫기 / LoginScene 이동 옵션
 /// </summary>
 public class CharacterUIController : MonoBehaviour
 {
     [Header("자동 검색 설정")]
     [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f; // 재시도 간격 (초)
-    [SerializeField] private int _maxRetries = 20; // 최대 재시도 횟수 (10초)
-    [SerializeField] private bool _enableDebugLogs = true; // 디버그 로그 활성화
+    [SerializeField] private float _retryInterval = 0.5f;
+    [SerializeField] private int _maxRetries = 20;
+    [SerializeField] private bool _enableDebugLogs = true;
 
     [Header("참조")]
     [SerializeField] private PlayerCharacter _playerCharacter;
@@ -35,6 +37,14 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private HealthManaBar _healthManaBar;
     [SerializeField] private GameObject _characterPanel;
     [SerializeField] private GameObject _skillPanel;
+    [SerializeField] private GameObject _inventoryPanel;
+    [SerializeField] private GameObject _minimapPanel;
+    [SerializeField] private GameObject _mapQuestPanel;
+
+    [Header("ESC 동작 설정")]
+    [Tooltip("ESC 키로 LoginScene 이동 활성화")]
+    [SerializeField] private bool _enableEscapeToLogin = true;
+    [SerializeField] private string _loginSceneName = "LoginScene";
 
     [Header("캐릭터 스탯 표시")]
     [SerializeField] private TextMeshProUGUI _levelText;
@@ -52,7 +62,6 @@ public class CharacterUIController : MonoBehaviour
     [Header("스킬 슬롯")]
     [SerializeField] private List<SkillSlotUI> _skillSlots = new List<SkillSlotUI>();
 
-    // 이전 상태 캐싱 (성능 최적화)
     private CharacterStats _previousStats;
     private float _previousHealth;
     private float _previousMaxHealth;
@@ -62,131 +71,33 @@ public class CharacterUIController : MonoBehaviour
     private int _previousExperience;
     private int _previousExperienceRequired;
 
-    // 초기화 플래그
     private bool _isInitialized = false;
-    private int _retryCount = 0; // 재시도 카운터
+    private int _retryCount = 0;
 
     #region 초기화
 
     private void Awake()
     {
-        // 패널 초기 상태 (닫힘)
+        // 모든 패널 초기 상태 (닫힘)
         if (_characterPanel != null)
             _characterPanel.SetActive(false);
 
         if (_skillPanel != null)
-            _skillPanel.SetActive(false);
-    }
+            _skillPanel.SetActive(true);
 
-    private void Start()
-    {
-        // 플레이어 및 시스템 자동 검색 시작
-        InvokeRepeating(nameof(TryFindPlayerAndSystems), 0.1f, _retryInterval);
-    }
+        if (_inventoryPanel != null)
+            _inventoryPanel.SetActive(false);
 
-    private void OnDestroy()
-    {
-        // InvokeRepeating 정리
-        CancelInvoke(nameof(TryFindPlayerAndSystems));
-    }
+        if (_minimapPanel != null)
+            _minimapPanel.SetActive(false);
 
-    /// <summary>
-    /// 플레이어 및 관련 시스템 자동 검색 (CinemachineTargetSetter 스타일)
-    /// 
-    /// 동작 방식:
-    /// 1. Player 태그로 플레이어 GameObject 검색
-    /// 2. PlayerCharacter 컴포넌트 가져오기
-    /// 3. 관련 시스템 컴포넌트 검색
-    /// 4. 이벤트 구독 및 UI 초기화
-    /// 5. 성공 시 InvokeRepeating 중단
-    /// 6. 실패 시 재시도 (최대 _maxRetries회)
-    /// </summary>
-    private void TryFindPlayerAndSystems()
-    {
-        _retryCount++;
-
-        // Player 태그로 플레이어 검색
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
-
-        if (playerObject != null)
-        {
-            // PlayerCharacter 컴포넌트 가져오기
-            _playerCharacter = playerObject.GetComponent<PlayerCharacter>();
-
-            if (_playerCharacter != null)
-            {
-                Log($"플레이어 찾음: {playerObject.name} (시도: {_retryCount}회)");
-
-                // 관련 시스템 검색
-                FindRelatedSystems();
-
-                // 이벤트 구독
-                SubscribeToEvents();
-
-                // UI 초기화
-                InitializeUI();
-                InitializeSkillSlots();
-                _isInitialized = true;
-
-                // 초기 UI 업데이트
-                ForceUpdateAll();
-
-                // 검색 성공 - InvokeRepeating 중단
-                CancelInvoke(nameof(TryFindPlayerAndSystems));
-
-                Log($"CharacterUIController 초기화 완료!");
-            }
-            else
-            {
-                LogWarning($"플레이어 오브젝트에 PlayerCharacter 컴포넌트 없음 (시도: {_retryCount}회)");
-            }
-        }
-        else if (_retryCount >= _maxRetries)
-        {
-            // 최대 재시도 횟수 도달
-            LogError($"플레이어를 찾을 수 없습니다 (총 {_maxRetries}회 시도)");
-            CancelInvoke(nameof(TryFindPlayerAndSystems));
-        }
-        else
-        {
-            Log($"플레이어 검색 중... (시도: {_retryCount}/{_maxRetries})");
-        }
-    }
-
-    /// <summary>
-    /// 관련 시스템 컴포넌트 검색
-    /// PlayerCharacter를 찾은 후 호출됨
-    /// </summary>
-    private void FindRelatedSystems()
-    {
-        // SkillActivationSystem (PlayerCharacter와 같은 GameObject에 있음)
-        if (_skillActivationSystem == null && _playerCharacter != null)
-        {
-            _skillActivationSystem = _playerCharacter.GetComponent<SkillActivationSystem>();
-            if (_skillActivationSystem != null)
-                Log("SkillActivationSystem 찾음");
-        }
-
-        // ExperienceManager (PlayerCharacter와 같은 GameObject에 있음)
-        if (_experienceManager == null && _playerCharacter != null)
-        {
-            _experienceManager = _playerCharacter.GetComponent<ExperienceManager>();
-            if (_experienceManager != null)
-                Log("ExperienceManager 찾음");
-        }
-
-        // HealthManaBar (씬에서 검색)
-        if (_healthManaBar == null)
-        {
-            _healthManaBar = FindFirstObjectByType<HealthManaBar>();
-            if (_healthManaBar != null)
-                Log("HealthManaBar 찾음");
-        }
+        if (_mapQuestPanel != null)
+            _mapQuestPanel.SetActive(false);
     }
 
     private void OnEnable()
     {
-        // 이미 초기화되어 있다면 이벤트 재구독
+        // 이미 초기화된 경우 이벤트 재구독
         if (_isInitialized)
         {
             SubscribeToEvents();
@@ -198,112 +109,149 @@ public class CharacterUIController : MonoBehaviour
         UnsubscribeFromEvents();
     }
 
-    /// <summary>
-    /// 이벤트 구독
-    /// </summary>
-    private void SubscribeToEvents()
+    private void Start()
     {
-        if (_playerCharacter != null)
-        {
-            PlayerCharacter.OnHealthChanged += UpdateHealth;
-            PlayerCharacter.OnManaChanged += UpdateMana;
-            PlayerCharacter.OnStatsChanged += UpdateStatsDisplay;
-            PlayerCharacter.OnSkillUnlocked += OnSkillUnlocked;
-        }
-
-        if (_experienceManager != null)
-        {
-            // Action<int, int, int> - (current, required, level)
-            ExperienceManager.OnExperienceChanged += UpdateExperience;
-            ExperienceManager.OnLevelUp += OnLevelUp;
-        }
+        InvokeRepeating(nameof(TryFindPlayerAndSystems), 0.1f, _retryInterval);
     }
 
-    /// <summary>
-    /// 이벤트 구독 해제
-    /// </summary>
-    private void UnsubscribeFromEvents()
+    private void OnDestroy()
     {
-        if (_playerCharacter != null)
-        {
-            PlayerCharacter.OnHealthChanged -= UpdateHealth;
-            PlayerCharacter.OnManaChanged -= UpdateMana;
-            PlayerCharacter.OnStatsChanged -= UpdateStatsDisplay;
-            PlayerCharacter.OnSkillUnlocked -= OnSkillUnlocked;
-        }
-
-        if (_experienceManager != null)
-        {
-            ExperienceManager.OnExperienceChanged -= UpdateExperience;
-            ExperienceManager.OnLevelUp -= OnLevelUp;
-        }
+        CancelInvoke(nameof(TryFindPlayerAndSystems));
+        UnsubscribeFromEvents();
     }
 
-    /// <summary>
-    /// UI 초기화
-    /// </summary>
-    private void InitializeUI()
+    private void TryFindPlayerAndSystems()
     {
-        // 패널 초기 상태는 Awake에서 설정
-    }
+        _retryCount++;
 
-    /// <summary>
-    /// 스킬 슬롯 초기화 (키 바인드 연동)
-    /// 
-    /// 변경사항:
-    /// - foreach → for 루프로 변경하여 인덱스 사용
-    /// - Initialize(skillData, slotIndex) 호출로 키 바인드 연동
-    /// - SkillActivationSystem에 슬롯 등록
-    /// </summary>
-    private void InitializeSkillSlots()
-    {
-        if (_skillSlots == null || _skillSlots.Count == 0)
-            return;
+        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
 
-        for (int i = 0; i < _skillSlots.Count; i++)
+        if (playerObject != null)
         {
-            SkillSlotUI slot = _skillSlots[i];
+            _playerCharacter = playerObject.GetComponent<PlayerCharacter>();
 
-            if (slot != null)
+            if (_playerCharacter != null)
             {
-                // 슬롯 인덱스
-                int slotIndex = i;
+                Log($"플레이어 찾음: {playerObject.name} (시도: {_retryCount}회)");
 
-                // 스킬 데이터 가져오기
-                SkillData skillData = GetSkillDataForSlot(slotIndex);
+                FindRelatedSystems();
+                SubscribeToEvents();
+                InitializeUI();
+                InitializeSkillSlots();
+                _isInitialized = true;
 
-                // 슬롯 초기화 (인덱스 전달)
-                slot.Initialize(skillData, slotIndex);
+                ForceUpdateAll();
 
-                // SkillActivationSystem에 등록
-                if (_skillActivationSystem != null)
-                {
-                    _skillActivationSystem.RegisterSkillSlot(slot);
-                }
+                CancelInvoke(nameof(TryFindPlayerAndSystems));
+
+                Log($"CharacterUIController 초기화 완료!");
+                return;
             }
         }
 
-        Log($"스킬 슬롯 {_skillSlots.Count}개 초기화 완료");
+        if (_retryCount >= _maxRetries)
+        {
+            LogError($"플레이어를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
+            CancelInvoke(nameof(TryFindPlayerAndSystems));
+        }
     }
 
-    /// <summary>
-    /// 슬롯에 맞는 스킬 데이터 가져오기
-    /// 
-    /// 현재는 단순히 null을 반환합니다.
-    /// 스킬은 PlayerCharacter.OnSkillUnlocked 이벤트를 통해
-    /// SkillSlotUI에 직접 할당됩니다.
-    /// </summary>
-    private SkillData GetSkillDataForSlot(int slotIndex)
+    private void FindRelatedSystems()
     {
-        // 스킬 데이터는 스킬 언락 시 자동으로 할당됨
-        return null;
+        if (_skillActivationSystem == null)
+        {
+            _skillActivationSystem = _playerCharacter.GetComponent<SkillActivationSystem>();
+        }
+
+        if (_experienceManager == null)
+        {
+            _experienceManager = _playerCharacter.GetComponent<ExperienceManager>();
+        }
+    }
+
+    private void SubscribeToEvents()
+    {
+        // Static 이벤트 구독
+        PlayerCharacter.OnHealthChanged += UpdateHealthBar;
+        PlayerCharacter.OnManaChanged += UpdateManaBar;
+        PlayerCharacter.OnStatsChanged += UpdateStatsDisplay;
+        PlayerCharacter.OnSkillUnlocked += OnSkillUnlocked;
+
+        ExperienceManager.OnExperienceChanged += UpdateExperience;
+        ExperienceManager.OnLevelUp += OnLevelUp;
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        // Static 이벤트 구독 해제
+        PlayerCharacter.OnHealthChanged -= UpdateHealthBar;
+        PlayerCharacter.OnManaChanged -= UpdateManaBar;
+        PlayerCharacter.OnStatsChanged -= UpdateStatsDisplay;
+        PlayerCharacter.OnSkillUnlocked -= OnSkillUnlocked;
+
+        ExperienceManager.OnExperienceChanged -= UpdateExperience;
+        ExperienceManager.OnLevelUp -= OnLevelUp;
+    }
+
+    private void InitializeUI()
+    {
+        // HealthManaBar는 OnEnable에서 자동 구독하므로 Initialize 불필요
+        ForceUpdateAll();
+    }
+
+    private void InitializeSkillSlots()
+    {
+        if (_playerCharacter == null) return;
+
+        // UnlockedSkills에서 스킬 데이터 가져와서 슬롯 초기화
+        List<SkillData> unlockedSkills = _playerCharacter.UnlockedSkills;
+
+        Log($"스킬 슬롯 초기화 시작: {unlockedSkills.Count}개 언락됨");
+
+        for (int i = 0; i < _skillSlots.Count && i < unlockedSkills.Count; i++)
+        {
+            if (_skillSlots[i] != null && unlockedSkills[i] != null)
+            {
+                _skillSlots[i].Initialize(unlockedSkills[i], i);
+
+                // ⭐ 이미 언락된 스킬은 즉시 Unlock 호출 (잠금 해제)
+                _skillSlots[i].Unlock();
+
+                Log($"  슬롯 {i}: {unlockedSkills[i].SkillName} 초기화 완료");
+            }
+        }
     }
 
     #endregion
 
-    #region UI 업데이트 (최적화됨)
+    #region 강제 업데이트
 
-    private void UpdateHealth(float current, float max)
+    private void ForceUpdateAll()
+    {
+        if (!_isInitialized || _playerCharacter == null)
+            return;
+
+        CharacterStats stats = _playerCharacter.CurrentStats;
+        UpdateStatsDisplay(stats);
+
+        UpdateHealthBar(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
+        UpdateManaBar(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
+
+        if (_experienceManager != null)
+        {
+            UpdateExperience(
+                _experienceManager.CurrentExperience,
+                _experienceManager.ExperienceToNextLevel,
+                _experienceManager.CurrentLevel
+            );
+        }
+    }
+
+    #endregion
+
+    #region UI 업데이트
+
+    private void UpdateHealthBar(float current, float max)
     {
         if (!_isInitialized ||
             _previousHealth != current ||
@@ -314,7 +262,7 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
-    private void UpdateMana(float current, float max)
+    private void UpdateManaBar(float current, float max)
     {
         if (!_isInitialized ||
             _previousMana != current ||
@@ -356,106 +304,56 @@ public class CharacterUIController : MonoBehaviour
         if (_previousStats == null)
         {
             UpdateAllStats(stats);
-            _previousStats = stats.Clone();
+            _previousStats = stats;
             return;
         }
 
-        bool anyChanged = false;
-
-        if (_levelText != null && _previousLevel != _experienceManager.CurrentLevel)
-        {
-            _levelText.text = $"레벨: {_experienceManager.CurrentLevel}";
-            _previousLevel = _experienceManager.CurrentLevel;
-            anyChanged = true;
-        }
+        if (_levelText != null && _experienceManager != null)
+            _levelText.text = $"레벨 {_experienceManager.CurrentLevel}";
 
         if (_strengthText != null && _previousStats.Strength != stats.Strength)
-        {
-            _strengthText.text = $"힘: {stats.Strength}";
-            anyChanged = true;
-        }
+            _strengthText.text = stats.Strength.ToString();
 
         if (_dexterityText != null && _previousStats.Dexterity != stats.Dexterity)
-        {
-            _dexterityText.text = $"민첩: {stats.Dexterity}";
-            anyChanged = true;
-        }
+            _dexterityText.text = stats.Dexterity.ToString();
 
         if (_intelligenceText != null && _previousStats.Intelligence != stats.Intelligence)
-        {
-            _intelligenceText.text = $"지능: {stats.Intelligence}";
-            anyChanged = true;
-        }
+            _intelligenceText.text = stats.Intelligence.ToString();
 
         if (_vitalityText != null && _previousStats.Vitality != stats.Vitality)
-        {
-            _vitalityText.text = $"활력: {stats.Vitality}";
-            anyChanged = true;
-        }
+            _vitalityText.text = stats.Vitality.ToString();
 
-        if (_critChanceText != null &&
-            Mathf.Abs(_previousStats.CriticalChance - stats.CriticalChance) > 0.01f)
-        {
-            _critChanceText.text = $"크리티컬: {stats.CriticalChance:F1}%";
-            anyChanged = true;
-        }
+        if (_critChanceText != null && !Mathf.Approximately(_previousStats.CriticalChance, stats.CriticalChance))
+            _critChanceText.text = $"{stats.CriticalChance:F1}%";
 
-        if (_critDamageText != null &&
-            Mathf.Abs(_previousStats.CriticalDamage - stats.CriticalDamage) > 0.01f)
-        {
-            _critDamageText.text = $"크리 데미지: {stats.CriticalDamage:F0}%";
-            anyChanged = true;
-        }
+        if (_critDamageText != null && !Mathf.Approximately(_previousStats.CriticalDamage, stats.CriticalDamage))
+            _critDamageText.text = $"{stats.CriticalDamage:F1}%";
 
-        if (anyChanged)
-        {
-            _previousStats = stats.Clone();
-        }
+        _previousStats = stats;
     }
 
     private void UpdateAllStats(CharacterStats stats)
     {
-        if (_levelText != null)
-            _levelText.text = $"레벨: {_experienceManager.CurrentLevel}";
+        if (_levelText != null && _experienceManager != null)
+            _levelText.text = $"레벨 {_experienceManager.CurrentLevel}";
 
         if (_strengthText != null)
-            _strengthText.text = $"힘: {stats.Strength}";
+            _strengthText.text = stats.Strength.ToString();
 
         if (_dexterityText != null)
-            _dexterityText.text = $"민첩: {stats.Dexterity}";
+            _dexterityText.text = stats.Dexterity.ToString();
 
         if (_intelligenceText != null)
-            _intelligenceText.text = $"지능: {stats.Intelligence}";
+            _intelligenceText.text = stats.Intelligence.ToString();
 
         if (_vitalityText != null)
-            _vitalityText.text = $"활력: {stats.Vitality}";
+            _vitalityText.text = stats.Vitality.ToString();
 
         if (_critChanceText != null)
-            _critChanceText.text = $"크리티컬: {stats.CriticalChance:F1}%";
+            _critChanceText.text = $"{stats.CriticalChance:F1}%";
 
         if (_critDamageText != null)
-            _critDamageText.text = $"크리 데미지: {stats.CriticalDamage:F0}%";
-    }
-
-    /// <summary>
-    /// 모든 UI 강제 업데이트
-    /// 패널 열 때 호출
-    /// </summary>
-    public void ForceUpdateAll()
-    {
-        if (_playerCharacter != null)
-        {
-            UpdateAllStats(_playerCharacter.CurrentStats);
-            _previousStats = _playerCharacter.CurrentStats.Clone();
-        }
-
-        if (_experienceManager != null)
-        {
-            int required = _experienceManager.ExperienceToNextLevel + _experienceManager.CurrentExperience;
-            UpdateExperience(_experienceManager.CurrentExperience, required, _experienceManager.CurrentLevel);
-        }
-
-        RefreshSkillSlots();
+            _critDamageText.text = $"{stats.CriticalDamage:F1}%";
     }
 
     #endregion
@@ -464,12 +362,24 @@ public class CharacterUIController : MonoBehaviour
 
     private void OnLevelUp(int oldLevel, int newLevel)
     {
-        Log($"레벨업! {oldLevel} → {newLevel}");
+        Log($"레벨업: {oldLevel} → {newLevel}");
     }
 
     private void OnSkillUnlocked(SkillData skill)
     {
         Log($"스킬 언락: {skill.SkillName}");
+
+        // ⭐ 해당 스킬을 가진 슬롯 찾아서 Unlock 호출
+        foreach (SkillSlotUI slot in _skillSlots)
+        {
+            if (slot != null && slot.SkillData == skill)
+            {
+                slot.Unlock();
+                Log($"  슬롯 언락 완료: {skill.SkillName}");
+                break;
+            }
+        }
+
         RefreshSkillSlots();
     }
 
@@ -486,28 +396,52 @@ public class CharacterUIController : MonoBehaviour
 
     #endregion
 
-    #region 패널 토글
+    #region 키보드 입력 및 패널 토글
 
     private void Update()
     {
         HandleInput();
     }
 
+    /// <summary>
+    /// 모든 UI 키 입력 처리
+    /// </summary>
     private void HandleInput()
     {
+        // C: 캐릭터 패널
         if (Input.GetKeyDown(KeyCode.C))
         {
             ToggleCharacterPanel();
         }
 
+        // K: 스킬 패널
         if (Input.GetKeyDown(KeyCode.K))
         {
             ToggleSkillPanel();
         }
 
+        // I: 인벤토리 패널
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            ToggleInventoryPanel();
+        }
+
+        // Tab: 미니맵 (TODO)
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            ToggleMinimapPanel();
+        }
+
+        // M: 맵 & 퀘스트 (TODO)
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            ToggleMapQuestPanel();
+        }
+
+        // Esc: 모든 패널 닫기 또는 LoginScene 이동
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            CloseAllPanels();
+            HandleEscape();
         }
     }
 
@@ -522,6 +456,8 @@ public class CharacterUIController : MonoBehaviour
             {
                 ForceUpdateAll();
             }
+
+            Log($"캐릭터 패널 {(newState ? "열림" : "닫힘")}");
         }
     }
 
@@ -536,6 +472,87 @@ public class CharacterUIController : MonoBehaviour
             {
                 RefreshSkillSlots();
             }
+
+            Log($"스킬 패널 {(newState ? "열림" : "닫힘")}");
+        }
+    }
+
+    public void ToggleInventoryPanel()
+    {
+        if (_inventoryPanel != null)
+        {
+            bool newState = !_inventoryPanel.activeSelf;
+            _inventoryPanel.SetActive(newState);
+
+            Log($"인벤토리 패널 {(newState ? "열림" : "닫힘")}");
+        }
+        else
+        {
+            LogWarning("인벤토리 패널이 할당되지 않았습니다!");
+        }
+    }
+
+    public void ToggleMinimapPanel()
+    {
+        if (_minimapPanel != null)
+        {
+            bool newState = !_minimapPanel.activeSelf;
+            _minimapPanel.SetActive(newState);
+
+            Log($"미니맵 패널 {(newState ? "열림" : "닫힘")}");
+        }
+        else
+        {
+            Log("TODO: 미니맵 시스템 구현 예정");
+        }
+    }
+
+    public void ToggleMapQuestPanel()
+    {
+        if (_mapQuestPanel != null)
+        {
+            bool newState = !_mapQuestPanel.activeSelf;
+            _mapQuestPanel.SetActive(newState);
+
+            Log($"맵 & 퀘스트 패널 {(newState ? "열림" : "닫힘")}");
+        }
+        else
+        {
+            Log("TODO: 맵 & 퀘스트 시스템 구현 예정");
+        }
+    }
+
+    /// <summary>
+    /// ESC 키 처리
+    /// 1순위: 열린 패널이 있으면 모두 닫기
+    /// 2순위: 패널이 없으면 LoginScene 이동 (옵션)
+    /// </summary>
+    private void HandleEscape()
+    {
+        bool anyPanelOpen = false;
+
+        if (_characterPanel != null && _characterPanel.activeSelf)
+            anyPanelOpen = true;
+
+        if (_skillPanel != null && _skillPanel.activeSelf)
+            anyPanelOpen = true;
+
+        if (_inventoryPanel != null && _inventoryPanel.activeSelf)
+            anyPanelOpen = true;
+
+        if (_minimapPanel != null && _minimapPanel.activeSelf)
+            anyPanelOpen = true;
+
+        if (_mapQuestPanel != null && _mapQuestPanel.activeSelf)
+            anyPanelOpen = true;
+
+        if (anyPanelOpen)
+        {
+            CloseAllPanels();
+        }
+        else if (_enableEscapeToLogin)
+        {
+            LoadLoginScene();
         }
     }
 
@@ -546,6 +563,23 @@ public class CharacterUIController : MonoBehaviour
 
         if (_skillPanel != null)
             _skillPanel.SetActive(false);
+
+        if (_inventoryPanel != null)
+            _inventoryPanel.SetActive(false);
+
+        if (_minimapPanel != null)
+            _minimapPanel.SetActive(false);
+
+        if (_mapQuestPanel != null)
+            _mapQuestPanel.SetActive(false);
+
+        Log("모든 패널 닫기");
+    }
+
+    private void LoadLoginScene()
+    {
+        Log($"LoginScene 이동: {_loginSceneName}");
+        UnityEngine.SceneManagement.SceneManager.LoadScene(_loginSceneName);
     }
 
     #endregion

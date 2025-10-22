@@ -7,7 +7,7 @@ using TMPro;
 /// 기능:
 /// - IInteractable 오브젝트 위에 UI 표시
 /// - 오브젝트 타입별 이름 표시 (예: "문", "상자", "상인")
-/// - 카메라를 항상 바라보도록 회전
+/// - 카메라를 항상 바라보도록 회전 (Cinemachine 호환)
 /// - 페이드 인/아웃 애니메이션
 /// 
 /// 사용법:
@@ -83,7 +83,13 @@ public class WorldSpaceInteractionUI : MonoBehaviour
         PlayerInteractionController.OnInteractableLost -= HandleInteractableLost;
     }
 
-    private void Update()
+    /// <summary>
+    /// LateUpdate 사용 이유:
+    /// - Cinemachine 카메라가 Update()에서 위치/회전 업데이트
+    /// - LateUpdate()에서 최종 카메라 상태 반영
+    /// - 더 부드럽고 정확한 빌보드 효과
+    /// </summary>
+    private void LateUpdate()
     {
         UpdatePosition();
         UpdateRotation();
@@ -146,14 +152,17 @@ public class WorldSpaceInteractionUI : MonoBehaviour
         transform.position = targetPos;
     }
 
+    /// <summary>
+    /// 완벽한 빌보드 회전 - Cinemachine 톱다운 카메라 대응
+    /// </summary>
     private void UpdateRotation()
     {
         if (_mainCamera == null)
             return;
 
-        // 카메라를 항상 바라보도록
-        transform.LookAt(transform.position + _mainCamera.transform.rotation * Vector3.forward,
-                         _mainCamera.transform.rotation * Vector3.up);
+        // 카메라 방향으로 직접 정렬 (가장 간단하고 효과적)
+        Quaternion rotation = _mainCamera.transform.rotation;
+        transform.rotation = rotation;
     }
 
     #endregion
