@@ -214,7 +214,7 @@ public class CharacterUIController : MonoBehaviour
             {
                 _skillSlots[i].Initialize(unlockedSkills[i], i);
 
-                // ⭐ 이미 언락된 스킬은 즉시 Unlock 호출 (잠금 해제)
+                // 이미 언락된 스킬은 즉시 Unlock 호출 (잠금 해제)
                 _skillSlots[i].Unlock();
 
                 Log($"  슬롯 {i}: {unlockedSkills[i].SkillName} 초기화 완료");
@@ -369,7 +369,7 @@ public class CharacterUIController : MonoBehaviour
     {
         Log($"스킬 언락: {skill.SkillName}");
 
-        // ⭐ 해당 스킬을 가진 슬롯 찾아서 Unlock 호출
+        // 해당 스킬을 가진 슬롯 찾아서 Unlock 호출
         foreach (SkillSlotUI slot in _skillSlots)
         {
             if (slot != null && slot.SkillData == skill)

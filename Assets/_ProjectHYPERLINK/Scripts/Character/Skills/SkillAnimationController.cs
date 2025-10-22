@@ -1,56 +1,47 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 /// <summary>
-/// 스킬 애니메이션 컨트롤러
+/// 스킬 애니메이션 컨트롤러 (리팩토링 버전)
 /// 
-/// 역할:
-/// - SkillActivationSystem과 Animator 연결
-/// - 스킬 실행 시 애니메이션 트리거 발동
-/// - Root Motion 기반 스킬 처리
-/// - 애니메이션 이벤트 수신
+/// 주요 변경사항:
+/// - [FIXED] NavMeshAgent 비활성화 제거 → isStopped 사용
+/// - [NEW] Root Motion 기반 코루틴 처리 (PerformDashAttack 패턴)
+/// - [NEW] AOE 형태별 데미지 처리 (Sphere/Box)
+/// - [NEW] 타이밍 기반 데미지 적용
+/// - [NEW] 오프셋 위치 지원
 /// 
-/// 사용법:
-/// 1. PlayerCharacter GameObject에 추가
-/// 2. Animator 자동 검색
-/// 3. SkillActivationSystem에서 자동 호출
-/// 
-/// 애니메이션 트리거:
-/// - SkillJudgement
-/// - SkillSwiftSlash
-/// - SkillConviction
-/// - Hit
-/// - Dead (Bool)
+/// 핵심 개선:
+/// 1. NavMeshAgent를 비활성화하지 않음 (Root Motion과 충돌 방지)
+/// 2. agent.isStopped + ResetPath로 제어
+/// 3. 애니메이션 종료 시 agent.Warp()로 동기화
 /// </summary>
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class SkillAnimationController : MonoBehaviour
 {
     [Header("참조")]
     [SerializeField] private Animator _animator;
     [SerializeField] private SkillActivationSystem _skillActivationSystem;
 
-    [Header("Root Motion 설정")]
-    [Tooltip("스킬 사용 중 NavMeshAgent 비활성화")]
-    [SerializeField] private bool _disableAgentDuringSkill = true;
-
     [Header("마우스 방향 회전")]
     [Tooltip("스킬 사용 시 마우스 커서 방향으로 회전")]
     [SerializeField] private bool _rotateTowardsMouse = true;
 
-    [Tooltip("회전 속도 (도/초)")]
-    [SerializeField] private float _rotationSpeed = 720f;
-
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
+    [SerializeField] private bool _showDebugGizmos = true;
 
     // 컴포넌트 캐시
-    private UnityEngine.AI.NavMeshAgent _navAgent;
+    private NavMeshAgent _navAgent;
     private PlayerCharacter _playerCharacter;
     private Camera _mainCamera;
 
     // 상태 추적
     private bool _isPerformingSkill = false;
     private SkillData _currentSkill = null;
+    private Coroutine _skillCoroutine = null;
 
     // 애니메이터 파라미터 해시 (최적화)
     private static readonly int HASH_SKILL_JUDGEMENT = Animator.StringToHash("SkillJudgement");
@@ -63,16 +54,11 @@ public class SkillAnimationController : MonoBehaviour
 
     private void Awake()
     {
-        // 자동 검색
         if (_animator == null)
-        {
             _animator = GetComponent<Animator>();
-        }
 
         if (_skillActivationSystem == null)
-        {
             _skillActivationSystem = GetComponent<SkillActivationSystem>();
-        }
 
         _navAgent = GetComponent<NavMeshAgent>();
         _playerCharacter = GetComponent<PlayerCharacter>();
@@ -82,23 +68,27 @@ public class SkillAnimationController : MonoBehaviour
         {
             Debug.LogError("[SkillAnimationController] Animator를 찾을 수 없습니다!");
             enabled = false;
+            return;
+        }
+
+        if (_navAgent == null)
+        {
+            Debug.LogError("[SkillAnimationController] NavMeshAgent를 찾을 수 없습니다!");
+            enabled = false;
+            return;
         }
 
         if (_mainCamera == null)
         {
-            Debug.LogError("[SkillAnimationController] Main Camera를 찾을 수 없습니다!");
+            Debug.LogWarning("[SkillAnimationController] Main Camera를 찾을 수 없습니다!");
         }
     }
 
     private void OnEnable()
     {
-        // SkillActivationSystem 이벤트 구독
         if (_skillActivationSystem != null)
-        {
             SkillActivationSystem.OnSkillExecuted += HandleSkillExecuted;
-        }
 
-        // PlayerCharacter 이벤트 구독
         if (_playerCharacter != null)
         {
             PlayerCharacter.OnPlayerHit += HandlePlayerHit;
@@ -108,16 +98,20 @@ public class SkillAnimationController : MonoBehaviour
 
     private void OnDisable()
     {
-        // 이벤트 구독 해제
         if (_skillActivationSystem != null)
-        {
             SkillActivationSystem.OnSkillExecuted -= HandleSkillExecuted;
-        }
 
         if (_playerCharacter != null)
         {
             PlayerCharacter.OnPlayerHit -= HandlePlayerHit;
             PlayerCharacter.OnPlayerDead -= HandlePlayerDead;
+        }
+
+        // 진행 중인 코루틴 정리
+        if (_skillCoroutine != null)
+        {
+            StopCoroutine(_skillCoroutine);
+            _skillCoroutine = null;
         }
     }
 
@@ -127,31 +121,26 @@ public class SkillAnimationController : MonoBehaviour
 
     /// <summary>
     /// 스킬 실행 시 호출
-    /// SkillActivationSystem에서 발생
     /// </summary>
     private void HandleSkillExecuted(SkillData skill)
     {
         if (skill == null) return;
 
-        _isPerformingSkill = true;
-        _currentSkill = skill;
-
-        // NavMeshAgent 비활성화 (Root Motion 적용 위해)
-        if (_disableAgentDuringSkill && _navAgent != null)
+        // 이미 스킬 실행 중이면 무시
+        if (_isPerformingSkill)
         {
-            _navAgent.enabled = false;
+            Log("이미 스킬 실행 중입니다!");
+            return;
         }
+
+        _currentSkill = skill;
 
         // 마우스 방향으로 회전
         if (_rotateTowardsMouse)
-        {
             RotateTowardsMousePosition();
-        }
 
-        // 스킬 이름에 따라 애니메이션 트리거
-        PlaySkillAnimation(skill.SkillName);
-
-        Log($"스킬 애니메이션 실행: {skill.SkillName}");
+        // 스킬 코루틴 시작
+        _skillCoroutine = StartCoroutine(PerformSkillCoroutine(skill));
     }
 
     /// <summary>
@@ -159,7 +148,6 @@ public class SkillAnimationController : MonoBehaviour
     /// </summary>
     private void HandlePlayerHit(float damage)
     {
-        // 스킬 실행 중이 아닐 때만 피격 애니메이션 재생
         if (!_isPerformingSkill)
         {
             _animator.SetTrigger(HASH_HIT);
@@ -174,14 +162,102 @@ public class SkillAnimationController : MonoBehaviour
     {
         _animator.SetBool(HASH_DEAD, true);
         _isPerformingSkill = false;
+        _currentSkill = null;
 
         // NavMeshAgent 완전 정지
-        if (_navAgent != null)
+        if (_navAgent != null && _navAgent.enabled)
         {
-            _navAgent.enabled = false;
+            _navAgent.isStopped = true;
+            _navAgent.ResetPath();
         }
 
-        Log("사망 애니메이션 재생");
+        // 진행 중인 스킬 코루틴 정지
+        if (_skillCoroutine != null)
+        {
+            StopCoroutine(_skillCoroutine);
+            _skillCoroutine = null;
+        }
+
+        Log("사망 - 모든 행동 정지");
+    }
+
+    #endregion
+
+    #region 스킬 실행 코루틴
+
+    /// <summary>
+    /// 스킬 실행 코루틴 (PerformDashAttack 패턴 적용)
+    /// 
+    /// 처리 과정:
+    /// 1. NavMeshAgent 이동 중지 (enabled는 유지!)
+    /// 2. Root Motion 활성화 (필요 시)
+    /// 3. 애니메이션 트리거
+    /// 4. 타이밍에 맞춰 데미지 적용
+    /// 5. 애니메이션 종료 대기
+    /// 6. NavMesh 위치 동기화 (Warp)
+    /// 7. 정리 및 복구
+    /// </summary>
+    private IEnumerator PerformSkillCoroutine(SkillData skill)
+    {
+        _isPerformingSkill = true;
+        Log($"스킬 시작: {skill.SkillName}");
+
+        // 1. NavMeshAgent 이동 중지 (비활성화 X)
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.isStopped = true;
+            _navAgent.ResetPath();
+            Log("NavMeshAgent 이동 중지");
+        }
+
+        // 2. Root Motion 활성화 (스킬 설정에 따라)
+        bool wasUsingRootMotion = _animator.applyRootMotion;
+        if (skill.UseRootMotion)
+        {
+            _animator.applyRootMotion = true;
+            Log("Root Motion 활성화");
+        }
+
+        // 3. 애니메이션 트리거 실행
+        PlaySkillAnimation(skill.SkillName);
+
+        // 4. 데미지 적용 타이밍까지 대기
+        float damageDelay = skill.AnimationDuration * skill.DamagePointTiming;
+        yield return new WaitForSeconds(damageDelay);
+
+        // 5. 데미지 적용
+        ApplySkillDamage(skill);
+
+        // 6. 나머지 애니메이션 재생 대기
+        float remainingTime = skill.AnimationDuration * (1f - skill.DamagePointTiming);
+        yield return new WaitForSeconds(remainingTime);
+
+        // 7. Root Motion 복구
+        if (skill.UseRootMotion)
+        {
+            _animator.applyRootMotion = wasUsingRootMotion;
+            Log("Root Motion 복구");
+        }
+
+        // 8. NavMesh 위치 동기화 (중요!)
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.Warp(transform.position);
+            Log("NavMesh 위치 동기화");
+        }
+
+        // 9. NavMeshAgent 이동 재개
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.isStopped = false;
+            Log("NavMeshAgent 이동 재개");
+        }
+
+        // 10. 정리
+        _isPerformingSkill = false;
+        _currentSkill = null;
+        _skillCoroutine = null;
+        Log($"스킬 종료: {skill.SkillName}");
     }
 
     #endregion
@@ -190,38 +266,28 @@ public class SkillAnimationController : MonoBehaviour
 
     /// <summary>
     /// 마우스 커서 방향으로 캐릭터 회전
-    /// 
-    /// 처리 과정:
-    /// 1. 마우스 위치로 Raycast
-    /// 2. 지면과의 교차점 계산
-    /// 3. 해당 방향으로 즉시 회전
     /// </summary>
     private void RotateTowardsMousePosition()
     {
         if (_mainCamera == null)
         {
-            Debug.LogWarning("[SkillAnimationController] 카메라가 없어 회전할 수 없습니다!");
+            Log("카메라가 없어 회전할 수 없습니다!");
             return;
         }
 
-        // 마우스 위치로 Ray 발사
         Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        // 지면과 충돌 체크
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-            // 마우스 위치로의 방향 계산
             Vector3 targetPosition = hit.point;
             Vector3 direction = targetPosition - transform.position;
-            direction.y = 0; // Y축 회전만 사용
+            direction.y = 0;
 
-            // 방향이 유효한 경우 회전
             if (direction.sqrMagnitude > 0.01f)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = targetRotation; // 즉시 회전
-
+                transform.rotation = targetRotation;
                 Log($"마우스 방향으로 회전: {targetRotation.eulerAngles.y:F0}도");
             }
         }
@@ -253,69 +319,8 @@ public class SkillAnimationController : MonoBehaviour
 
             default:
                 Debug.LogWarning($"[SkillAnimationController] 알 수 없는 스킬 이름: {skillName}");
-                OnSkillAnimationEnd(); // 안전장치
                 break;
         }
-    }
-
-    #endregion
-
-    #region 애니메이션 이벤트 (Animation Event에서 호출)
-
-    /// <summary>
-    /// 애니메이션 이벤트: 스킬 데미지 적용 시점
-    /// 
-    /// 사용법:
-    /// 1. 애니메이션 클립 선택
-    /// 2. Animation 창에서 이벤트 추가
-    /// 3. 함수: OnSkillDamagePoint
-    /// 4. 타이밍: 공격 모션이 적에게 닿는 순간
-    /// </summary>
-    public void OnSkillDamagePoint()
-    {
-        if (_currentSkill == null)
-        {
-            Debug.LogWarning("[SkillAnimationController] 현재 스킬이 없습니다!");
-            return;
-        }
-
-        Log($"스킬 데미지 적용: {_currentSkill.SkillName}");
-
-        // 스킬 타입에 따라 데미지 처리
-        switch (_currentSkill.SkillType)
-        {
-            case SkillType.AreaOfEffect:
-                ApplyAOEDamage();
-                break;
-
-            case SkillType.Melee:
-                ApplyMeleeDamage();
-                break;
-
-            default:
-                Debug.LogWarning($"[SkillAnimationController] 지원하지 않는 스킬 타입: {_currentSkill.SkillType}");
-                break;
-        }
-    }
-
-    /// <summary>
-    /// 애니메이션 이벤트: 스킬 애니메이션 종료
-    /// 
-    /// 사용법:
-    /// 애니메이션 끝 부분에 이벤트 추가
-    /// </summary>
-    public void OnSkillAnimationEnd()
-    {
-        _isPerformingSkill = false;
-        _currentSkill = null;
-
-        // NavMeshAgent 재활성화
-        if (_disableAgentDuringSkill && _navAgent != null)
-        {
-            _navAgent.enabled = true;
-        }
-
-        Log("스킬 애니메이션 종료");
     }
 
     #endregion
@@ -323,58 +328,81 @@ public class SkillAnimationController : MonoBehaviour
     #region 데미지 처리
 
     /// <summary>
-    /// AOE 스킬 데미지 적용
+    /// 스킬 데미지 적용 (형태별 분기)
+    /// </summary>
+    private void ApplySkillDamage(SkillData skill)
+    {
+        if (skill.SkillType == SkillType.AreaOfEffect)
+        {
+            ApplyAOEDamage(skill);
+        }
+        else if (skill.SkillType == SkillType.Melee)
+        {
+            ApplyMeleeDamage(skill);
+        }
+        else
+        {
+            Log($"데미지 적용 생략 (타입: {skill.SkillType})");
+        }
+    }
+
+    /// <summary>
+    /// AOE 데미지 적용 (Sphere 또는 Box)
     /// 
     /// 처리:
-    /// - 플레이어 위치 기준 범위 내 적 탐색
-    /// - 각 적에게 데미지 적용
+    /// 1. 오프셋을 적용한 중심 위치 계산
+    /// 2. 형태에 따라 Collider 검색 (Sphere/Box)
+    /// 3. 범위 내 적에게 데미지 적용
     /// </summary>
-    private void ApplyAOEDamage()
+    private void ApplyAOEDamage(SkillData skill)
     {
-        Vector3 centerPosition = transform.position;
+        // 오프셋 적용한 중심 위치 계산 (로컬 → 월드)
+        Vector3 centerPosition = transform.position + transform.TransformDirection(skill.AoeOffset);
 
-        // 스킬 특성에 따라 범위 조정
-        float range = _currentSkill.Range;
-
-        // Swift Slash는 전방 직선 범위
-        if (_currentSkill.SkillName.Contains("Swift"))
-        {
-            centerPosition += transform.forward * (range * 0.5f);
-        }
-
-        Collider[] hits = Physics.OverlapSphere(centerPosition, range);
+        Collider[] hits;
         int enemyCount = 0;
 
+        // 형태에 따라 Collider 검색
+        if (skill.AoeShape == AOEShape.Sphere)
+        {
+            // Sphere 검색
+            hits = Physics.OverlapSphere(centerPosition, skill.Range);
+            Log($"Sphere AOE 검색: 중심({centerPosition}), 반경({skill.Range})");
+        }
+        else // AOEShape.Box
+        {
+            // Box 검색 (전방 향하는 박스)
+            Quaternion boxRotation = transform.rotation;
+            hits = Physics.OverlapBox(centerPosition, skill.BoxSize * 0.5f, boxRotation);
+            Log($"Box AOE 검색: 중심({centerPosition}), 크기({skill.BoxSize})");
+        }
+
+        // 범위 내 적에게 데미지 적용
         foreach (Collider hit in hits)
         {
             EnemyController enemy = hit.GetComponent<EnemyController>();
             if (enemy != null)
             {
-                float damage = CalculateSkillDamage();
+                float damage = CalculateSkillDamage(skill);
                 enemy.TakeDamage(damage);
                 enemyCount++;
             }
         }
 
-        Log($"AOE 데미지 적용: {enemyCount}명의 적 타격");
+        Log($"AOE 데미지 적용: {enemyCount}명 타격");
     }
 
     /// <summary>
     /// 근거리 스킬 데미지 적용 (단일 대상)
-    /// 
-    /// 처리:
-    /// - 범위 내 가장 가까운 적 찾기
-    /// - 해당 적에게 집중 데미지
     /// </summary>
-    private void ApplyMeleeDamage()
+    private void ApplyMeleeDamage(SkillData skill)
     {
         Vector3 centerPosition = transform.position + transform.forward * 2f;
-        Collider[] hits = Physics.OverlapSphere(centerPosition, _currentSkill.Range);
+        Collider[] hits = Physics.OverlapSphere(centerPosition, skill.Range);
 
         EnemyController closestEnemy = null;
         float closestDistance = float.MaxValue;
 
-        // 가장 가까운 적 찾기
         foreach (Collider hit in hits)
         {
             EnemyController enemy = hit.GetComponent<EnemyController>();
@@ -389,12 +417,11 @@ public class SkillAnimationController : MonoBehaviour
             }
         }
 
-        // 가장 가까운 적에게 데미지
         if (closestEnemy != null)
         {
-            float damage = CalculateSkillDamage();
+            float damage = CalculateSkillDamage(skill);
             closestEnemy.TakeDamage(damage);
-            Log($"단일 대상 데미지 적용: {damage:F0}");
+            Log($"근거리 데미지 적용: {damage:F0}");
         }
         else
         {
@@ -405,15 +432,14 @@ public class SkillAnimationController : MonoBehaviour
     /// <summary>
     /// 스킬 데미지 계산
     /// 
-    /// 공식:
-    /// 기본 데미지 × (1 + 주요 스탯 / 100)
+    /// 공식: 기본 데미지 × (1 + 주요 스탯 / 100)
     /// </summary>
-    private float CalculateSkillDamage()
+    private float CalculateSkillDamage(SkillData skill)
     {
-        if (_currentSkill == null || _playerCharacter == null)
+        if (skill == null || _playerCharacter == null)
             return 0f;
 
-        float baseDamage = _currentSkill.Damage;
+        float baseDamage = skill.Damage;
         int mainStat = _playerCharacter.GetMainStat();
 
         float finalDamage = baseDamage * (1f + mainStat / 100f);
@@ -433,21 +459,35 @@ public class SkillAnimationController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Gizmo로 AOE 범위 시각화
+    /// </summary>
     private void OnDrawGizmosSelected()
     {
-        if (_currentSkill == null || !_isPerformingSkill)
+        if (!_showDebugGizmos || _currentSkill == null || !_isPerformingSkill)
             return;
 
-        // 스킬 범위 시각화
         Gizmos.color = Color.red;
-        Vector3 centerPosition = transform.position;
 
-        if (_currentSkill.SkillName.Contains("Swift"))
+        // 오프셋 적용한 중심 위치
+        Vector3 centerPosition = transform.position + transform.TransformDirection(_currentSkill.AoeOffset);
+
+        // 형태에 따라 다르게 그리기
+        if (_currentSkill.AoeShape == AOEShape.Sphere)
         {
-            centerPosition += transform.forward * (_currentSkill.Range * 0.5f);
+            Gizmos.DrawWireSphere(centerPosition, _currentSkill.Range);
+        }
+        else // Box
+        {
+            Matrix4x4 oldMatrix = Gizmos.matrix;
+            Gizmos.matrix = Matrix4x4.TRS(centerPosition, transform.rotation, Vector3.one);
+            Gizmos.DrawWireCube(Vector3.zero, _currentSkill.BoxSize);
+            Gizmos.matrix = oldMatrix;
         }
 
-        Gizmos.DrawWireSphere(centerPosition, _currentSkill.Range);
+        // 오프셋 표시
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(transform.position, centerPosition);
     }
 
     #endregion

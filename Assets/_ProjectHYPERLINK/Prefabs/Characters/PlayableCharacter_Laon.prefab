@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 1237584802716128544}
   - component: {fileID: -659526161995910388}
   - component: {fileID: 341333240480795390}
+  - component: {fileID: 5488621197481358210}
   m_Layer: 10
   m_Name: PlayableCharacter_Laon
   m_TagString: Player
@@ -274,6 +275,23 @@ MonoBehaviour:
   _rotateTowardsMouse: 1
   _rotationSpeed: 720
   _enableDebugLogs: 1
+--- !u!114 &5488621197481358210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca811e289e0bd3c4fbcad7f6136051db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pickupRange: 2
+  _itemLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  _maxColliderResults: 20
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0
