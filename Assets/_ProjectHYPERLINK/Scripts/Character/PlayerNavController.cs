@@ -69,7 +69,6 @@ public class PlayerNavController : MonoBehaviour
     private void Start()
     {
         _animator.applyRootMotion = false;
-        _agent.stoppingDistance = _attackRange;
     }
 
     private void OnEnable()
