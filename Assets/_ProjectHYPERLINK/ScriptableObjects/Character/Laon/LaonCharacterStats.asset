@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20fc9c8b8a3576c499132a23b6b55ad6, type: 3}
   m_Name: LaonCharacterStats
   m_EditorClassIdentifier: 
-  _strength: 10
-  _dexterity: 5
-  _intelligence: 5
-  _vitality: 10
+  _strength: 0
+  _dexterity: 0
+  _intelligence: 0
+  _vitality: 0
   _physicalAttack: 0
   _magicalAttack: 0
   _armor: 0
   _allResistance: 0
   _criticalChance: 5
-  _criticalDamage: 50
+  _criticalDamage: 200
   _attackSpeed: 1
   _maxHealth: 100
   _maxMana: 50

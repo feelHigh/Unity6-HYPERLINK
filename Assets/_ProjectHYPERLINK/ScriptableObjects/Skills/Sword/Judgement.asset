@@ -19,8 +19,14 @@ MonoBehaviour:
   _manaCost: 0
   _cooldown: 1
   _damage: 50
-  _range: 1
+  _range: 2
   _skillType: 2
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
-  _buffDuration: 10
+  _buffDuration: 0
+  _aoeShape: 1
+  _damagePointTiming: 0.9
+  _aoeOffset: {x: 0, y: 0, z: 0}
+  _boxSize: {x: 3, y: 2, z: 4}
+  _animationDuration: 1
+  _useRootMotion: 1
