@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 59783467847375423}
   - component: {fileID: 6145444384961602680}
   - component: {fileID: 1728384117610399209}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: EquipmentItem_Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -83,3 +83,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pickupRadius: 2
   _autoPickup: 1
+  _enableDebugLogs: 1
