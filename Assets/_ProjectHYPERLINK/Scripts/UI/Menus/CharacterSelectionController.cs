@@ -36,9 +36,9 @@ public class CharacterSelectionController : MonoBehaviour
     [SerializeField] private Button _deleteButton;
 
     [Header("직업 선택 UI")]
-    [SerializeField] private Button _warriorButton;
-    [SerializeField] private Button _mageButton;
-    [SerializeField] private Button _archerButton;
+    [SerializeField] private Button _laonButton;
+    [SerializeField] private Button _sianButton;
+    [SerializeField] private Button _yujinButton;
     [SerializeField] private TMP_InputField _characterNameInput;
     [SerializeField] private Button _createCharacterButton;
 
@@ -65,9 +65,9 @@ public class CharacterSelectionController : MonoBehaviour
         _continueButton.onClick.AddListener(OnContinueClicked);
         _deleteButton.onClick.AddListener(OnDeleteClicked);
 
-        _warriorButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Laon));
-        _mageButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Sian));
-        _archerButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Yujin));
+        _laonButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Laon));
+        _sianButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Sian));
+        _yujinButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Yujin));
 
         _createCharacterButton.onClick.AddListener(OnCreateCharacterClicked);
     }
