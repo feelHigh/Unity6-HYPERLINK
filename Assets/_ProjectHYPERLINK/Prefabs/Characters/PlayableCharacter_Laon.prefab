@@ -171,15 +171,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
-  _skillSlots:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  _skillSlots: []
   _skill1Key: 113
   _skill2Key: 119
   _skill3Key: 101
-  _aoeEffectPrefab: {fileID: 0}
-  _aoeEffectDuration: 2
   _showDebugGizmos: 1
 --- !u!114 &4529648162199723491
 MonoBehaviour:
@@ -271,10 +266,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animator: {fileID: 0}
   _skillActivationSystem: {fileID: 0}
-  _disableAgentDuringSkill: 0
   _rotateTowardsMouse: 1
-  _rotationSpeed: 720
   _enableDebugLogs: 1
+  _showDebugGizmos: 1
 --- !u!114 &5488621197481358210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -292,6 +286,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _maxColliderResults: 20
+  _enableDebugLogs: 1
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0
