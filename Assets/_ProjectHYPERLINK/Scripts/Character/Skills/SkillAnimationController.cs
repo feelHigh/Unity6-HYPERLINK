@@ -1,21 +1,14 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using DG.Tweening;
 
 /// <summary>
-/// 스킬 애니메이션 컨트롤러 (리팩토링 버전)
+/// 스킬 애니메이션 컨트롤러
 /// 
-/// 주요 변경사항:
-/// - [FIXED] NavMeshAgent 비활성화 제거 → isStopped 사용
-/// - [NEW] Root Motion 기반 코루틴 처리 (PerformDashAttack 패턴)
-/// - [NEW] AOE 형태별 데미지 처리 (Sphere/Box)
-/// - [NEW] 타이밍 기반 데미지 적용
-/// - [NEW] 오프셋 위치 지원
-/// 
-/// 핵심 개선:
-/// 1. NavMeshAgent를 비활성화하지 않음 (Root Motion과 충돌 방지)
-/// 2. agent.isStopped + ResetPath로 제어
-/// 3. 애니메이션 종료 시 agent.Warp()로 동기화
+/// 마우스 거리 기반 대시:
+/// - CalculateActualDashDistance(): 모드별 대시 거리 결정
+/// - GetMousePositionDistance(): 마우스까지 수평 거리 계산
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -26,24 +19,36 @@ public class SkillAnimationController : MonoBehaviour
     [SerializeField] private SkillActivationSystem _skillActivationSystem;
 
     [Header("마우스 방향 회전")]
-    [Tooltip("스킬 사용 시 마우스 커서 방향으로 회전")]
     [SerializeField] private bool _rotateTowardsMouse = true;
+
+    [Header("벽 충돌 감지 디버그")]
+    [SerializeField] private bool _showDashRaycast = true;
+    [SerializeField] private Color _raycastColorClear = Color.green;
+    [SerializeField] private Color _raycastColorBlocked = Color.red;
 
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
     [SerializeField] private bool _showDebugGizmos = true;
 
-    // 컴포넌트 캐시
     private NavMeshAgent _navAgent;
     private PlayerCharacter _playerCharacter;
     private Camera _mainCamera;
+    private CharacterController _characterController;
 
-    // 상태 추적
     private bool _isPerformingSkill = false;
     private SkillData _currentSkill = null;
     private Coroutine _skillCoroutine = null;
+    private Tweener _currentDashTween = null;
 
-    // 애니메이터 파라미터 해시 (최적화)
+    // 레이캐스트 디버그
+    private Vector3 _lastRaycastStart;
+    private Vector3 _lastRaycastEnd;
+    private bool _lastRaycastHit;
+
+    // [NEW] 마우스 거리 디버그
+    private Vector3 _lastMouseWorldPosition;
+    private float _lastCalculatedDistance;
+
     private static readonly int HASH_SKILL_JUDGEMENT = Animator.StringToHash("SkillJudgement");
     private static readonly int HASH_SKILL_SWIFT_SLASH = Animator.StringToHash("SkillSwiftSlash");
     private static readonly int HASH_SKILL_CONVICTION = Animator.StringToHash("SkillConviction");
@@ -62,25 +67,13 @@ public class SkillAnimationController : MonoBehaviour
 
         _navAgent = GetComponent<NavMeshAgent>();
         _playerCharacter = GetComponent<PlayerCharacter>();
+        _characterController = GetComponent<CharacterController>();
         _mainCamera = Camera.main;
 
-        if (_animator == null)
+        if (_animator == null || _navAgent == null)
         {
-            Debug.LogError("[SkillAnimationController] Animator를 찾을 수 없습니다!");
+            Debug.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
             enabled = false;
-            return;
-        }
-
-        if (_navAgent == null)
-        {
-            Debug.LogError("[SkillAnimationController] NavMeshAgent를 찾을 수 없습니다!");
-            enabled = false;
-            return;
-        }
-
-        if (_mainCamera == null)
-        {
-            Debug.LogWarning("[SkillAnimationController] Main Camera를 찾을 수 없습니다!");
         }
     }
 
@@ -107,172 +100,219 @@ public class SkillAnimationController : MonoBehaviour
             PlayerCharacter.OnPlayerDead -= HandlePlayerDead;
         }
 
-        // 진행 중인 코루틴 정리
         if (_skillCoroutine != null)
         {
             StopCoroutine(_skillCoroutine);
             _skillCoroutine = null;
         }
+
+        CleanupDashTween();
     }
 
     #endregion
 
     #region 이벤트 핸들러
 
-    /// <summary>
-    /// 스킬 실행 시 호출
-    /// </summary>
     private void HandleSkillExecuted(SkillData skill)
     {
-        if (skill == null) return;
-
-        // 이미 스킬 실행 중이면 무시
-        if (_isPerformingSkill)
+        if (skill == null || _isPerformingSkill)
         {
-            Log("이미 스킬 실행 중입니다!");
+            Log("스킬 실행 불가");
             return;
         }
 
         _currentSkill = skill;
 
-        // 마우스 방향으로 회전
         if (_rotateTowardsMouse)
             RotateTowardsMousePosition();
 
-        // 스킬 코루틴 시작
         _skillCoroutine = StartCoroutine(PerformSkillCoroutine(skill));
     }
 
-    /// <summary>
-    /// 플레이어 피격 시 호출
-    /// </summary>
     private void HandlePlayerHit(float damage)
     {
         if (!_isPerformingSkill)
         {
             _animator.SetTrigger(HASH_HIT);
-            Log("피격 애니메이션 재생");
         }
     }
 
-    /// <summary>
-    /// 플레이어 사망 시 호출
-    /// </summary>
     private void HandlePlayerDead()
     {
         _animator.SetBool(HASH_DEAD, true);
         _isPerformingSkill = false;
         _currentSkill = null;
 
-        // NavMeshAgent 완전 정지
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
         }
 
-        // 진행 중인 스킬 코루틴 정지
         if (_skillCoroutine != null)
         {
             StopCoroutine(_skillCoroutine);
             _skillCoroutine = null;
         }
 
-        Log("사망 - 모든 행동 정지");
+        CleanupDashTween();
     }
 
     #endregion
 
     #region 스킬 실행 코루틴
 
-    /// <summary>
-    /// 스킬 실행 코루틴 (PerformDashAttack 패턴 적용)
-    /// 
-    /// 처리 과정:
-    /// 1. NavMeshAgent 이동 중지 (enabled는 유지!)
-    /// 2. Root Motion 활성화 (필요 시)
-    /// 3. 애니메이션 트리거
-    /// 4. 타이밍에 맞춰 데미지 적용
-    /// 5. 애니메이션 종료 대기
-    /// 6. NavMesh 위치 동기화 (Warp)
-    /// 7. 정리 및 복구
-    /// </summary>
     private IEnumerator PerformSkillCoroutine(SkillData skill)
     {
         _isPerformingSkill = true;
         Log($"스킬 시작: {skill.SkillName}");
 
-        // 1. NavMeshAgent 이동 중지 (비활성화 X)
+        // NavMeshAgent 정지
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
-            Log("NavMeshAgent 이동 중지");
         }
 
-        // 2. Root Motion 활성화 (스킬 설정에 따라)
+        // Root Motion 설정
         bool wasUsingRootMotion = _animator.applyRootMotion;
+        bool useDOTweenDash = !skill.UseRootMotion;
+
         if (skill.UseRootMotion)
         {
             _animator.applyRootMotion = true;
-            Log("Root Motion 활성화");
+        }
+        else
+        {
+            _animator.applyRootMotion = false;
         }
 
-        // 3. 애니메이션 트리거 실행
+        // 애니메이션 트리거
         PlaySkillAnimation(skill.SkillName);
 
-        // 4. 데미지 적용 타이밍까지 대기
-        float damageDelay = skill.AnimationDuration * skill.DamagePointTiming;
-        yield return new WaitForSeconds(damageDelay);
+        // DOTween 대시
+        if (useDOTweenDash)
+        {
+            float dashStartDelay = skill.AnimationDuration * skill.DashTiming;
+            yield return new WaitForSeconds(dashStartDelay);
 
-        // 5. 데미지 적용
+            PerformDOTweenDash(skill);
+        }
+
+        // 데미지 타이밍
+        float damageDelay = useDOTweenDash
+            ? skill.AnimationDuration * (skill.DamagePointTiming - skill.DashTiming)
+            : skill.AnimationDuration * skill.DamagePointTiming;
+
+        if (damageDelay > 0)
+            yield return new WaitForSeconds(damageDelay);
+
         ApplySkillDamage(skill);
 
-        // 6. 나머지 애니메이션 재생 대기
+        // 나머지 애니메이션
         float remainingTime = skill.AnimationDuration * (1f - skill.DamagePointTiming);
         yield return new WaitForSeconds(remainingTime);
 
-        // 7. Root Motion 복구
+        // 대시 완료 대기
+        if (useDOTweenDash && _currentDashTween != null && _currentDashTween.IsActive())
+        {
+            yield return _currentDashTween.WaitForCompletion();
+        }
+
+        // Root Motion 복구
         if (skill.UseRootMotion)
         {
             _animator.applyRootMotion = wasUsingRootMotion;
-            Log("Root Motion 복구");
         }
 
-        // 8. NavMesh 위치 동기화 (중요!)
+        // NavMesh 동기화
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.Warp(transform.position);
-            Log("NavMesh 위치 동기화");
-        }
-
-        // 9. NavMeshAgent 이동 재개
-        if (_navAgent != null && _navAgent.enabled)
-        {
             _navAgent.isStopped = false;
-            Log("NavMeshAgent 이동 재개");
         }
 
-        // 10. 정리
+        // 정리
         _isPerformingSkill = false;
         _currentSkill = null;
         _skillCoroutine = null;
+        _currentDashTween = null;
         Log($"스킬 종료: {skill.SkillName}");
     }
 
     #endregion
 
-    #region 회전 제어
+    #region DOTween 대시
 
     /// <summary>
-    /// 마우스 커서 방향으로 캐릭터 회전
+    /// DOTween 전방 대시 (벽 충돌 + 마우스 거리 지원)
     /// </summary>
-    private void RotateTowardsMousePosition()
+    private void PerformDOTweenDash(SkillData skill)
+    {
+        CleanupDashTween();
+
+        // 모드별 대시 거리 계산
+        float desiredDashDistance = CalculateActualDashDistance(skill);
+
+        // 벽 충돌 체크
+        float safeDashDistance = desiredDashDistance;
+        if (skill.CheckWallCollision)
+        {
+            safeDashDistance = CalculateSafeDashDistance(skill, desiredDashDistance);
+
+            if (safeDashDistance < desiredDashDistance)
+            {
+                Log($"벽 감지! {desiredDashDistance:F2}m → {safeDashDistance:F2}m");
+            }
+        }
+
+        // 목표 위치 계산
+        Vector3 targetPosition = transform.position + transform.forward * safeDashDistance;
+        targetPosition.y = transform.position.y;
+
+        // DOTween 이동
+        _currentDashTween = transform.DOMove(targetPosition, skill.DashDuration)
+            .SetEase(skill.DashEase)
+            .OnComplete(() => _currentDashTween = null);
+
+        Log($"대시: {safeDashDistance:F2}m (모드: {skill.DashDistanceMode})");
+    }
+
+    /// <summary>
+    /// 모드별 실제 대시 거리 계산
+    /// </summary>
+    private float CalculateActualDashDistance(SkillData skill)
+    {
+        switch (skill.DashDistanceMode)
+        {
+            case DashDistanceMode.Fixed:
+                return skill.DashDistance;
+
+            case DashDistanceMode.MouseDistance:
+                float mouseDistance = GetMousePositionDistance();
+                float clampedDistance = Mathf.Clamp(mouseDistance,
+                    skill.MinDashDistance, skill.MaxDashDistance);
+
+                _lastCalculatedDistance = clampedDistance;
+                Log($"마우스 거리: {mouseDistance:F2}m → 클램핑: {clampedDistance:F2}m " +
+                    $"(범위: {skill.MinDashDistance}-{skill.MaxDashDistance}m)");
+
+                return clampedDistance;
+
+            default:
+                return skill.DashDistance;
+        }
+    }
+
+    /// <summary>
+    /// 마우스 위치까지 수평 거리 계산
+    /// </summary>
+    private float GetMousePositionDistance()
     {
         if (_mainCamera == null)
         {
-            Log("카메라가 없어 회전할 수 없습니다!");
-            return;
+            Log("카메라 없음 - 기본 거리 반환");
+            return 5f;
         }
 
         Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -280,15 +320,90 @@ public class SkillAnimationController : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-            Vector3 targetPosition = hit.point;
-            Vector3 direction = targetPosition - transform.position;
+            _lastMouseWorldPosition = hit.point;
+
+            // 수평 거리만 계산 (Y축 무시)
+            Vector3 characterPos = transform.position;
+            Vector3 mousePos = hit.point;
+            characterPos.y = 0;
+            mousePos.y = 0;
+
+            float distance = Vector3.Distance(characterPos, mousePos);
+            return distance;
+        }
+
+        Log("마우스 레이캐스트 실패 - 기본 거리 반환");
+        return 5f;
+    }
+
+    /// <summary>
+    /// 벽까지 안전 거리 계산
+    /// </summary>
+    private float CalculateSafeDashDistance(SkillData skill, float desiredDistance)
+    {
+        float characterHeight = _characterController != null
+            ? _characterController.height * 0.5f
+            : 1.0f;
+
+        Vector3 rayStart = transform.position + Vector3.up * characterHeight;
+        Vector3 rayDirection = transform.forward;
+
+        _lastRaycastStart = rayStart;
+        _lastRaycastEnd = rayStart + rayDirection * desiredDistance;
+        _lastRaycastHit = false;
+
+        RaycastHit hit;
+        if (Physics.Raycast(rayStart, rayDirection, out hit, desiredDistance, skill.WallLayer))
+        {
+            _lastRaycastHit = true;
+            _lastRaycastEnd = hit.point;
+
+            float safeDistance = Mathf.Max(0f, hit.distance - skill.WallStopBuffer);
+
+            if (_showDashRaycast)
+            {
+                Debug.DrawRay(rayStart, rayDirection * hit.distance, _raycastColorBlocked, 2f);
+            }
+
+            return safeDistance;
+        }
+
+        if (_showDashRaycast)
+        {
+            Debug.DrawRay(rayStart, rayDirection * desiredDistance, _raycastColorClear, 2f);
+        }
+
+        return desiredDistance;
+    }
+
+    private void CleanupDashTween()
+    {
+        if (_currentDashTween != null && _currentDashTween.IsActive())
+        {
+            _currentDashTween.Kill();
+            _currentDashTween = null;
+        }
+    }
+
+    #endregion
+
+    #region 회전 제어
+
+    private void RotateTowardsMousePosition()
+    {
+        if (_mainCamera == null) return;
+
+        Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+            Vector3 direction = hit.point - transform.position;
             direction.y = 0;
 
             if (direction.sqrMagnitude > 0.01f)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = targetRotation;
-                Log($"마우스 방향으로 회전: {targetRotation.eulerAngles.y:F0}도");
+                transform.rotation = Quaternion.LookRotation(direction);
             }
         }
     }
@@ -297,9 +412,6 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 애니메이션 제어
 
-    /// <summary>
-    /// 스킬 이름에 따라 애니메이션 트리거 실행
-    /// </summary>
     private void PlaySkillAnimation(string skillName)
     {
         switch (skillName)
@@ -307,18 +419,15 @@ public class SkillAnimationController : MonoBehaviour
             case "Judgement":
                 _animator.SetTrigger(HASH_SKILL_JUDGEMENT);
                 break;
-
             case "Swift Slash":
             case "SwiftSlash":
                 _animator.SetTrigger(HASH_SKILL_SWIFT_SLASH);
                 break;
-
             case "Conviction":
                 _animator.SetTrigger(HASH_SKILL_CONVICTION);
                 break;
-
             default:
-                Debug.LogWarning($"[SkillAnimationController] 알 수 없는 스킬 이름: {skillName}");
+                Debug.LogWarning($"알 수 없는 스킬: {skillName}");
                 break;
         }
     }
@@ -327,9 +436,6 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 데미지 처리
 
-    /// <summary>
-    /// 스킬 데미지 적용 (형태별 분기)
-    /// </summary>
     private void ApplySkillDamage(SkillData skill)
     {
         if (skill.SkillType == SkillType.AreaOfEffect)
@@ -340,44 +446,23 @@ public class SkillAnimationController : MonoBehaviour
         {
             ApplyMeleeDamage(skill);
         }
-        else
-        {
-            Log($"데미지 적용 생략 (타입: {skill.SkillType})");
-        }
     }
 
-    /// <summary>
-    /// AOE 데미지 적용 (Sphere 또는 Box)
-    /// 
-    /// 처리:
-    /// 1. 오프셋을 적용한 중심 위치 계산
-    /// 2. 형태에 따라 Collider 검색 (Sphere/Box)
-    /// 3. 범위 내 적에게 데미지 적용
-    /// </summary>
     private void ApplyAOEDamage(SkillData skill)
     {
-        // 오프셋 적용한 중심 위치 계산 (로컬 → 월드)
         Vector3 centerPosition = transform.position + transform.TransformDirection(skill.AoeOffset);
-
         Collider[] hits;
         int enemyCount = 0;
 
-        // 형태에 따라 Collider 검색
         if (skill.AoeShape == AOEShape.Sphere)
         {
-            // Sphere 검색
             hits = Physics.OverlapSphere(centerPosition, skill.Range);
-            Log($"Sphere AOE 검색: 중심({centerPosition}), 반경({skill.Range})");
         }
-        else // AOEShape.Box
+        else
         {
-            // Box 검색 (전방 향하는 박스)
-            Quaternion boxRotation = transform.rotation;
-            hits = Physics.OverlapBox(centerPosition, skill.BoxSize * 0.5f, boxRotation);
-            Log($"Box AOE 검색: 중심({centerPosition}), 크기({skill.BoxSize})");
+            hits = Physics.OverlapBox(centerPosition, skill.BoxSize * 0.5f, transform.rotation);
         }
 
-        // 범위 내 적에게 데미지 적용
         foreach (Collider hit in hits)
         {
             EnemyController enemy = hit.GetComponent<EnemyController>();
@@ -389,12 +474,9 @@ public class SkillAnimationController : MonoBehaviour
             }
         }
 
-        Log($"AOE 데미지 적용: {enemyCount}명 타격");
+        Log($"AOE: {enemyCount}명 타격");
     }
 
-    /// <summary>
-    /// 근거리 스킬 데미지 적용 (단일 대상)
-    /// </summary>
     private void ApplyMeleeDamage(SkillData skill)
     {
         Vector3 centerPosition = transform.position + transform.forward * 2f;
@@ -421,19 +503,9 @@ public class SkillAnimationController : MonoBehaviour
         {
             float damage = CalculateSkillDamage(skill);
             closestEnemy.TakeDamage(damage);
-            Log($"근거리 데미지 적용: {damage:F0}");
-        }
-        else
-        {
-            Log("근처에 적이 없습니다");
         }
     }
 
-    /// <summary>
-    /// 스킬 데미지 계산
-    /// 
-    /// 공식: 기본 데미지 × (1 + 주요 스탯 / 100)
-    /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
         if (skill == null || _playerCharacter == null)
@@ -441,10 +513,7 @@ public class SkillAnimationController : MonoBehaviour
 
         float baseDamage = skill.Damage;
         int mainStat = _playerCharacter.GetMainStat();
-
-        float finalDamage = baseDamage * (1f + mainStat / 100f);
-
-        return finalDamage;
+        return baseDamage * (1f + mainStat / 100f);
     }
 
     #endregion
@@ -459,35 +528,63 @@ public class SkillAnimationController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Gizmo로 AOE 범위 시각화
-    /// </summary>
     private void OnDrawGizmosSelected()
     {
-        if (!_showDebugGizmos || _currentSkill == null || !_isPerformingSkill)
+        if (!_showDebugGizmos)
             return;
 
-        Gizmos.color = Color.red;
-
-        // 오프셋 적용한 중심 위치
-        Vector3 centerPosition = transform.position + transform.TransformDirection(_currentSkill.AoeOffset);
-
-        // 형태에 따라 다르게 그리기
-        if (_currentSkill.AoeShape == AOEShape.Sphere)
+        // AOE 범위
+        if (_currentSkill != null && _isPerformingSkill)
         {
-            Gizmos.DrawWireSphere(centerPosition, _currentSkill.Range);
-        }
-        else // Box
-        {
-            Matrix4x4 oldMatrix = Gizmos.matrix;
-            Gizmos.matrix = Matrix4x4.TRS(centerPosition, transform.rotation, Vector3.one);
-            Gizmos.DrawWireCube(Vector3.zero, _currentSkill.BoxSize);
-            Gizmos.matrix = oldMatrix;
+            Gizmos.color = Color.red;
+            Vector3 centerPosition = transform.position + transform.TransformDirection(_currentSkill.AoeOffset);
+
+            if (_currentSkill.AoeShape == AOEShape.Sphere)
+            {
+                Gizmos.DrawWireSphere(centerPosition, _currentSkill.Range);
+            }
+            else
+            {
+                Matrix4x4 oldMatrix = Gizmos.matrix;
+                Gizmos.matrix = Matrix4x4.TRS(centerPosition, transform.rotation, Vector3.one);
+                Gizmos.DrawWireCube(Vector3.zero, _currentSkill.BoxSize);
+                Gizmos.matrix = oldMatrix;
+            }
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, centerPosition);
+
+            // 대시 방향
+            if (!_currentSkill.UseRootMotion)
+            {
+                Gizmos.color = Color.cyan;
+                float displayDistance = _currentSkill.DashDistanceMode == DashDistanceMode.MouseDistance
+                    ? _lastCalculatedDistance
+                    : _currentSkill.DashDistance;
+
+                Vector3 dashEnd = transform.position + transform.forward * displayDistance;
+                Gizmos.DrawLine(transform.position, dashEnd);
+                Gizmos.DrawWireSphere(dashEnd, 0.5f);
+            }
         }
 
-        // 오프셋 표시
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, centerPosition);
+        // 레이캐스트 시각화
+        if (_showDashRaycast && _lastRaycastStart != Vector3.zero)
+        {
+            Gizmos.color = _lastRaycastHit ? _raycastColorBlocked : _raycastColorClear;
+            Gizmos.DrawLine(_lastRaycastStart, _lastRaycastEnd);
+            Gizmos.DrawWireSphere(_lastRaycastEnd, 0.3f);
+        }
+
+        // 마우스 위치 시각화
+        if (_currentSkill != null &&
+            _currentSkill.DashDistanceMode == DashDistanceMode.MouseDistance &&
+            _lastMouseWorldPosition != Vector3.zero)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(_lastMouseWorldPosition, 0.5f);
+            Gizmos.DrawLine(transform.position, _lastMouseWorldPosition);
+        }
     }
 
     #endregion
