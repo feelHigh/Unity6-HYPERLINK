@@ -218,6 +218,7 @@ public class InventoryItemEventHandler : MonoBehaviour
 
     public void InventoryClosed()
     {
+        if (_item == null) return;
         OnEndDrag(_item);
     }
 
