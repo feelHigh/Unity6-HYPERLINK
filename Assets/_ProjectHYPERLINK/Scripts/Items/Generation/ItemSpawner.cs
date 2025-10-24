@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 /// <summary>
@@ -25,8 +26,7 @@ public class ItemSpawner : MonoBehaviour
     [SerializeField] private DropStatsAndRange[] _weapon_DropRanges;
 
     [Header("아이템 프리팹")]
-    [SerializeField] private WeaponItem _weaponPrefab;
-    [SerializeField] private EquipmentItem _equipmentPrefab;
+    [SerializeField] private Item _itemPrefab;
 
     [Header("아이템 템플릿")]
     [SerializeField] private ItemData[] _weaponTemplates;
@@ -56,44 +56,41 @@ public class ItemSpawner : MonoBehaviour
 
     private Item InstantiateItem(int itemType, ItemQuality quality)
     {
-        if (itemType == 0 && _weaponPrefab != null && _weaponTemplates != null && _weaponTemplates.Length > 0)
+        ItemData itemData =new ItemData();
+        List <ItemStat> stats = new List < ItemStat >();
+        if (itemType == 0 && _itemPrefab != null && _weaponTemplates != null && _weaponTemplates.Length > 0)
         {
-            ItemData template = _weaponTemplates[Random.Range(0, _weaponTemplates.Length)];
-            ItemData itemData = template.CreateRuntimeCopy();
+            itemData = _weaponTemplates[Random.Range(0, _weaponTemplates.Length)].CreateRuntimeCopy();
             itemData.SetQuality(quality);
 
-            List<ItemStat> stats = GenerateStats(_weapon_DropRanges, GetStatCountForQuality(quality));
-            itemData.SetProceduralStats(stats);
-
-            string generatedName = GenerateItemName(template.ItemName, quality, stats);
-            itemData.SetName(generatedName);
-
-            WeaponItem weapon = Instantiate(_weaponPrefab);
-            weapon.Initialize(itemData, quality, stats, generatedName);
-
-            return weapon;
+            stats = GenerateStats(_weapon_DropRanges, GetStatCountForQuality(quality));
+            
         }
-        else if (itemType == 1 && _equipmentPrefab != null && _equipmentTemplates != null && _equipmentTemplates.Length > 0)
+        else if (itemType == 1 && _itemPrefab != null && _equipmentTemplates != null && _equipmentTemplates.Length > 0)
         {
-            ItemData template = _equipmentTemplates[Random.Range(0, _equipmentTemplates.Length)];
-            ItemData itemData = template.CreateRuntimeCopy();
+            itemData = _equipmentTemplates[Random.Range(0, _equipmentTemplates.Length)].CreateRuntimeCopy();
             itemData.SetQuality(quality);
 
-            List<ItemStat> stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
-            itemData.SetProceduralStats(stats);
-
-            string generatedName = GenerateItemName(template.ItemName, quality, stats);
-            itemData.SetName(generatedName);
-
-            EquipmentItem equipment = Instantiate(_equipmentPrefab);
-            equipment.Initialize(itemData, quality, stats, generatedName);
-
-            return equipment;
+            stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
         }
+        else
+        {
+            Debug.LogWarning("아이템 생성 실패 - 프리팹 또는 템플릿 누락");
+            return null;
+        }
+        itemData.SetProceduralStats(stats);
 
-        Debug.LogWarning("아이템 생성 실패 - 프리팹 또는 템플릿 누락");
-        return null;
+        string generatedName = GenerateItemName(itemData.ItemName, quality, stats);
+        itemData.SetName(generatedName);
+
+        Item item = Instantiate(_itemPrefab);
+        item.Initialize(itemData, quality, stats, generatedName);
+
+        return item;
+
+        
     }
+
 
     /// <summary>
     /// 랜덤 스탯 생성

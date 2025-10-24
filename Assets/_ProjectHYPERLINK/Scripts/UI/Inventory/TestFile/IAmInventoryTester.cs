@@ -7,6 +7,7 @@ public class IAmInventoryTester : MonoBehaviour
     public ItemData data;
     public ItemDropTableData HelloIAmTestTable;
     public ItemInventory inventory;
+    public EquipInevnetory equipinventory;
     public void Spawn()
     {
         //for(int i=0;i<1000;i++)
@@ -17,5 +18,10 @@ public class IAmInventoryTester : MonoBehaviour
     {
 
         inventory.GetItem(data);
+    }
+
+    public void AddQuickItem()
+    {
+        
     }
 }

@@ -82,7 +82,7 @@ public class InventorySlot : Slot
     /// </summary>
     public void IGotItem(bool on)
     {
-        _Icon.color = Color.white;
+        _icon.color = Color.white;
         _hasItem = on;
     }
 
@@ -99,6 +99,6 @@ public class InventorySlot : Slot
     /// </summary>
     public void SetColor(bool on)
     {
-        _Icon.color = on ? Color.green : Color.white;
+        _icon.color = on ? Color.green : Color.white;
     }
 }

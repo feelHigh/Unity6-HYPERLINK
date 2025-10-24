@@ -14,7 +14,7 @@ using UnityEngine;
 /// - 절차적 생성 지원
 /// - ItemPickupManager 연동
 /// </summary>
-public abstract class Item : MonoBehaviour
+public class Item : MonoBehaviour
 {
     [Header("아이템 데이터 참조")]
     [SerializeField] protected ItemData _itemData;
@@ -109,12 +109,12 @@ public abstract class Item : MonoBehaviour
     /// 아이템 장착
     /// 인벤토리 UI에서 호출
     /// </summary>
-    public abstract void Equip();
+    //public abstract void Equip();
 
     /// <summary>
     /// 아이템 해제
     /// </summary>
-    public abstract void Unequip();
+    //public abstract void Unequip();
 
     /// <summary>
     /// 아이템 줍기
