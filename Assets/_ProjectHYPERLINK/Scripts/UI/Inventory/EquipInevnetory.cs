@@ -20,10 +20,14 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     [SerializeField] EquipSlot[] _slots;
     [SerializeField] EquipSlot _currentSlot;
 
+    [Header("임시")]
+    [SerializeField] EquipmentManager _equipmentManager;
+
     public EquipSlot CurrentSlot => _currentSlot;
 
     void Start()
     {
+        _equipmentManager = GameObject.FindGameObjectWithTag("Player").GetComponent<EquipmentManager>();
         Initialize();
     }
 
@@ -46,6 +50,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
         {
             if(slot.EquipmentType == item.Data.EquipmentType)
             {
+                _equipmentManager.UnequipItem(item.Data.EquipmentType);
                 slot.RemoveData();
             }
         }
@@ -69,6 +74,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
         _currentSlot.GetItemPrefab(item);
         item.transform.position = _currentSlot.transform.position;
         item.gameObject.SetActive(false);
+        _equipmentManager.EquipItem(item.Data);
         return true;
     }
 
@@ -97,6 +103,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
                 item.transform.position = transform.position;
                 slot.GetItemPrefab(item);
                 item.gameObject.SetActive(false);
+                _equipmentManager.EquipItem(item.Data);
                 return true;
             }
         }
@@ -128,6 +135,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
                 _itemVisualizeField.AddItem(item);
                 slot.GetItemPrefab(item);
                 item.gameObject.SetActive(false);
+                _equipmentManager.EquipItem(item.Data);
                 return true;
             }
         }
@@ -142,9 +150,11 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     {
         if (!_inventory.GetEquipItem(slot))
         {
-            return ;
+            return;
         }
+        _equipmentManager.UnequipItem(slot.EquipmentType);
         slot.RemoveData();
+        
     }
 
     /// <summary>
@@ -176,9 +186,9 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
         _itemEventHandler.OnDrag(eventData);
     }
 
-    public void OnEndDrag(PointerEventData eventData, InventoryItemPrefab item)
+    public void OnEndDrag(InventoryItemPrefab item)
     {
-        _itemEventHandler.OnEndDrag(eventData,item);
+        _itemEventHandler.OnEndDrag(item);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

@@ -71,7 +71,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     public void OnEndDrag(PointerEventData eventData)
     {
         if (_itemPrefab == null) return;
-        _equipInevnetory.OnEndDrag(eventData, _itemPrefab);
+        _equipInevnetory.OnEndDrag(_itemPrefab);
     }
 
     

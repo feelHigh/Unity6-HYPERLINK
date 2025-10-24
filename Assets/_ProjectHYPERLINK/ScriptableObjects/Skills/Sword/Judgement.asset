@@ -30,3 +30,15 @@ MonoBehaviour:
   _boxSize: {x: 3, y: 2, z: 4}
   _animationDuration: 1
   _useRootMotion: 0
+  _dashDistanceMode: 0
+  _dashDistance: 5
+  _minDashDistance: 2
+  _maxDashDistance: 8
+  _dashDuration: 0.3
+  _dashTiming: 0.1
+  _dashEase: 6
+  _checkWallCollision: 1
+  _wallLayer:
+    serializedVersion: 2
+    m_Bits: 12288
+  _wallStopBuffer: 0.5

@@ -643,6 +643,7 @@ MonoBehaviour:
   - {fileID: 2049331542}
   - {fileID: 627625781}
   _currentSlot: {fileID: 0}
+  _equipmentManager: {fileID: 0}
 --- !u!1 &198832996
 GameObject:
   m_ObjectHideFlags: 0
@@ -1111,7 +1112,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 1076102205}
-  _equipInevnetory: {fileID: 0}
   _equipType: 3
   _itemPrefab: {fileID: 0}
 --- !u!1 &394247043
@@ -1515,7 +1515,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d922db3f438cbf844bf6f14d6ede45c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: 38ace662654f0b24eb86967c48061c90, type: 2}
+  data: {fileID: 11400000, guid: 1907321dd3946e545ba7acecf6947938, type: 2}
   HelloIAmTestTable: {fileID: 0}
   inventory: {fileID: 7768480810259950536}
   equipinventory: {fileID: 198085053}
@@ -2110,7 +2110,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 962872350}
-  _equipInevnetory: {fileID: 0}
   _equipType: 2
   _itemPrefab: {fileID: 0}
 --- !u!1 &690258065
@@ -3019,7 +3018,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 452119617}
-  _equipInevnetory: {fileID: 0}
   _equipType: 6
   _itemPrefab: {fileID: 0}
 --- !u!1 &996768067
@@ -5136,7 +5134,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 496036034}
-  _equipInevnetory: {fileID: 0}
   _equipType: 1
   _itemPrefab: {fileID: 0}
 --- !u!1 &1667371492
@@ -5592,7 +5589,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 901139061}
-  _equipInevnetory: {fileID: 0}
   _equipType: 4
   _itemPrefab: {fileID: 0}
 --- !u!1 &1813626243
@@ -5935,7 +5931,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 1534848137}
-  _equipInevnetory: {fileID: 0}
   _equipType: 7
   _itemPrefab: {fileID: 0}
 --- !u!1 &1970062655
@@ -6312,7 +6307,6 @@ MonoBehaviour:
   _hasItem: 0
   _data: {fileID: 0}
   _icon: {fileID: 627625779}
-  _equipInevnetory: {fileID: 0}
   _equipType: 5
   _itemPrefab: {fileID: 0}
 --- !u!1 &2055926488
@@ -6887,7 +6881,6 @@ MonoBehaviour:
   _equipInevnetory: {fileID: 198085053}
   _dragItem: {fileID: 2125418734}
   _ownerSlot: {fileID: 0}
-  _currentMousePos: 0
 --- !u!224 &7768480810259950535
 RectTransform:
   m_ObjectHideFlags: 0

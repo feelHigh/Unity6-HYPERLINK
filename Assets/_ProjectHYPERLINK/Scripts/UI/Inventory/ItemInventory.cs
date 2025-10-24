@@ -397,4 +397,9 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         //_itemEventHandler.ChangeMousePos(MousePos.None);
     }
+
+    public void Close()
+    {
+        _itemEventHandler.InventoryClosed();
+    }
 }
