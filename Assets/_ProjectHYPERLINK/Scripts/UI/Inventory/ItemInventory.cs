@@ -26,12 +26,13 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     [SerializeField] float _itemSize;
 
     [SerializeField] InventorySlot[] _inventory;
-    [SerializeField] InventorySlot[,] _slots = new InventorySlot[10, 6];
+    [SerializeField] InventorySlot[,] _slots = new InventorySlot[10, 4];
 
     float _sideLength;
     Vector2 _startPosition = new Vector2();
     InventorySlot _currentSlot = null;
 
+    public float ItemSize => _itemSize;
     void Awake()
     {
         // 싱글톤 초기화
@@ -59,7 +60,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
 
         // 슬롯 배열 검증
-        if (_inventory == null || _inventory.Length != 60)
+        if (_inventory == null || _inventory.Length != 40)
         {
             Debug.LogError("[ItemInventory] InventorySlot 배열이 60개여야 합니다!");
         }
@@ -133,6 +134,35 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
 
         Debug.LogWarning($"[ItemInventory] 인벤토리 가득 찬 상태 - {data.ItemName} 추가 실패");
+        return false;
+    }
+
+    /// <summary>
+    /// 착용 장비를 받아와 인벤토리에 넣어보는 함수
+    /// 실패시 False, 성공시 True 반환
+    /// </summary>
+    /// <param name="equipSlot"></param>
+    /// <returns></returns>
+    public bool GetEquipItem(EquipSlot equipSlot)
+    {
+        foreach (InventorySlot slot in _slots)
+        {
+            if (!slot.HasItem)
+            {
+                if (ChekCanDrop(equipSlot.Data, slot))
+                {
+                    Vector2Int pos = slot.Pos;
+                    Vector2Int size = equipSlot.Data.GridSize;
+                    InventorySlot lastSlot = _slots[pos.x + size.x - 1, pos.y + size.y - 1];
+                    InventoryItemPrefab item = equipSlot.ItemPrefab;
+                    item.ChangePos(slot, lastSlot);
+                    item.gameObject.SetActive(true);
+                    PlaceItem(equipSlot.Data, slot, true);
+                    equipSlot.RemoveData();
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -225,7 +255,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         Debug.Log("[ItemInventory] 인벤토리 초기화 완료");
     }
 
-    void PlaceItem(ItemData data, InventorySlot slot, bool get)
+    public void PlaceItem(ItemData data, InventorySlot slot, bool get)
     {
         if (get) slot.GetData(data);
         Vector2Int pos = slot.Pos;
@@ -274,14 +304,23 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         return true;
     }
 
-    public void OnBeginDrag(Slot originSlot)
+    public bool CheckCurrentSlot(ItemData data)
     {
-        ItemData data = originSlot.Data;
-        if (data == null) return;
-        if (originSlot is InventorySlot slot)
-            PlaceItem(slot.Data, slot, false);
+        if (_currentSlot == null) return false;
+        return ChekCanDrop(data, _currentSlot);
+    }
+    public void OnBeginDrag(InventorySlot slot)
+    {
+        PlaceItem(slot.Data, slot, false);
     }
 
+    /// <summary>
+    /// 드래그 중, 슬롯에서 해당 부분에 아이템을 넣을 수 있나 확인하는 함수
+    ///
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="pos"></param>
+    /// <returns></returns>
     public ItemDragState OnDrag(ItemData data, Vector2 pos)
     {
         Vector2Int size = data.GridSize;
@@ -331,27 +370,24 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         return ItemDragState.Impossible;
     }
 
-    public void OnDrop(Vector2 pos, Slot ownerSlot, InventoryItemPrefab item)
+    public void OnDrop(InventoryItemPrefab item)
     {
-        if (ownerSlot is InventorySlot slot)
-        {
-            if (_currentSlot != null)
-            {
-                if (ChekCanDrop(slot.Data, _currentSlot))
-                {
-                    PlaceItem(slot.Data, slot, false);
-                    PlaceItem(slot.ReturnDataAndRemove(), _currentSlot, true);
-                    Vector2Int posx = _currentSlot.Pos;
-                    Vector2Int size = _currentSlot.Data.GridSize;
-                    InventorySlot lastSlot = _slots[posx.x + size.x - 1, posx.y + size.y - 1];
-                    item.ChangePos(_currentSlot, lastSlot);
-                    return;
-                }
-            }
-            PlaceItem(slot.Data, slot, true);
-        }
+        PlaceItem(item.Data, _currentSlot, true);
+        Vector2Int pos = _currentSlot.Pos;
+        Vector2Int size = _currentSlot.Data.GridSize;
+        InventorySlot lastSlot = _slots[pos.x + size.x - 1, pos.y + size.y - 1];
+        item.gameObject.SetActive(true);
+        item.ChangePos(_currentSlot, lastSlot);
     }
 
+    public void ReturnItem(InventoryItemPrefab item, InventorySlot slot)
+    {
+        PlaceItem(item.Data, slot, true);
+        Vector2Int pos = slot.Pos;
+        Vector2Int size = slot.Data.GridSize;
+        InventorySlot lastSlot = _slots[pos.x + size.x - 1, pos.y + size.y - 1];
+        item.ChangePos(slot, lastSlot);
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         _itemEventHandler.ChangeMousePos(MousePos.ItemInventory);
@@ -359,6 +395,6 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        _itemEventHandler.ChangeMousePos(MousePos.None);
+        //_itemEventHandler.ChangeMousePos(MousePos.None);
     }
 }

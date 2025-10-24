@@ -75,4 +75,9 @@ public class ItemVisualizeField : MonoBehaviour
     {
         _itemEventHandler.OnEndDrag(eventData, item);
     }
+
+    public void OnRightClick(InventoryItemPrefab item)
+    {
+        _itemEventHandler.OnRightClick(item);
+    }
 }

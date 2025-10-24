@@ -24,7 +24,7 @@ using UnityEngine.UI;
 /// 부모: ItemVisualizeField
 /// 생명주기: Instantiate → Spawn → (드래그) → Destroy
 /// </summary>
-public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
+public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
     IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private RectTransform _rect;
@@ -147,6 +147,14 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     {
         _visualizeField.OnEndDrag(eventData, this);
         _image.enabled = true;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(eventData.button == PointerEventData.InputButton.Right)
+        {
+            _visualizeField.OnRightClick(this);
+        }
     }
 
     #endregion
