@@ -51,8 +51,9 @@ public class InventoryItemEventHandler : MonoBehaviour
     [SerializeField] private DraggingVisualizeItem _dragItem;
     [SerializeField] private Slot _ownerSlot;
 
-    // 임시
-    [SerializeField] private MousePos _currentMousePos;
+    private MousePos _currentMousePos;
+    private InventoryItemPrefab _item;
+
 
     /// <summary>
     /// 드래그 시작
@@ -67,6 +68,8 @@ public class InventoryItemEventHandler : MonoBehaviour
     /// </summary>
     public void OnBeginDrag(InventoryItemPrefab item, Slot ownerSlot)
     {
+        _item = item;
+        item.Icon.enabled = false;
         _ownerSlot = ownerSlot;
         _dragItem.gameObject.SetActive(true);
         _dragItem.Spawn(item);
@@ -155,7 +158,7 @@ public class InventoryItemEventHandler : MonoBehaviour
     /// 3. EquipInventory
     /// 착용장비 슬롯에 해당 아이템이 들어가나 확인
     /// </summary>
-    public void OnEndDrag(PointerEventData eventData, InventoryItemPrefab item)
+    public void OnEndDrag(InventoryItemPrefab item)
     {
         bool giveItem = false;
         switch (_currentMousePos)
@@ -171,8 +174,9 @@ public class InventoryItemEventHandler : MonoBehaviour
                     if (_ownerSlot is EquipSlot eslot)
                     {
                         Debug.Log("there");
-                        _equipInevnetory.TakeOffEquip(eslot);
+                        _equipInevnetory.UnEquipItem(item);
                     }
+                    _ownerSlot.RemoveData();
                 }
                 break;
 
@@ -180,7 +184,12 @@ public class InventoryItemEventHandler : MonoBehaviour
                 if (_equipInevnetory.CheckCurrentSlot(item.Data))
                 {
                     if (_equipInevnetory.EquipItem(item))
+                    {
                         giveItem = true;
+                        _ownerSlot.RemoveData();
+                    }
+                        
+                    
                 }
                 break;
         }
@@ -193,7 +202,9 @@ public class InventoryItemEventHandler : MonoBehaviour
             }
         }
         _dragItem.gameObject.SetActive(false);
+        item.Icon.enabled = true;
         _ownerSlot = null;
+        _item = null;
     }
 
     /// <summary>
@@ -205,6 +216,10 @@ public class InventoryItemEventHandler : MonoBehaviour
         _currentMousePos = pos;
     }
 
+    public void InventoryClosed()
+    {
+        OnEndDrag(_item);
+    }
 
     /// <summary>
     /// 인벤토리 아이템을 우클릭 시 착용 시켜주는 함수

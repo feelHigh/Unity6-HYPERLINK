@@ -69,7 +69,6 @@ public class InventorySlot : Slot
     {
         _data = data;
     }
-
     /// <summary>
     /// 슬롯에 아이템 배치/제거 상태 변경
     /// 
