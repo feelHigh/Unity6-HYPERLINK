@@ -29,4 +29,4 @@ MonoBehaviour:
   _aoeOffset: {x: 0, y: 0, z: 0}
   _boxSize: {x: 3, y: 2, z: 4}
   _animationDuration: 1
-  _useRootMotion: 1
+  _useRootMotion: 0

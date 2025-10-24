@@ -466,7 +466,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBD80\uC801\uC220\uC0AC"
+  m_text: "\uC720\uC9C4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -859,7 +859,7 @@ GameObject:
   - component: {fileID: 317208333}
   - component: {fileID: 317208335}
   m_Layer: 5
-  m_Name: MageButton
+  m_Name: SianButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1739,7 +1739,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB9C8\uBC95\uC0AC"
+  m_text: "\uC2DC\uC548"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -1968,9 +1968,9 @@ MonoBehaviour:
   _lastPlayedText: {fileID: 1060234289}
   _continueButton: {fileID: 217870171}
   _deleteButton: {fileID: 2070465260}
-  _warriorButton: {fileID: 1062640923}
-  _mageButton: {fileID: 317208335}
-  _archerButton: {fileID: 1791779431}
+  _laonButton: {fileID: 1062640923}
+  _sianButton: {fileID: 317208335}
+  _yujinButton: {fileID: 1791779431}
   _characterNameInput: {fileID: 1865959636}
   _createCharacterButton: {fileID: 634720423}
   _loadingText: {fileID: 1449219769}
@@ -2457,7 +2457,7 @@ GameObject:
   - component: {fileID: 1062640921}
   - component: {fileID: 1062640923}
   m_Layer: 5
-  m_Name: WarriorButton
+  m_Name: LaonButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2761,7 +2761,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uADFC\uC811 \uC804\uD22C \uD2B9\uD654"
+  m_text: "\uB0B4\uAC00 \uC8FC\uC778\uACF5\uC774\uB2E4!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -3109,7 +3109,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBD80\uC801 \uD314\uC544\uC694~"
+  m_text: "\uC720\uBA85\uD55C \uC804\uD1B5 \uAD81\uC218"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -3550,7 +3550,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC804\uC0AC"
+  m_text: "\uB77C\uC628"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -3769,7 +3769,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC775\uC2A4\uD50C\uB85C\uC804!!!"
+  m_text: "\uC2E0\uB0B4\uB9BC \uBC1B\uC544\uB77C~"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
   m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
@@ -4266,7 +4266,7 @@ GameObject:
   - component: {fileID: 1791779432}
   - component: {fileID: 1791779431}
   m_Layer: 5
-  m_Name: CardMageButton
+  m_Name: YujinButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
