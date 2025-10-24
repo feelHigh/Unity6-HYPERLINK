@@ -126,7 +126,6 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("시작");
         _visualizeField.OnBeginDrag(this, OwnerSlot);
         _image.enabled = false;
     }
@@ -146,7 +145,6 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("끝");
         _visualizeField.OnEndDrag(eventData, this);
         _image.enabled = true;
     }

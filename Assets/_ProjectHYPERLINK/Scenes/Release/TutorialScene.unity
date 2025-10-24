@@ -16978,8 +16978,7 @@ MonoBehaviour:
   - _type: 7
     _minStat: 20
     _maxStat: 80
-  _weaponPrefab: {fileID: 7783496356878640549, guid: 222124e788a559741949ae3b6aaa2797, type: 3}
-  _equipmentPrefab: {fileID: 6145444384961602680, guid: f9564a2ac73dee44e87a01a88e8ef62a, type: 3}
+  _itemPrefab: {fileID: 1098329919601745306, guid: 222124e788a559741949ae3b6aaa2797, type: 3}
   _weaponTemplates:
   - {fileID: 11400000, guid: 48eae9b342dee244ea27b4b7a2a7ac1b, type: 2}
   - {fileID: 11400000, guid: 1907321dd3946e545ba7acecf6947938, type: 2}

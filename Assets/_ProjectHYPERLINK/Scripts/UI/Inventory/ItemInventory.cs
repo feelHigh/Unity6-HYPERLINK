@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 아이템 인벤토리 (싱글톤 패턴)
 /// GameCanvas에 통합됨
 /// </summary>
-public class ItemInventory : MonoBehaviour
+public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     #region 싱글톤
     public static ItemInventory Instance { get; private set; }
@@ -349,5 +350,15 @@ public class ItemInventory : MonoBehaviour
             }
             PlaceItem(slot.Data, slot, true);
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        _itemEventHandler.ChangeMousePos(MousePos.ItemInventory);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        _itemEventHandler.ChangeMousePos(MousePos.None);
     }
 }

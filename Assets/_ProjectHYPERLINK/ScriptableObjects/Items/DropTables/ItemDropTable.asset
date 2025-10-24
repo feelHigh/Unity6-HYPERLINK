@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a2631a41cf9bba4db302618a3f1f40c, type: 3}
   m_Name: ItemDropTable
   m_EditorClassIdentifier: 
-  _type: 0
-  _drops: 3c000000190000000a000000030000000200000000000000
+  _standardEmblemChance: 60
+  _silverEmblemChance: 30
+  _goldEmblemChance: 15
+  _diamondEmblemChance: 5
+  _dropType: 3

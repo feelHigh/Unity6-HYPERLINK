@@ -10,6 +10,12 @@ public enum ItemDragState
     Impossible,     // 배치 불가 (슬롯 초과, 중복)
     Same           // 동일 슬롯 (이동 안 함)
 }
+public enum MousePos
+{
+    None,
+    ItemInventory,
+    EquipInventory
+}
 
 /// <summary>
 /// 인벤토리 아이템 이벤트 핸들러
@@ -43,6 +49,9 @@ public class InventoryItemEventHandler : MonoBehaviour
     [Header("Prefab")]
     [SerializeField] private DraggingVisualizeItem _dragItem;
     [SerializeField] private Slot _ownerSlot;
+
+    // 임시
+    [SerializeField] private MousePos _currentMousePos;
 
     /// <summary>
     /// 드래그 시작
@@ -107,5 +116,14 @@ public class InventoryItemEventHandler : MonoBehaviour
     {
         _inventory.OnDrop(_dragItem.CheckPos, _ownerSlot, item);
         _dragItem.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 마우스의 위치를 Update해주는 함수
+    /// </summary>
+    /// <param name="pos"></param>
+    public void ChangeMousePos(MousePos pos)
+    {
+        _currentMousePos = pos;
     }
 }
