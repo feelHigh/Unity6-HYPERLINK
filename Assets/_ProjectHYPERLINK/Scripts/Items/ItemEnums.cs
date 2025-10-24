@@ -21,9 +21,6 @@ public enum EquipmentType
 
     // 무기
     Weapon,      // 일반 무기 슬롯
-    Sword,       // 검 (특화 타입)
-    Bow,         // 활
-    Staff,       // 지팡이
 
     // 방어구
     Helmet,      // 투구

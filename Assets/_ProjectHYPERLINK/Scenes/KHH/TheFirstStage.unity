@@ -4437,7 +4437,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.34, y: 1, z: -15.9}
   m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 110124594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4523,6 +4523,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1878972196319307878, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 3166794165661102886, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
       propertyPath: m_Name
       value: GameCanvas
@@ -14621,7 +14625,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 1811835773}
+  m_Mesh: {fileID: 1614177054}
 --- !u!33 &1364874267
 MeshFilter:
   m_ObjectHideFlags: 10

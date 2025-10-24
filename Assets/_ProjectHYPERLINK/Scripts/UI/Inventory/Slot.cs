@@ -25,7 +25,7 @@ public abstract class Slot : MonoBehaviour
 {
     [SerializeField] protected bool _hasItem = false;
     [SerializeField] protected ItemData _data;
-    [SerializeField] protected Image _Icon;
+    [SerializeField] protected Image _icon;
 
     /// <summary>
     /// 슬롯에 아이템이 있는지 여부
@@ -42,7 +42,7 @@ public abstract class Slot : MonoBehaviour
     /// 슬롯 아이콘 이미지
     /// UI 표시용
     /// </summary>
-    public Image Icon => _Icon;
+    public Image Icon => _icon;
 
     /// <summary>
     /// 슬롯에 아이템 데이터 할당

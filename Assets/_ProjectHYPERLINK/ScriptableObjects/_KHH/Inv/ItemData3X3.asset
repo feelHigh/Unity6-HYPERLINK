@@ -20,7 +20,7 @@ MonoBehaviour:
   _equipmentType: 3
   _requiredLevel: 15
   _itemModel: {fileID: 0}
-  _gridSizeX: 3
+  _gridSizeX: 2
   _gridSizeY: 3
   _baseStats: {fileID: 0}
   _proceduralStats: []
