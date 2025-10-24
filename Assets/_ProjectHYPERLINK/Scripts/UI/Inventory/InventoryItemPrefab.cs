@@ -84,6 +84,7 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void ChangePos(Slot firstSlot, Slot lastSlot)
     {
+        
         _ownerSlot = firstSlot;
         Vector2 firstPos = firstSlot.transform.position;
         Vector2 lastPos = lastSlot.transform.position;
@@ -127,7 +128,6 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     public void OnBeginDrag(PointerEventData eventData)
     {
         _visualizeField.OnBeginDrag(this, OwnerSlot);
-        _image.enabled = false;
     }
 
     /// <summary>
@@ -145,8 +145,7 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void OnEndDrag(PointerEventData eventData)
     {
-        _visualizeField.OnEndDrag(eventData, this);
-        _image.enabled = true;
+        _visualizeField.OnEndDrag(this);
     }
 
     public void OnPointerClick(PointerEventData eventData)

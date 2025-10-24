@@ -267,7 +267,7 @@ MonoBehaviour:
     m_Bits: 1024
   _specialAttack: {fileID: 0}
   _dropTable: {fileID: 11400000, guid: 133c38302c09e85469fb086cce38cb2b, type: 2}
-  _dropChance: 0.5
+  _dropChance: 1
   _group: {fileID: 0}
 --- !u!95 &8984022337561628758
 Animator:

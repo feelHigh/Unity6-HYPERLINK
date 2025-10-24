@@ -50,6 +50,11 @@ public abstract class Slot : MonoBehaviour
     /// </summary>
     public abstract void GetData(ItemData data);
 
+    public void RemoveData()
+    {
+        if (_data != null) _data = null;
+    }
+
     /// <summary>
     /// 슬롯에서 아이템 제거하고 데이터 반환
     /// 
