@@ -503,6 +503,10 @@ public class CharacterUIController : MonoBehaviour
         if (_inventoryPanel != null)
         {
             bool newState = !_inventoryPanel.activeSelf;
+            
+            if (_inventoryPanel.activeSelf)
+                ItemInventory.Instance.Close();
+
             _inventoryPanel.SetActive(newState);
 
             Log($"인벤토리 패널 {(newState ? "열림" : "닫힘")}");
