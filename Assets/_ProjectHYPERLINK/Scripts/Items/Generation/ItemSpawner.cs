@@ -1,9 +1,14 @@
 using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
+using System.Linq;
 
 /// <summary>
 /// 엠블렘 시스템 기반 절차적 아이템 생성
+/// 
+/// 수정사항:
+/// - 장비 타입별 템플릿 분리
+/// - 특정 장비 타입 스폰 기능 추가
 /// </summary>
 [System.Serializable]
 public class DropStatsAndRange
@@ -28,9 +33,16 @@ public class ItemSpawner : MonoBehaviour
     [Header("아이템 프리팹")]
     [SerializeField] private Item _itemPrefab;
 
-    [Header("아이템 템플릿")]
+    [Header("무기 템플릿")]
     [SerializeField] private ItemData[] _weaponTemplates;
-    [SerializeField] private ItemData[] _equipmentTemplates;
+
+    [Header("장비 템플릿 (타입별 분리)")]
+    [SerializeField] private ItemData[] _helmetTemplates;
+    [SerializeField] private ItemData[] _chestTemplates;
+    [SerializeField] private ItemData[] _glovesTemplates;
+    [SerializeField] private ItemData[] _bootsTemplates;
+    [SerializeField] private ItemData[] _necklaceTemplates;
+    [SerializeField] private ItemData[] _ringTemplates;
 
     private void Awake()
     {
@@ -42,11 +54,14 @@ public class ItemSpawner : MonoBehaviour
         Instance = this;
     }
 
+    /// <summary>
+    /// 기존 SpawnItem - 랜덤 장비 타입
+    /// </summary>
     public void SpawnItem(Vector3 position, ItemDropTableData dropTable)
     {
         ItemQuality quality = dropTable.RollItemQuality();
         int itemTypeRoll = Random.Range(0, 2);
-        Item spawnedItem = InstantiateItem(itemTypeRoll, quality);
+        Item spawnedItem = InstantiateItem(itemTypeRoll, quality, EquipmentType.None);
 
         if (spawnedItem != null)
         {
@@ -54,30 +69,61 @@ public class ItemSpawner : MonoBehaviour
         }
     }
 
-    private Item InstantiateItem(int itemType, ItemQuality quality)
+    /// <summary>
+    /// 특정 장비 타입으로 스폰 (새로 추가)
+    /// </summary>
+    public void SpawnItemWithType(Vector3 position, ItemDropTableData dropTable, EquipmentType equipmentType)
     {
-        ItemData itemData =new ItemData();
-        List <ItemStat> stats = new List < ItemStat >();
+        ItemQuality quality = dropTable.RollItemQuality();
+        Item spawnedItem = InstantiateEquipment(quality, equipmentType);
+
+        if (spawnedItem != null)
+        {
+            spawnedItem.transform.position = position;
+        }
+    }
+
+    /// <summary>
+    /// 아이템 생성 (리팩토링)
+    /// </summary>
+    private Item InstantiateItem(int itemType, ItemQuality quality, EquipmentType specificType)
+    {
+        ItemData itemData = new ItemData();
+        List<ItemStat> stats = new List<ItemStat>();
+
         if (itemType == 0 && _itemPrefab != null && _weaponTemplates != null && _weaponTemplates.Length > 0)
         {
+            // 무기 생성
             itemData = _weaponTemplates[Random.Range(0, _weaponTemplates.Length)].CreateRuntimeCopy();
             itemData.SetQuality(quality);
-
             stats = GenerateStats(_weapon_DropRanges, GetStatCountForQuality(quality));
-            
         }
-        else if (itemType == 1 && _itemPrefab != null && _equipmentTemplates != null && _equipmentTemplates.Length > 0)
+        else if (itemType == 1 && _itemPrefab != null)
         {
-            itemData = _equipmentTemplates[Random.Range(0, _equipmentTemplates.Length)].CreateRuntimeCopy();
-            itemData.SetQuality(quality);
+            // 장비 생성 - 타입별 분리
+            if (specificType == EquipmentType.None)
+            {
+                // 랜덤 장비 타입 선택
+                specificType = GetRandomEquipmentType();
+            }
 
+            itemData = GetEquipmentTemplate(specificType);
+            if (itemData == null)
+            {
+                Debug.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {specificType}");
+                return null;
+            }
+
+            itemData = itemData.CreateRuntimeCopy();
+            itemData.SetQuality(quality);
             stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
         }
         else
         {
-            Debug.LogWarning("아이템 생성 실패 - 프리팹 또는 템플릿 누락");
+            Debug.LogWarning("[ItemSpawner] 아이템 생성 실패 - 프리팹 또는 템플릿 누락");
             return null;
         }
+
         itemData.SetProceduralStats(stats);
 
         string generatedName = GenerateItemName(itemData.ItemName, quality, stats);
@@ -87,10 +133,98 @@ public class ItemSpawner : MonoBehaviour
         item.Initialize(itemData, quality, stats, generatedName);
 
         return item;
-
-        
     }
 
+    /// <summary>
+    /// 특정 타입의 장비 생성
+    /// </summary>
+    private Item InstantiateEquipment(ItemQuality quality, EquipmentType equipmentType)
+    {
+        ItemData itemData = GetEquipmentTemplate(equipmentType);
+        if (itemData == null)
+        {
+            Debug.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {equipmentType}");
+            return null;
+        }
+
+        itemData = itemData.CreateRuntimeCopy();
+        itemData.SetQuality(quality);
+
+        List<ItemStat> stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
+        itemData.SetProceduralStats(stats);
+
+        string generatedName = GenerateItemName(itemData.ItemName, quality, stats);
+        itemData.SetName(generatedName);
+
+        Item item = Instantiate(_itemPrefab);
+        item.Initialize(itemData, quality, stats, generatedName);
+
+        return item;
+    }
+
+    /// <summary>
+    /// 장비 타입에 맞는 템플릿 가져오기
+    /// </summary>
+    private ItemData GetEquipmentTemplate(EquipmentType equipmentType)
+    {
+        ItemData[] templates = null;
+
+        switch (equipmentType)
+        {
+            case EquipmentType.Helmet:
+                templates = _helmetTemplates;
+                break;
+            case EquipmentType.Chest:
+                templates = _chestTemplates;
+                break;
+            case EquipmentType.Gloves:
+                templates = _glovesTemplates;
+                break;
+            case EquipmentType.Boots:
+                templates = _bootsTemplates;
+                break;
+            case EquipmentType.Necklace:
+                templates = _necklaceTemplates;
+                break;
+            case EquipmentType.Ring:
+                templates = _ringTemplates;
+                break;
+            default:
+                Debug.LogWarning($"[ItemSpawner] 지원하지 않는 장비 타입: {equipmentType}");
+                return null;
+        }
+
+        if (templates == null || templates.Length == 0)
+        {
+            Debug.LogWarning($"[ItemSpawner] {equipmentType} 템플릿이 비어있습니다!");
+            return null;
+        }
+
+        return templates[Random.Range(0, templates.Length)];
+    }
+
+    /// <summary>
+    /// 랜덤 장비 타입 선택
+    /// </summary>
+    private EquipmentType GetRandomEquipmentType()
+    {
+        List<EquipmentType> availableTypes = new List<EquipmentType>();
+
+        if (_helmetTemplates != null && _helmetTemplates.Length > 0) availableTypes.Add(EquipmentType.Helmet);
+        if (_chestTemplates != null && _chestTemplates.Length > 0) availableTypes.Add(EquipmentType.Chest);
+        if (_glovesTemplates != null && _glovesTemplates.Length > 0) availableTypes.Add(EquipmentType.Gloves);
+        if (_bootsTemplates != null && _bootsTemplates.Length > 0) availableTypes.Add(EquipmentType.Boots);
+        if (_necklaceTemplates != null && _necklaceTemplates.Length > 0) availableTypes.Add(EquipmentType.Necklace);
+        if (_ringTemplates != null && _ringTemplates.Length > 0) availableTypes.Add(EquipmentType.Ring);
+
+        if (availableTypes.Count == 0)
+        {
+            Debug.LogWarning("[ItemSpawner] 사용 가능한 장비 템플릿이 없습니다!");
+            return EquipmentType.None;
+        }
+
+        return availableTypes[Random.Range(0, availableTypes.Count)];
+    }
 
     /// <summary>
     /// 랜덤 스탯 생성

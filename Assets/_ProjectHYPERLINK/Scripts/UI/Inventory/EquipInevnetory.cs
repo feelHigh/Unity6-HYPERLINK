@@ -23,12 +23,57 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     [Header("임시")]
     [SerializeField] EquipmentManager _equipmentManager;
 
+    [Header("자동 검색 설정")]
+    [SerializeField] private string _playerTag = "Player";
+    [SerializeField] private float _retryInterval = 0.5f;
+    [SerializeField] private int _maxRetries = 20;
+
+    private bool _isInitialized = false;
+    private int _retryCount = 0;
+
     public EquipSlot CurrentSlot => _currentSlot;
 
     void Start()
     {
-        _equipmentManager = GameObject.FindGameObjectWithTag("Player").GetComponent<EquipmentManager>();
         Initialize();
+        InvokeRepeating(nameof(TryFindEquipmentManager), 0.1f, _retryInterval);
+    }
+
+    void OnDestroy()
+    {
+        CancelInvoke(nameof(TryFindEquipmentManager));
+    }
+
+    /// <summary>
+    /// PlayerSpawner로 스폰된 플레이어를 찾기 위한 재시도 로직
+    /// CharacterUIController와 동일한 방식
+    /// </summary>
+    private void TryFindEquipmentManager()
+    {
+        if (_isInitialized) return;
+
+        _retryCount++;
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
+
+        if (playerObject != null)
+        {
+            _equipmentManager = playerObject.GetComponent<EquipmentManager>();
+
+            if (_equipmentManager != null)
+            {
+                Debug.Log($"[EquipInventory] EquipmentManager 찾음: {playerObject.name} (시도: {_retryCount}회)");
+                _isInitialized = true;
+                CancelInvoke(nameof(TryFindEquipmentManager));
+                return;
+            }
+        }
+
+        if (_retryCount >= _maxRetries)
+        {
+            Debug.LogError($"[EquipInventory] EquipmentManager를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
+            CancelInvoke(nameof(TryFindEquipmentManager));
+        }
     }
 
     public void Initialize()
@@ -46,9 +91,15 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     /// <param name="item"></param>
     public void UnEquipItem(InventoryItemPrefab item)
     {
-        foreach(var slot in _slots)
+        if (_equipmentManager == null)
         {
-            if(slot.EquipmentType == item.Data.EquipmentType)
+            Debug.LogError("[EquipInventory] UnEquipItem: EquipmentManager가 null입니다!");
+            return;
+        }
+
+        foreach (var slot in _slots)
+        {
+            if (slot.EquipmentType == item.Data.EquipmentType)
             {
                 _equipmentManager.UnequipItem(item.Data.EquipmentType);
                 slot.RemoveData();
@@ -59,11 +110,43 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     /// <summary>
     /// 아이템을 받아와 착용시도,
     /// 실패시 False, 성공시 True
+    /// 
+    /// 수정사항:
+    /// - _currentSlot null 체크 추가
+    /// - _equipmentManager null 체크 추가
+    /// - 자동으로 올바른 슬롯 찾기 기능 추가
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
     public bool EquipItem(InventoryItemPrefab item)
     {
+        // 0. _equipmentManager null 체크
+        if (_equipmentManager == null)
+        {
+            Debug.LogError("[EquipInventory] EquipItem: EquipmentManager가 null입니다!");
+            return false;
+        }
+
+        // 1. _currentSlot이 null이면 자동으로 올바른 슬롯 찾기
+        if (_currentSlot == null)
+        {
+            _currentSlot = FindSlotByEquipmentType(item.Data.EquipmentType);
+
+            if (_currentSlot == null)
+            {
+                Debug.LogWarning($"[EquipInventory] 해당 장비 타입의 슬롯을 찾을 수 없습니다: {item.Data.EquipmentType}");
+                return false;
+            }
+        }
+
+        // 2. 슬롯 타입 확인
+        if (_currentSlot.EquipmentType != item.Data.EquipmentType)
+        {
+            Debug.LogWarning($"[EquipInventory] 슬롯 타입이 일치하지 않습니다. 슬롯: {_currentSlot.EquipmentType}, 아이템: {item.Data.EquipmentType}");
+            return false;
+        }
+
+        // 3. 기존 아이템이 있으면 인벤토리로 이동
         if (_currentSlot.HasItem)
         {
             if (!_inventory.GetEquipItem(_currentSlot))
@@ -71,11 +154,31 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
                 return false;
             }
         }
+
+        // 4. 아이템 장착
         _currentSlot.GetItemPrefab(item);
         item.transform.position = _currentSlot.transform.position;
         item.gameObject.SetActive(false);
         _equipmentManager.EquipItem(item.Data);
+
         return true;
+    }
+
+    /// <summary>
+    /// 장비 타입에 맞는 슬롯 찾기
+    /// </summary>
+    /// <param name="equipmentType"></param>
+    /// <returns></returns>
+    private EquipSlot FindSlotByEquipmentType(EquipmentType equipmentType)
+    {
+        foreach (var slot in _slots)
+        {
+            if (slot.EquipmentType == equipmentType)
+            {
+                return slot;
+            }
+        }
+        return null;
     }
 
     /// <summary>
@@ -87,10 +190,16 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     /// <returns></returns>
     public bool QuickEquipItem(InventoryItemPrefab item)
     {
-        EquipmentType type = item.Data.EquipmentType;
-        foreach(var slot in _slots)
+        if (_equipmentManager == null)
         {
-            if(item.Data.EquipmentType == slot.EquipmentType)
+            Debug.LogError("[EquipInventory] QuickEquipItem: EquipmentManager가 null입니다!");
+            return false;
+        }
+
+        EquipmentType type = item.Data.EquipmentType;
+        foreach (var slot in _slots)
+        {
+            if (item.Data.EquipmentType == slot.EquipmentType)
             {
                 if (slot.HasItem)
                 {
@@ -118,6 +227,12 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     /// <returns></returns>
     public bool QuickDropItemEquip(ItemData data)
     {
+        if (_equipmentManager == null)
+        {
+            Debug.LogError("[EquipInventory] QuickDropItemEquip: EquipmentManager가 null입니다!");
+            return false;
+        }
+
         EquipmentType type = data.EquipmentType;
         foreach (var slot in _slots)
         {
@@ -152,9 +267,16 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
         {
             return;
         }
+
+        if (_equipmentManager == null)
+        {
+            Debug.LogError("[EquipInventory] TakeOffEquip: EquipmentManager가 null입니다!");
+            return;
+        }
+
         _equipmentManager.UnequipItem(slot.EquipmentType);
         slot.RemoveData();
-        
+
     }
 
     /// <summary>
@@ -164,7 +286,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
     /// <returns></returns>
     public bool CheckCurrentSlot(ItemData data)
     {
-        if(_currentSlot == null || _currentSlot.EquipmentType != data.EquipmentType) return false;
+        if (_currentSlot == null || _currentSlot.EquipmentType != data.EquipmentType) return false;
         else
         {
             return true;
@@ -178,7 +300,7 @@ public class EquipInevnetory : MonoBehaviour, IPointerEnterHandler
 
     public void OnBeginDrag(InventoryItemPrefab item, Slot ownerSlot)
     {
-        _itemEventHandler.OnBeginDrag(item,ownerSlot);
+        _itemEventHandler.OnBeginDrag(item, ownerSlot);
     }
 
     public void OnDrag(PointerEventData eventData)
