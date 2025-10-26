@@ -3858,9 +3858,9 @@ MonoBehaviour:
   _playerCharacter: {fileID: 0}
   _skillActivationSystem: {fileID: 0}
   _experienceManager: {fileID: 0}
-  _inventoryCanvasGroup: {fileID: 5989876730781737265}
-  _characterCanvasGroup: {fileID: 2153790091245304185}
-  _skillCanvasGroup: {fileID: 2817326187882777799}
+  _inventoryCanvasGroup: {fileID: 7158032270174704900}
+  _characterCanvasGroup: {fileID: 6739170003520327750}
+  _skillCanvasGroup: {fileID: 9119858124655848919}
   _minimapCanvasGroup: {fileID: 0}
   _mapQuestCanvasGroup: {fileID: 0}
   _healthManaBar: {fileID: 2255081700250770981}
@@ -5853,7 +5853,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8626094370188814581}
   - component: {fileID: 5870035760362599425}
-  - component: {fileID: 2817326187882777799}
+  - component: {fileID: 9119858124655848919}
   m_Layer: 5
   m_Name: SkillPanel
   m_TagString: Untagged
@@ -5891,7 +5891,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4778235510115689695}
   m_CullTransparentMesh: 1
---- !u!225 &2817326187882777799
+--- !u!225 &9119858124655848919
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6743,6 +6743,9 @@ MonoBehaviour:
   - {fileID: 5793296223806300066}
   _currentSlot: {fileID: 0}
   _equipmentManager: {fileID: 0}
+  _playerTag: Player
+  _retryInterval: 0.5
+  _maxRetries: 20
 --- !u!1 &5383958790390152456
 GameObject:
   m_ObjectHideFlags: 0
@@ -7830,7 +7833,7 @@ GameObject:
   - component: {fileID: 7157546305777867425}
   - component: {fileID: 8012523254341651511}
   - component: {fileID: 6860818738498803359}
-  - component: {fileID: 2153790091245304185}
+  - component: {fileID: 6739170003520327750}
   m_Layer: 5
   m_Name: CharacterPanel
   m_TagString: Untagged
@@ -7903,7 +7906,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &2153790091245304185
+--- !u!225 &6739170003520327750
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10328,7 +10331,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5420494605828427609}
   - component: {fileID: 8044883718568464915}
-  - component: {fileID: 5989876730781737265}
+  - component: {fileID: 7158032270174704900}
   m_Layer: 5
   m_Name: Inventory
   m_TagString: Untagged
@@ -10365,7 +10368,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8794788383134490271}
   m_CullTransparentMesh: 1
---- !u!225 &5989876730781737265
+--- !u!225 &7158032270174704900
 CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

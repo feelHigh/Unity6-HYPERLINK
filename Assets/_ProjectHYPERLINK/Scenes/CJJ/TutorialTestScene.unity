@@ -4929,18 +4929,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3949054636495800351, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: _skillCanvasGroup
-      value: 
-      objectReference: {fileID: 237605770}
-    - target: {fileID: 3949054636495800351, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: _characterCanvasGroup
-      value: 
-      objectReference: {fileID: 237605771}
-    - target: {fileID: 3949054636495800351, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: _inventoryCanvasGroup
-      value: 
-      objectReference: {fileID: 237605772}
     - target: {fileID: 4019368845988598955, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5333,10 +5321,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5984431588645740818, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5997509490552697551, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5648,76 +5632,12 @@ PrefabInstance:
     - target: {fileID: 8558725258113804843, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8794788383134490271, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4778235510115689695, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 237605770}
-    - targetCorrespondingSourceObject: {fileID: 5984431588645740818, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 237605771}
-    - targetCorrespondingSourceObject: {fileID: 8794788383134490271, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 237605772}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
---- !u!1 &237605767 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8794788383134490271, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-  m_PrefabInstance: {fileID: 237605766}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &237605768 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4778235510115689695, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-  m_PrefabInstance: {fileID: 237605766}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &237605769 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5984431588645740818, guid: 314f8bce4004924459ae0cf5f0f27253, type: 3}
-  m_PrefabInstance: {fileID: 237605766}
-  m_PrefabAsset: {fileID: 0}
---- !u!225 &237605770
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237605768}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
---- !u!225 &237605771
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237605769}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
---- !u!225 &237605772
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237605767}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!1 &266397231
 GameObject:
   m_ObjectHideFlags: 0
@@ -18062,9 +17982,18 @@ MonoBehaviour:
   _weaponTemplates:
   - {fileID: 11400000, guid: 48eae9b342dee244ea27b4b7a2a7ac1b, type: 2}
   - {fileID: 11400000, guid: 1907321dd3946e545ba7acecf6947938, type: 2}
-  _equipmentTemplates:
+  _helmetTemplates:
   - {fileID: 11400000, guid: 85025b8b428ee8447be266411560891c, type: 2}
+  _chestTemplates:
   - {fileID: 11400000, guid: aabaa3988eac412428e8f3be4aafc1ac, type: 2}
+  _glovesTemplates:
+  - {fileID: 11400000, guid: a39b29a8737da674fa3aa701df02db3f, type: 2}
+  _bootsTemplates:
+  - {fileID: 11400000, guid: 3174cfd33d1d6a04a91c7ee95528ebd2, type: 2}
+  _necklaceTemplates:
+  - {fileID: 11400000, guid: cb7a1d7d6d5868844828f5f456e5f908, type: 2}
+  _ringTemplates:
+  - {fileID: 11400000, guid: e4dc621f2f63b9d4bba58faeab916361, type: 2}
 --- !u!4 &1644371864
 Transform:
   m_ObjectHideFlags: 0
