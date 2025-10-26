@@ -190,6 +190,13 @@ public class SkillAnimationController : MonoBehaviour
         // 애니메이션 트리거
         PlaySkillAnimation(skill.SkillName);
 
+        // VFX 생성 타이밍 처리
+        if (skill.VfxPrefab != null)
+        {
+            float vfxDelay = skill.AnimationDuration * skill.VfxSpawnTiming;
+            StartCoroutine(SpawnSkillVFX(skill, vfxDelay));
+        }
+
         // DOTween 대시
         if (useDOTweenDash)
         {
@@ -262,56 +269,56 @@ public class SkillAnimationController : MonoBehaviour
 
             if (safeDashDistance < desiredDashDistance)
             {
-                Log($"벽 감지! {desiredDashDistance:F2}m → {safeDashDistance:F2}m");
+                Log($"벽 감지 - 대시 조정: {desiredDashDistance:F2}m → {safeDashDistance:F2}m");
             }
         }
 
-        // 목표 위치 계산
-        Vector3 targetPosition = transform.position + transform.forward * safeDashDistance;
-        targetPosition.y = transform.position.y;
+        if (safeDashDistance <= 0.01f)
+        {
+            Log("대시 불가 - 벽이 너무 가까움");
+            return;
+        }
 
-        // DOTween 이동
-        _currentDashTween = transform.DOMove(targetPosition, skill.DashDuration)
+        Vector3 dashTarget = transform.position + transform.forward * safeDashDistance;
+
+        _currentDashTween = transform.DOMove(dashTarget, skill.DashDuration)
             .SetEase(skill.DashEase)
-            .OnComplete(() => _currentDashTween = null);
+            .OnComplete(() => Log("대시 완료"));
 
-        Log($"대시: {safeDashDistance:F2}m (모드: {skill.DashDistanceMode})");
+        Log($"대시 시작: 거리={safeDashDistance:F2}m, 시간={skill.DashDuration:F2}s");
     }
 
     /// <summary>
     /// 모드별 실제 대시 거리 계산
+    /// - Fixed: DashDistance 값 직접 사용
+    /// - MouseDistance: 마우스까지 거리 계산 (최소/최대값 사이로 클램프)
     /// </summary>
     private float CalculateActualDashDistance(SkillData skill)
     {
-        switch (skill.DashDistanceMode)
+        if (skill.DashDistanceMode == DashDistanceMode.Fixed)
         {
-            case DashDistanceMode.Fixed:
-                return skill.DashDistance;
+            return skill.DashDistance;
+        }
+        else // MouseDistance
+        {
+            float mouseDistance = GetMousePositionDistance();
+            _lastCalculatedDistance = Mathf.Clamp(mouseDistance, skill.MinDashDistance, skill.MaxDashDistance);
 
-            case DashDistanceMode.MouseDistance:
-                float mouseDistance = GetMousePositionDistance();
-                float clampedDistance = Mathf.Clamp(mouseDistance,
-                    skill.MinDashDistance, skill.MaxDashDistance);
+            Log($"마우스 거리: {mouseDistance:F2}m → 클램프: {_lastCalculatedDistance:F2}m " +
+                $"(최소: {skill.MinDashDistance}m, 최대: {skill.MaxDashDistance}m)");
 
-                _lastCalculatedDistance = clampedDistance;
-                Log($"마우스 거리: {mouseDistance:F2}m → 클램핑: {clampedDistance:F2}m " +
-                    $"(범위: {skill.MinDashDistance}-{skill.MaxDashDistance}m)");
-
-                return clampedDistance;
-
-            default:
-                return skill.DashDistance;
+            return _lastCalculatedDistance;
         }
     }
 
     /// <summary>
-    /// 마우스 위치까지 수평 거리 계산
+    /// 캐릭터에서 마우스 위치까지 수평 거리 계산
     /// </summary>
     private float GetMousePositionDistance()
     {
         if (_mainCamera == null)
         {
-            Log("카메라 없음 - 기본 거리 반환");
+            Log("메인 카메라 없음 - 기본 거리 반환");
             return 5f;
         }
 
@@ -322,11 +329,11 @@ public class SkillAnimationController : MonoBehaviour
         {
             _lastMouseWorldPosition = hit.point;
 
-            // 수평 거리만 계산 (Y축 무시)
             Vector3 characterPos = transform.position;
             Vector3 mousePos = hit.point;
-            characterPos.y = 0;
-            mousePos.y = 0;
+
+            characterPos.y = 0f;
+            mousePos.y = 0f;
 
             float distance = Vector3.Distance(characterPos, mousePos);
             return distance;
@@ -514,6 +521,56 @@ public class SkillAnimationController : MonoBehaviour
         float baseDamage = skill.Damage;
         int mainStat = _playerCharacter.GetMainStat();
         return baseDamage * (1f + mainStat / 100f);
+    }
+
+    #endregion
+
+    #region VFX 처리
+
+    /// <summary>
+    /// 스킬 VFX 생성 및 재생
+    /// </summary>
+    private IEnumerator SpawnSkillVFX(SkillData skill, float delay)
+    {
+        // VFX 생성 시점까지 대기
+        if (delay > 0)
+            yield return new WaitForSeconds(delay);
+
+        if (skill.VfxPrefab == null)
+            yield break;
+
+        // VFX 위치 계산 (로컬 좌표 -> 월드 좌표)
+        Vector3 spawnPosition = transform.position + transform.TransformDirection(skill.VfxOffset);
+
+        // VFX 회전 계산 (캐릭터 회전 + 오프셋)
+        Quaternion spawnRotation = transform.rotation * Quaternion.Euler(skill.VfxRotationOffset);
+
+        // VFX 인스턴스 생성
+        GameObject vfxInstance = Instantiate(
+            skill.VfxPrefab,
+            spawnPosition,
+            spawnRotation
+        );
+
+        Log($"[{skill.SkillName}] VFX 생성: {vfxInstance.name}");
+
+        // VFX 자동 제거 처리
+        float lifetime = skill.VfxLifetime;
+        if (lifetime <= 0)
+        {
+            // VfxLifetime이 0이면 파티클 시스템의 Duration 사용
+            ParticleSystem ps = vfxInstance.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+            }
+            else
+            {
+                lifetime = 2f; // 기본값
+            }
+        }
+
+        Destroy(vfxInstance, lifetime);
     }
 
     #endregion
