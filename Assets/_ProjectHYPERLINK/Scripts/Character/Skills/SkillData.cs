@@ -55,6 +55,23 @@ public class SkillData : ScriptableObject
     [Tooltip("Box 형태일 때만 사용 - 박스 크기")]
     [SerializeField] private Vector3 _boxSize = new Vector3(3f, 2f, 4f);
 
+    [Header("VFX 설정")]
+    [Tooltip("스킬 실행 시 재생할 Sword Slash VFX 프리팹")]
+    [SerializeField] private GameObject _vfxPrefab;
+
+    [Tooltip("VFX 생성 타이밍 (0.0 ~ 1.0, 애니메이션 진행률)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _vfxSpawnTiming = 0.5f;
+
+    [Tooltip("VFX 위치 오프셋 (캐릭터 로컬 좌표)")]
+    [SerializeField] private Vector3 _vfxOffset = new Vector3(0f, 1f, 1f);
+
+    [Tooltip("VFX 회전 오프셋 (오일러 각도)")]
+    [SerializeField] private Vector3 _vfxRotationOffset = Vector3.zero;
+
+    [Tooltip("VFX 자동 제거 시간 (초, 0이면 파티클 시스템 Duration 사용)")]
+    [SerializeField] private float _vfxLifetime = 0f;
+
     [Header("애니메이션 설정")]
     [Tooltip("애니메이션 전체 재생 시간 (초)")]
     [SerializeField] private float _animationDuration = 1.0f;
@@ -135,6 +152,14 @@ public class SkillData : ScriptableObject
     public bool CheckWallCollision => _checkWallCollision;
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
+
+
+    // VFX 프로퍼티
+    public GameObject VfxPrefab => _vfxPrefab;
+    public float VfxSpawnTiming => _vfxSpawnTiming;
+    public Vector3 VfxOffset => _vfxOffset;
+    public Vector3 VfxRotationOffset => _vfxRotationOffset;
+    public float VfxLifetime => _vfxLifetime;
 
     #endregion
 
