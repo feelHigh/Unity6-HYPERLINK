@@ -76,7 +76,7 @@ public class EquipmentManager : MonoBehaviour
             _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Chest });
             _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Gloves });
             _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Boots });
-            _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Amulet });
+            _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Necklace });
             _equipmentSlots.Add(new EquipmentSlot { slotType = EquipmentType.Ring });
         }
     }
@@ -256,7 +256,7 @@ public class EquipmentManager : MonoBehaviour
         LoadItemToSlot(EquipmentType.Chest, data.equipment.chest);
         LoadItemToSlot(EquipmentType.Gloves, data.equipment.gloves);
         LoadItemToSlot(EquipmentType.Boots, data.equipment.boots);
-        LoadItemToSlot(EquipmentType.Amulet, data.equipment.amulet);
+        LoadItemToSlot(EquipmentType.Necklace, data.equipment.necklace);
         LoadItemToSlot(EquipmentType.Ring, data.equipment.ring);
 
         RecalculateEquipmentStats();
@@ -299,7 +299,7 @@ public class EquipmentManager : MonoBehaviour
         data.equipment.chest = GetItemNumber(EquipmentType.Chest);
         data.equipment.gloves = GetItemNumber(EquipmentType.Gloves);
         data.equipment.boots = GetItemNumber(EquipmentType.Boots);
-        data.equipment.amulet = GetItemNumber(EquipmentType.Amulet);
+        data.equipment.necklace = GetItemNumber(EquipmentType.Necklace);
         data.equipment.ring = GetItemNumber(EquipmentType.Ring);
     }
 

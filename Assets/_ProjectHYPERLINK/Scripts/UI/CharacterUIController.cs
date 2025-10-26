@@ -28,7 +28,7 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private SkillActivationSystem _skillActivationSystem;
     [SerializeField] private ExperienceManager _experienceManager;
 
-    [Header("UI 패널 (CanvasGroup 방식) - 권장")]
+    [Header("UI 패널 (CanvasGroup)")]
     [Tooltip("Inventory GameObject의 CanvasGroup")]
     [SerializeField] private CanvasGroup _inventoryCanvasGroup;
     [Tooltip("Character Panel의 CanvasGroup")]
@@ -40,7 +40,7 @@ public class CharacterUIController : MonoBehaviour
     [Tooltip("Map Quest Panel의 CanvasGroup")]
     [SerializeField] private CanvasGroup _mapQuestCanvasGroup;
 
-    [Header("UI 패널 (GameObject) - Fallback")]
+    [Header("UI 패널 (GameObject)")]
     [SerializeField] private HealthManaBar _healthManaBar;
     [SerializeField] private GameObject _characterPanel;
     [SerializeField] private GameObject _skillPanel;

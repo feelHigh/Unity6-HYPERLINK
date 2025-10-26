@@ -157,6 +157,9 @@ public class InventoryItemEventHandler : MonoBehaviour
     ///
     /// 3. EquipInventory
     /// 착용장비 슬롯에 해당 아이템이 들어가나 확인
+    /// 
+    /// 수정사항:
+    /// - EquipInventory 처리 시 CheckCurrentSlot 제거 (EquipItem 내부에서 처리)
     /// </summary>
     public void OnEndDrag(InventoryItemPrefab item)
     {
@@ -173,7 +176,7 @@ public class InventoryItemEventHandler : MonoBehaviour
                     giveItem = true;
                     if (_ownerSlot is EquipSlot eslot)
                     {
-                        Debug.Log("there");
+                        Debug.Log("[InventoryItemEventHandler] 장비 해제 후 인벤토리로 이동");
                         _equipInevnetory.UnEquipItem(item);
                     }
                     _ownerSlot.RemoveData();
@@ -181,15 +184,17 @@ public class InventoryItemEventHandler : MonoBehaviour
                 break;
 
             case MousePos.EquipInventory:
-                if (_equipInevnetory.CheckCurrentSlot(item.Data))
+                // EquipItem 메서드 내부에서 null 체크 및 슬롯 찾기를 처리하므로
+                // CheckCurrentSlot 호출 불필요
+                if (_equipInevnetory.EquipItem(item))
                 {
-                    if (_equipInevnetory.EquipItem(item))
-                    {
-                        giveItem = true;
-                        _ownerSlot.RemoveData();
-                    }
-                        
-                    
+                    giveItem = true;
+                    _ownerSlot.RemoveData();
+                    Debug.Log($"[InventoryItemEventHandler] 아이템 장착 성공: {item.Data.ItemName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[InventoryItemEventHandler] 아이템 장착 실패: {item.Data.ItemName}");
                 }
                 break;
         }

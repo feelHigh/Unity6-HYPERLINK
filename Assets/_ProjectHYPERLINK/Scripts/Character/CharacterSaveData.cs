@@ -75,7 +75,7 @@ public class CharacterSaveData
         public string chest;
         public string gloves;
         public string boots;
-        public string amulet;
+        public string necklace;
         public string ring;
     }
 

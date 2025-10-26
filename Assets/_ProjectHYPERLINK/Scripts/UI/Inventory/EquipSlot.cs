@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 [System.Serializable]
 public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    
+
     [SerializeField] EquipmentType _equipType;
     [SerializeField] InventoryItemPrefab _itemPrefab;
 
@@ -21,6 +21,11 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     public void Initialize(EquipInevnetory equipInventory)
     {
         _equipInevnetory = equipInventory;
+
+        if (_equipInevnetory == null)
+        {
+            Debug.LogError($"[EquipSlot] Initialize 실패: equipInventory가 null입니다. 슬롯: {_equipType}");
+        }
     }
 
     /// <summary>
@@ -59,36 +64,54 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (_itemPrefab == null) return;
+        if (_equipInevnetory == null)
+        {
+            Debug.LogError("[EquipSlot] OnBeginDrag: _equipInevnetory가 null입니다!");
+            return;
+        }
         _equipInevnetory.OnBeginDrag(_itemPrefab, this);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         if (_itemPrefab == null) return;
+        if (_equipInevnetory == null) return;
         _equipInevnetory.OnDrag(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         if (_itemPrefab == null) return;
+        if (_equipInevnetory == null) return;
         _equipInevnetory.OnEndDrag(_itemPrefab);
     }
 
-    
+
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (_equipInevnetory == null)
+        {
+            Debug.LogError($"[EquipSlot] OnPointerEnter: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
+            return;
+        }
         _equipInevnetory.SetCurrentSlot(this);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (_equipInevnetory == null)
+        {
+            Debug.LogError($"[EquipSlot] OnPointerExit: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
+            return;
+        }
         _equipInevnetory.SetCurrentSlot(null);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Right && _itemPrefab == null) return;
+        if (_equipInevnetory == null) return;
         _equipInevnetory.TakeOffEquip(this);
     }
 }
