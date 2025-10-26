@@ -8,7 +8,7 @@
 /// - Chest: 갑옷
 /// - Gloves: 장갑
 /// - Boots: 신발
-/// - Amulet: 목걸이
+/// - Necklace: 목걸이
 /// - Ring: 반지
 /// 
 /// 사용 위치:
@@ -29,7 +29,7 @@ public enum EquipmentType
     Boots,       // 신발
 
     // 액세서리
-    Amulet,      // 목걸이
+    Necklace,    // 목걸이
     Ring         // 반지
 }
 
