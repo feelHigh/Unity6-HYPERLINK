@@ -4051,8 +4051,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec548e39372c04f41a81647660e2043d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: {fileID: 0}
   _activationDistance: 23
+  _checkInterval: 1
+  _enableDebugLogs: 1
 --- !u!4 &73343378
 Transform:
   m_ObjectHideFlags: 0

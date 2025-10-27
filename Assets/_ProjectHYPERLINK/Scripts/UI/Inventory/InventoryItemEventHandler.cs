@@ -45,7 +45,7 @@ public class InventoryItemEventHandler : MonoBehaviour
     [Header("참조")]
     [SerializeField] private ItemVisualizeField _itemVisualizeField;
     [SerializeField] private ItemInventory _inventory;
-    [SerializeField] private EquipInevnetory _equipInevnetory;
+    [SerializeField] private EquipInventory _equipInventory;
 
     [Header("Prefab")]
     [SerializeField] private DraggingVisualizeItem _dragItem;
@@ -130,7 +130,7 @@ public class InventoryItemEventHandler : MonoBehaviour
     /// </summary>
     void EquipOnDrag()
     {
-        if (_equipInevnetory.CurrentSlot == null || _equipInevnetory.CurrentSlot.EquipmentType != _ownerSlot.Data.EquipmentType)
+        if (_equipInventory.CurrentSlot == null || _equipInventory.CurrentSlot.EquipmentType != _ownerSlot.Data.EquipmentType)
         {
             _dragItem.ChangeColor(false);
 
@@ -177,7 +177,7 @@ public class InventoryItemEventHandler : MonoBehaviour
                     if (_ownerSlot is EquipSlot eslot)
                     {
                         Debug.Log("[InventoryItemEventHandler] 장비 해제 후 인벤토리로 이동");
-                        _equipInevnetory.UnEquipItem(item);
+                        _equipInventory.UnEquipItem(item);
                     }
                     _ownerSlot.RemoveData();
                 }
@@ -186,7 +186,7 @@ public class InventoryItemEventHandler : MonoBehaviour
             case MousePos.EquipInventory:
                 // EquipItem 메서드 내부에서 null 체크 및 슬롯 찾기를 처리하므로
                 // CheckCurrentSlot 호출 불필요
-                if (_equipInevnetory.EquipItem(item))
+                if (_equipInventory.EquipItem(item))
                 {
                     giveItem = true;
                     _ownerSlot.RemoveData();
@@ -236,7 +236,7 @@ public class InventoryItemEventHandler : MonoBehaviour
         if (item.OwnerSlot is InventorySlot slot)
         {
             _inventory.PlaceItem(item.Data, slot, false);
-            if (!_equipInevnetory.QuickEquipItem(item))
+            if (!_equipInventory.QuickEquipItem(item))
             {
 
                 _inventory.PlaceItem(item.Data, slot, true);

@@ -28,6 +28,11 @@ MonoBehaviour:
   _damagePointTiming: 0.7
   _aoeOffset: {x: 0, y: 0, z: 0}
   _boxSize: {x: 2, y: 1, z: 2}
+  _vfxPrefab: {fileID: 1840690549904964, guid: a8a6ba91edbeef2439175ecf0e08e6fb, type: 3}
+  _vfxSpawnTiming: 0.82
+  _vfxOffset: {x: 0, y: 1, z: 1}
+  _vfxRotationOffset: {x: 0, y: 0, z: 0}
+  _vfxLifetime: 0.4
   _animationDuration: 1
   _useRootMotion: 0
   _dashDistanceMode: 0
