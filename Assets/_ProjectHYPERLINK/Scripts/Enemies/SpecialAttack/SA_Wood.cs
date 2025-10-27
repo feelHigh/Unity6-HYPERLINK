@@ -5,7 +5,6 @@ public class SA_Wood : SpecialAttackBase
 {
     [Header("----- 장판 설정 -----")]
     [SerializeField] GameObject _aoePrefab;  //장판 프리팹
-    [SerializeField] LayerMask _playerLayerMask;
 
     [Header("----- 이펙트 프리팹 -----")]
     [SerializeField] GameObject _rootEffect;            //속박 이펙트    
@@ -23,7 +22,17 @@ public class SA_Wood : SpecialAttackBase
     public override GameObject DebuffEffect => _rootEffect;
     public override GameObject AdditionalEffect => _defenseDebuffEffect;
 
-    public override void Execute(Transform attacker, Transform target)
+    public override void ExecuteMelee(Transform attacker, Transform target)
+    {
+        ExecuteWaveAttack(attacker, target);
+    }
+
+    public override void ExecuteRanged(Transform attacker, Transform target)
+    {
+        ExecuteWaveAttack(attacker, target);
+    }
+
+    void ExecuteWaveAttack(Transform attacker, Transform target)
     {
         if (_aoePrefab == null)
         {

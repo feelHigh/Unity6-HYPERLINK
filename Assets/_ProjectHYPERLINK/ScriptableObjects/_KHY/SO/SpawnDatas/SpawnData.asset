@@ -13,7 +13,5 @@ MonoBehaviour:
   m_Name: SpawnData
   m_EditorClassIdentifier: 
   spawnList:
-  - enemyData: {fileID: 11400000, guid: 67773a9f67c1cc44eb2c1b8163c2080e, type: 2}
-    count: 1
-  - enemyData: {fileID: 11400000, guid: 51f200b33d887ee4086fa83bbd886732, type: 2}
+  - enemyData: {fileID: 11400000, guid: 0eca62852cda29a4fb3619264a0d6e49, type: 2}
     count: 3

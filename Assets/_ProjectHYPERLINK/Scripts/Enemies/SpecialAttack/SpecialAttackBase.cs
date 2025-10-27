@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 모든 특수 공격 데이터의 기반이 될 추상 클래스
+/// 모든 특수 공격 데이터의 기반이 될 추상 스크립터블 오브젝트 클래스
 /// </summary>
 public abstract class SpecialAttackBase : ScriptableObject
 {
@@ -11,9 +11,10 @@ public abstract class SpecialAttackBase : ScriptableObject
     [Header("----- 특수 공격 공통 -----")]
     [SerializeField] SpecialAttackType _type;       //특수 공격 타입
     [SerializeField] float _coolTime = 10f;         //특수 공격 쿨타임
+    [SerializeField] protected LayerMask _playerLayerMask;  //플레이어 레이어 마스크
 
     [Header("----- 발사체 발사 지점 -----")]
-    [SerializeField] protected Transform cachedFirePos;
+    [SerializeField] protected Transform _cachedFirePos;    //지정된 firePos
 
     // 프로퍼티 //
     public GameObject EpicEffect => _epicEffect;
@@ -62,9 +63,9 @@ public abstract class SpecialAttackBase : ScriptableObject
     /// <returns></returns>
     protected Transform GetFirePos(Transform attacker)
     {
-        if (cachedFirePos != null)
+        if (_cachedFirePos != null)
         {
-            return cachedFirePos;
+            return _cachedFirePos;
         }
 
         Transform firePos = attacker.Find("firePos");
@@ -75,9 +76,10 @@ public abstract class SpecialAttackBase : ScriptableObject
             return null;
         }
 
-        cachedFirePos = firePos;
+        _cachedFirePos = firePos;
+        Debug.Log("Cached Fire Pos : " + _cachedFirePos);
 
-        return cachedFirePos;
+        return _cachedFirePos;
     }
 
     /// <summary>
@@ -85,5 +87,25 @@ public abstract class SpecialAttackBase : ScriptableObject
     /// </summary>
     /// <param name="attacker">공격을 시전하는 자신</param>
     /// <param name="target">공격을 당하는 대상</param>
-    public abstract void Execute(Transform attacker, Transform target);
+    public void Execute(Transform attacker, Transform target, BasicAttackType attackType)
+    {
+        if (attackType == BasicAttackType.Melee)
+        {
+            ExecuteMelee(attacker, target);
+        }
+        else
+        {
+            ExecuteRanged(attacker, target);
+        }
+    }
+
+    /// <summary>
+    /// 근거리 특수 공격 실행 (자식 클래스에서 구현)
+    /// </summary>
+    public abstract void ExecuteMelee(Transform attacker, Transform target);
+
+    /// <summary>
+    /// 원거리 특수 공격 실행 (자식 클래스에서 구현)
+    /// </summary>
+    public abstract void ExecuteRanged(Transform attacker, Transform target);
 }
