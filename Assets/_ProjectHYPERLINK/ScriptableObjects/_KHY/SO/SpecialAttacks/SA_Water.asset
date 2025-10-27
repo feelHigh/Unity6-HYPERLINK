@@ -15,6 +15,10 @@ MonoBehaviour:
   _epicEffect: {fileID: 9145572604598077285, guid: 8e90fd4d3f981544f88c057c76916e18, type: 3}
   _type: 1
   _coolTime: 10
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _cachedFirePos: {fileID: 0}
   _attackEffect: {fileID: 3286354774382137151, guid: 1006002f1a5ae974c9cf6a3db3aac0f6, type: 3}
   _hitEffect: {fileID: 3479889138382906226, guid: 508d4996b5530b7489b534179dabaa22, type: 3}
   _freezeEffect: {fileID: 2542977102590910287, guid: 83ac7e46c2c19b141a11f239d591f077, type: 3}

@@ -15,7 +15,12 @@ MonoBehaviour:
   _epicEffect: {fileID: 5576249164920813964, guid: d9eef5ac1567d2445a1647b9948d84c4, type: 3}
   _type: 0
   _coolTime: 10
-  _firePos: {fileID: 0}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _cachedFirePos: {fileID: 0}
+  _meleeAttackEffect: {fileID: 1329003909241738500, guid: 46ebdf6ac37d86b479684d0e806ee606, type: 3}
+  _meleeRadius: 3
   _projectilePrefab: {fileID: 2373718864833124984, guid: 0fc96426e87a4824e9e2b7aa7145ece8, type: 3}
   _projectileSpeed: 15
   _hitEffect: {fileID: 1723749298317762174, guid: 3d9822a4d191da24ba93e5617fbcb0bc, type: 3}

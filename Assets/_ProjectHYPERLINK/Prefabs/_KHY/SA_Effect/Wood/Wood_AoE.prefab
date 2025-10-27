@@ -119850,7 +119850,7 @@ MonoBehaviour:
   _radius: 3
   _playerLayerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
 --- !u!1 &5381289478167837454
 GameObject:
   m_ObjectHideFlags: 0
@@ -237838,7 +237838,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 097a48c277c40f84098b55e23079cb0a, type: 2}
+  - {fileID: 2100000, guid: 4b96c6eadd8dee14f932b386f9cf956c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

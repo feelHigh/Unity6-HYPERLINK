@@ -23,7 +23,17 @@ public class SA_Water : SpecialAttackBase
     public override GameObject DebuffEffect => _freezeEffect;
     public override GameObject AdditionalEffect => _slowEffect;
 
-    public override void Execute(Transform attacker, Transform target)
+    public override void ExecuteMelee(Transform attacker, Transform target)
+    {
+        ExecuteAoEAttack(attacker, target);
+    }
+
+    public override void ExecuteRanged(Transform attacker, Transform target)
+    {
+        ExecuteAoEAttack(attacker, target);
+    }
+
+    void ExecuteAoEAttack(Transform attacker, Transform target)
     {
         if (_attackEffect == null)
         {

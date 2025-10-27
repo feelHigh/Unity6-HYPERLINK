@@ -6742,10 +6742,10 @@ MonoBehaviour:
   - {fileID: 8048304419540794853}
   - {fileID: 5793296223806300066}
   _currentSlot: {fileID: 0}
-  _equipmentManager: {fileID: 0}
   _playerTag: Player
   _retryInterval: 0.5
   _maxRetries: 20
+  _enableDebugLogs: 1
 --- !u!1 &5383958790390152456
 GameObject:
   m_ObjectHideFlags: 0
@@ -7819,7 +7819,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _itemVisualizeField: {fileID: 4639284096642778136}
   _inventory: {fileID: 6681971511620721137}
-  _equipInevnetory: {fileID: 7188396176908983074}
+  _equipInventory: {fileID: 7188396176908983074}
   _dragItem: {fileID: 1671724375081863268}
   _ownerSlot: {fileID: 0}
 --- !u!1 &5984431588645740818

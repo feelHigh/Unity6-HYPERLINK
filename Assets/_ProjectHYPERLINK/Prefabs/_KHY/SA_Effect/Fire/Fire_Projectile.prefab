@@ -9820,6 +9820,7 @@ GameObject:
   - component: {fileID: 731847693109227928}
   - component: {fileID: 4101927102410009828}
   - component: {fileID: 3249823518221417591}
+  - component: {fileID: 1338235499187627933}
   m_Layer: 0
   m_Name: Fire_Projectile
   m_TagString: Untagged
@@ -14682,7 +14683,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
@@ -14717,12 +14718,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 2373718864833124984}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dec3ecb5cf5bdc4f9e064a92c120633, type: 3}
+  m_Script: {fileID: 11500000, guid: 41c19b1c88d20954196b8f1b493a928b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 0
-  _rb: {fileID: 0}
+  _rb: {fileID: 731847693109227928}
   _specialAttack: {fileID: 0}
+  _maxDistance: 0
+--- !u!114 &1338235499187627933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2373718864833124984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b781e510bb0d2e439795dbbcac37407, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _detectorColl: {fileID: 4101927102410009828}
 --- !u!1 &4304583807533938544
 GameObject:
   m_ObjectHideFlags: 0
@@ -14767,8 +14782,8 @@ Light:
   serializedVersion: 11
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 7.957747
-  m_Range: 10
+  m_Intensity: 3
+  m_Range: 2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -14809,10 +14824,10 @@ Light:
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
+  m_BounceIntensity: 0.25
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: NaN, y: 8.58e-43, z: 4.99e-43, w: 3.531e-42}
+  m_BoundingSphereOverride: {x: 2.7105054e-20, y: 5.051057e-39, z: 4.8383e-41, w: -1.6099571e-34}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
