@@ -148,6 +148,9 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// PlayerSpawner로 스폰된 플레이어를 찾기 위한 재시도 로직
+    /// </summary>
     private void TryFindPlayerAndSystems()
     {
         _retryCount++;
@@ -200,24 +203,24 @@ public class CharacterUIController : MonoBehaviour
     private void SubscribeToEvents()
     {
         // Static 이벤트 구독
-        PlayerCharacter.OnHealthChanged += UpdateHealthBar;
-        PlayerCharacter.OnManaChanged += UpdateManaBar;
+        PlayerCharacter.OnHealthChanged += OnHealthChanged;
+        PlayerCharacter.OnManaChanged += OnManaChanged;
         PlayerCharacter.OnStatsChanged += UpdateStatsDisplay;
         PlayerCharacter.OnSkillUnlocked += OnSkillUnlocked;
 
-        ExperienceManager.OnExperienceChanged += UpdateExperience;
+        ExperienceManager.OnExperienceChanged += OnExperienceChanged;
         ExperienceManager.OnLevelUp += OnLevelUp;
     }
 
     private void UnsubscribeFromEvents()
     {
         // Static 이벤트 구독 해제
-        PlayerCharacter.OnHealthChanged -= UpdateHealthBar;
-        PlayerCharacter.OnManaChanged -= UpdateManaBar;
+        PlayerCharacter.OnHealthChanged -= OnHealthChanged;
+        PlayerCharacter.OnManaChanged -= OnManaChanged;
         PlayerCharacter.OnStatsChanged -= UpdateStatsDisplay;
         PlayerCharacter.OnSkillUnlocked -= OnSkillUnlocked;
 
-        ExperienceManager.OnExperienceChanged -= UpdateExperience;
+        ExperienceManager.OnExperienceChanged -= OnExperienceChanged;
         ExperienceManager.OnLevelUp -= OnLevelUp;
     }
 
@@ -265,127 +268,82 @@ public class CharacterUIController : MonoBehaviour
 
     private bool IsPanelVisible(CanvasGroup canvasGroup)
     {
-        return canvasGroup != null && canvasGroup.alpha > 0;
-    }
-
-    #endregion
-
-    #region 강제 업데이트
-
-    private void ForceUpdateAll()
-    {
-        if (!_isInitialized || _playerCharacter == null)
-            return;
-
-        CharacterStats stats = _playerCharacter.CurrentStats;
-        UpdateStatsDisplay(stats);
-
-        UpdateHealthBar(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
-        UpdateManaBar(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
-
-        if (_experienceManager != null)
-        {
-            UpdateExperience(
-                _experienceManager.CurrentExperience,
-                _experienceManager.ExperienceToNextLevel,
-                _experienceManager.CurrentLevel
-            );
-        }
+        if (canvasGroup == null) return false;
+        return canvasGroup.alpha > 0f;
     }
 
     #endregion
 
     #region UI 업데이트
 
-    private void UpdateHealthBar(float current, float max)
+    private void ForceUpdateAll()
     {
-        if (!_isInitialized ||
-            _previousHealth != current ||
-            _previousMaxHealth != max)
+        if (_playerCharacter == null)
         {
-            _previousHealth = current;
-            _previousMaxHealth = max;
+            LogWarning("ForceUpdateAll: PlayerCharacter가 null입니다");
+            return;
         }
+
+        CharacterStats currentStats = _playerCharacter.GetTotalStats();
+        UpdateStatsDisplay(currentStats);
+
+        float currentHealth = _playerCharacter.CurrentHealth;
+        float maxHealth = _playerCharacter.MaxHealth;
+        OnHealthChanged(currentHealth, maxHealth);
+
+        float currentMana = _playerCharacter.CurrentMana;
+        float maxMana = _playerCharacter.MaxMana;
+        OnManaChanged(currentMana, maxMana);
+
+        if (_experienceManager != null)
+        {
+            int currentExp = _experienceManager.CurrentExperience;
+            int requiredExp = _experienceManager.ExperienceToNextLevel;
+            int level = _experienceManager.CurrentLevel;
+            OnExperienceChanged(currentExp, requiredExp, level);
+        }
+
+        Log("UI 강제 업데이트 완료");
     }
 
-    private void UpdateManaBar(float current, float max)
+    /// <summary>
+    /// 체력 변경 이벤트 핸들러
+    /// HealthManaBar는 자체 이벤트 구독으로 업데이트되므로 여기서는 로컬 UI만 업데이트
+    /// </summary>
+    private void OnHealthChanged(float current, float max)
     {
-        if (!_isInitialized ||
-            _previousMana != current ||
-            _previousMaxMana != max)
-        {
-            _previousMana = current;
-            _previousMaxMana = max;
-        }
-    }
-
-    private void UpdateExperience(int current, int toNext, int level)
-    {
-        if (!_isInitialized)
+        if (_previousHealth == current && _previousMaxHealth == max)
             return;
 
-        if (_previousExperience != current ||
-            _previousExperienceRequired != toNext ||
-            _previousLevel != level)
-        {
-            if (_experienceBar != null)
-            {
-                int totalRequired = current + toNext;
-                float fillAmount = totalRequired > 0 ? (float)current / totalRequired : 0f;
-                _experienceBar.fillAmount = fillAmount;
-            }
+        _previousHealth = current;
+        _previousMaxHealth = max;
 
-            if (_experienceText != null)
-            {
-                _experienceText.text = $"{current} / {current + toNext}";
-            }
+        // HealthManaBar는 자체적으로 PlayerCharacter 이벤트 구독
+        // 추가 UI가 필요하면 여기에 작성
+    }
 
-            _previousExperience = current;
-            _previousExperienceRequired = toNext;
-            _previousLevel = level;
-        }
+    /// <summary>
+    /// 마나 변경 이벤트 핸들러
+    /// HealthManaBar는 자체 이벤트 구독으로 업데이트되므로 여기서는 로컬 UI만 업데이트
+    /// </summary>
+    private void OnManaChanged(float current, float max)
+    {
+        if (_previousMana == current && _previousMaxMana == max)
+            return;
+
+        _previousMana = current;
+        _previousMaxMana = max;
+
+        // HealthManaBar는 자체적으로 PlayerCharacter 이벤트 구독
+        // 추가 UI가 필요하면 여기에 작성
     }
 
     private void UpdateStatsDisplay(CharacterStats stats)
     {
-        if (stats == null)
+        if (_previousStats != null && stats.Equals(_previousStats))
             return;
-
-        if (_previousStats == null)
-        {
-            UpdateAllStats(stats);
-            _previousStats = stats;
-            return;
-        }
-
-        if (_levelText != null && _experienceManager != null)
-            _levelText.text = $"레벨 {_experienceManager.CurrentLevel}";
-
-        if (_strengthText != null && _previousStats.Strength != stats.Strength)
-            _strengthText.text = stats.Strength.ToString();
-
-        if (_dexterityText != null && _previousStats.Dexterity != stats.Dexterity)
-            _dexterityText.text = stats.Dexterity.ToString();
-
-        if (_intelligenceText != null && _previousStats.Intelligence != stats.Intelligence)
-            _intelligenceText.text = stats.Intelligence.ToString();
-
-        if (_vitalityText != null && _previousStats.Vitality != stats.Vitality)
-            _vitalityText.text = stats.Vitality.ToString();
-
-        if (_critChanceText != null && !Mathf.Approximately(_previousStats.CriticalChance, stats.CriticalChance))
-            _critChanceText.text = $"{stats.CriticalChance:F1}%";
-
-        if (_critDamageText != null && !Mathf.Approximately(_previousStats.CriticalDamage, stats.CriticalDamage))
-            _critDamageText.text = $"{stats.CriticalDamage:F1}%";
 
         _previousStats = stats;
-    }
-
-    private void UpdateAllStats(CharacterStats stats)
-    {
-        if (_levelText != null && _experienceManager != null)
-            _levelText.text = $"레벨 {_experienceManager.CurrentLevel}";
 
         if (_strengthText != null)
             _strengthText.text = stats.Strength.ToString();
@@ -406,9 +364,35 @@ public class CharacterUIController : MonoBehaviour
             _critDamageText.text = $"{stats.CriticalDamage:F1}%";
     }
 
-    #endregion
+    /// <summary>
+    /// 경험치 변경 이벤트 핸들러
+    /// ExperienceManager.OnExperienceChanged: Action<int, int, int> (current, required, level)
+    /// </summary>
+    private void OnExperienceChanged(int current, int required, int level)
+    {
+        if (_previousExperience == current && _previousExperienceRequired == required && _previousLevel == level)
+            return;
 
-    #region 이벤트 핸들러
+        _previousExperience = current;
+        _previousExperienceRequired = required;
+        _previousLevel = level;
+
+        if (_experienceBar != null)
+        {
+            float fillAmount = required > 0 ? (float)current / required : 0f;
+            _experienceBar.fillAmount = fillAmount;
+        }
+
+        if (_experienceText != null)
+        {
+            _experienceText.text = $"{current} / {required}";
+        }
+
+        if (_levelText != null)
+        {
+            _levelText.text = $"Lv. {level}";
+        }
+    }
 
     private void OnLevelUp(int oldLevel, int newLevel)
     {

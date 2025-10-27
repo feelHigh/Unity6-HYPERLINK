@@ -4,26 +4,26 @@ using Unity.Cinemachine;
 /// <summary>
 /// Cinemachine Camera 추적 대상 자동 지정
 /// 
+/// 변경사항:
+/// - InvokeRepeating 패턴 제거
+/// - PlayerInitializationManager 이벤트 구독 방식으로 변경
+/// - OnPlayerSpawned 이벤트 사용 → Player 스폰 시 즉시 반응
+/// 
 /// 목적:
-/// - PlayerSpawner가 플레이어 생성되기 전까지 대기
+/// - PlayerInitializationManager의 이벤트를 통해 Player 추적
 /// - 플레이어를 추적 대상으로 설정
 /// 
 /// 사용처:
 /// - CinemachineCamera 오브젝트에 추가
-/// - Cinemachine이 자동으로 플레이어 추적
+/// - PlayerInitializationManager가 반드시 씬에 있어야 함
 /// </summary>
 public class CinemachineTargetSetter : MonoBehaviour
 {
-    [Header("Target Settings")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20; // 10 seconds max
-
     [Header("Debug")]
     [SerializeField] private bool _enableDebugLogs = true;
 
     private CinemachineCamera _cinemachineCamera;
-    private int _retryCount = 0;
+    private bool _isTargetSet = false;
 
     private void Awake()
     {
@@ -37,33 +37,32 @@ public class CinemachineTargetSetter : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        // Player 검색
-        InvokeRepeating(nameof(TrySetPlayerTarget), 0.5f, _retryInterval);
+        // PlayerInitializationManager 이벤트 구독
+        PlayerInitializationManager.OnPlayerSpawned += HandlePlayerSpawned;
+    }
+
+    private void OnDisable()
+    {
+        // 이벤트 구독 해제
+        PlayerInitializationManager.OnPlayerSpawned -= HandlePlayerSpawned;
     }
 
     /// <summary>
-    /// Player 태그를 가진 대상 검색
+    /// Player 스폰 완료 이벤트 핸들러
+    /// PlayerInitializationManager의 Phase 1에서 호출됨
     /// </summary>
-    private void TrySetPlayerTarget()
+    private void HandlePlayerSpawned(GameObject player)
     {
-        _retryCount++;
-
-        // Find player by tag
-        GameObject player = GameObject.FindGameObjectWithTag(_playerTag);
-
-        if (player != null)
+        if (player == null)
         {
-            SetTarget(player.transform);
-            CancelInvoke(nameof(TrySetPlayerTarget));
-            Log($"Player target set successfully after {_retryCount} attempts");
+            LogError("HandlePlayerSpawned: player가 null입니다!");
+            return;
         }
-        else if (_retryCount >= _maxRetries)
-        {
-            LogError($"Failed to find player after {_maxRetries} attempts");
-            CancelInvoke(nameof(TrySetPlayerTarget));
-        }
+
+        SetTarget(player.transform);
+        _isTargetSet = true;
     }
 
     /// <summary>
@@ -83,16 +82,21 @@ public class CinemachineTargetSetter : MonoBehaviour
     }
 
     /// <summary>
-    /// can be called by other scripts
+    /// 수동으로 타겟 설정 (외부 호출용, Optional)
     /// </summary>
     public void SetTargetManually(Transform target)
     {
         if (target != null)
         {
             SetTarget(target);
-            CancelInvoke(nameof(TrySetPlayerTarget));
+            _isTargetSet = true;
         }
     }
+
+    /// <summary>
+    /// 타겟이 설정되었는지 확인
+    /// </summary>
+    public bool IsTargetSet() => _isTargetSet;
 
     private void Log(string message)
     {
