@@ -13,18 +13,20 @@ MonoBehaviour:
   m_Name: Enemy_Human_Bodyguard0
   m_EditorClassIdentifier: 
   _name: Human_Bodyguard0
-  _prefab: {fileID: 7209925033233358126, guid: 3b8886782725fde4a80b0cb42dd964f1, type: 3}
+  _prefab: {fileID: 1995068114548180859, guid: 3b8886782725fde4a80b0cb42dd964f1, type: 3}
   _maxHp: 100
   _moveSpeed: 5
   _atk: 5
-  _detectionRange: 15
-  _chaseDistance: 40
-  _patrolRadius: 3
-  _patrolWaitTime: 1
+  _detectionRange: 8
+  _chaseDistance: 10
+  _basicAttackType: 0
   _attackRange: 2
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5
+  _projectilePrefab: {fileID: 0}
+  _projrctileSpeed: 12
+  _canBeEpic: 1
   _epicHpMultiplier: 2
   _epicAtkMultiplier: 2
   _epicExpMultirlier: 2

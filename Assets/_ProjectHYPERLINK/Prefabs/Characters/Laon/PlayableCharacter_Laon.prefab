@@ -55,7 +55,7 @@ Animator:
   m_GameObject: {fileID: 8470624065522552731}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 18c90d4e4a89f69489651ada78ff91ed, type: 3}
-  m_Controller: {fileID: 9100000, guid: 7e4a28222b4f3d64ea702b8c61cbaf46, type: 2}
+  m_Controller: {fileID: 9100000, guid: 9576a01085224064ba146777e9eb3b02, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 1
@@ -289,6 +289,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _maxColliderResults: 20
+  _playerTag: Player
+  _retryInterval: 0.5
+  _maxRetries: 20
   _enableDebugLogs: 1
 --- !u!1001 &309975090714692918
 PrefabInstance:

@@ -15,6 +15,13 @@ MonoBehaviour:
   _epicEffect: {fileID: 9035362272508978890, guid: 990a1737df451b74d8a9eeb223decfe0, type: 3}
   _type: 4
   _coolTime: 10
-  _attackEffect: {fileID: 1750316197029174885, guid: 5195430d130bdcb4b92bf5e3c03df83e, type: 3}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  _cachedFirePos: {fileID: 0}
+  _meleeAttackEffect: {fileID: 1750316197029174885, guid: 5195430d130bdcb4b92bf5e3c03df83e, type: 3}
+  _meleeRadius: 3
+  _rangedAttackEffect: {fileID: 5521891123049459137, guid: 67c019d8766483a4a991134874acb86f, type: 3}
+  _hammerPrefab: {fileID: 3883513162885183411, guid: b1b3bf9794ccd7c47b86ea91cb05dd33, type: 3}
   _hitEffect: {fileID: 7779998528018548008, guid: 3890842e34dfc99499e02c0f40450392, type: 3}
   _stunEffect: {fileID: 1484152931052635222, guid: 65ee146c92f03614da334ca8d28a848a, type: 3}

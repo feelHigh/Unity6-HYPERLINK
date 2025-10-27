@@ -9,3 +9,12 @@ public enum SpecialAttackType
     Wood,       //나무
     Metal       //금
 }
+
+/// <summary>
+/// 기본 공격 타입
+/// </summary>
+public enum BasicAttackType
+{
+    Melee,      //근거리
+    Ranged,     //원거리
+}
