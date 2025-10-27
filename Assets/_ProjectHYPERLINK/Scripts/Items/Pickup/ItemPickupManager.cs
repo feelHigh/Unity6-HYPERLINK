@@ -4,34 +4,34 @@ using System.Collections.Generic;
 /// <summary>
 /// 아이템 자동 줍기 시스템
 /// 
-/// 새로운 플로우:
+/// 플로우:
 /// 1. 플레이어 범위 내 아이템 감지
 /// 2. 인벤토리에 추가 시도
 /// 3. 성공 시 월드에서 제거
 /// 4. 실패 시 바닥에 유지 (인벤토리 가득 참)
-/// 
-/// 장착은 플레이어가 인벤토리 UI에서 수동으로 진행
 /// </summary>
 public class ItemPickupManager : MonoBehaviour
 {
     public static ItemPickupManager Instance { get; private set; }
 
     [Header("줍기 설정")]
-    [Tooltip("자동 줍기 범위 (미터)")]
     [SerializeField] private float _pickupRange = 2.0f;
-
-    [Tooltip("아이템 레이어 마스크")]
     [SerializeField] private LayerMask _itemLayer = ~0;
 
     [Header("최적화")]
     [SerializeField] private int _maxColliderResults = 20;
 
-    [Header("디버그")]
+    [Header("자동 검색 설정")]
+    [SerializeField] private string _playerTag = "Player";
+    [SerializeField] private float _retryInterval = 0.5f;
+    [SerializeField] private int _maxRetries = 20;
     [SerializeField] private bool _enableDebugLogs = true;
 
     private Transform _playerTransform;
     private Collider[] _colliderBuffer;
     private HashSet<Item> _itemsInWorld = new HashSet<Item>();
+    private bool _isInitialized = false;
+    private int _retryCount = 0;
 
     #region 초기화
 
@@ -49,43 +49,61 @@ public class ItemPickupManager : MonoBehaviour
 
     private void Start()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            _playerTransform = player.transform;
-            Log("플레이어 발견");
-        }
-        else
-        {
-            LogError("플레이어를 찾을 수 없습니다!");
-        }
-
-        ValidateLayerSetup();
+        InvokeRepeating(nameof(TryFindPlayer), 0.1f, _retryInterval);
     }
 
-    private void ValidateLayerSetup()
+    private void OnDestroy()
     {
-        if (_itemLayer == ~0)
+        CancelInvoke(nameof(TryFindPlayer));
+    }
+
+    /// <summary>
+    /// PlayerSpawner로 스폰된 플레이어 찾기
+    /// </summary>
+    private void TryFindPlayer()
+    {
+        if (_isInitialized) return;
+
+        _retryCount++;
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
+
+        if (playerObject != null)
         {
-            LogWarning(
-                "LayerMask가 'Everything'으로 설정됨!\n" +
-                "성능 향상을 위해 'Item' 레이어 사용 권장"
-            );
+            _playerTransform = playerObject.transform;
+            _isInitialized = true;
+            CancelInvoke(nameof(TryFindPlayer));
+
+            Log($"플레이어 찾음: {playerObject.name} (시도: {_retryCount}회)");
+            return;
+        }
+
+        if (_retryCount >= _maxRetries)
+        {
+            LogError($"플레이어를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
+            CancelInvoke(nameof(TryFindPlayer));
         }
     }
 
     #endregion
 
-    #region 아이템 등록/해제
+    #region 아이템 관리
 
+    /// <summary>
+    /// 아이템 등록 (Item.OnInitialize에서 호출)
+    /// </summary>
     public void RegisterItem(Item item)
     {
         if (item != null)
         {
             _itemsInWorld.Add(item);
+            Log($"아이템 등록: {item.ItemName}");
         }
     }
 
+    /// <summary>
+    /// 아이템 등록 해제 (Item.OnDestroy에서 호출)
+    /// </summary>
     public void UnregisterItem(Item item)
     {
         if (item != null)
@@ -96,28 +114,34 @@ public class ItemPickupManager : MonoBehaviour
 
     #endregion
 
-    #region 아이템 감지 및 픽업
+    #region 아이템 줍기
 
     private void Update()
     {
-        if (_playerTransform == null)
+        if (!_isInitialized || _playerTransform == null)
             return;
 
+        TryPickupNearbyItems();
+    }
+
+    /// <summary>
+    /// 범위 내 아이템 줍기 시도
+    /// </summary>
+    private void TryPickupNearbyItems()
+    {
         Item closestItem = FindClosestItemOptimized();
 
-        if (closestItem != null)
+        if (closestItem != null && Vector3.Distance(_playerTransform.position, closestItem.transform.position) <= _pickupRange)
         {
-            float distance = Vector3.Distance(_playerTransform.position, closestItem.transform.position);
-
-            if (distance <= _pickupRange)
+            if (PickupItem(closestItem))
             {
-                PickupItem(closestItem);
+                Log($"아이템 픽업 성공: {closestItem.ItemName}");
             }
         }
     }
 
     /// <summary>
-    /// 가장 가까운 아이템 찾기 (최적화)
+    /// 가장 가까운 아이템 찾기
     /// </summary>
     private Item FindClosestItemOptimized()
     {
@@ -153,54 +177,85 @@ public class ItemPickupManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 아이템 줍기 (리팩토링 버전)
+    /// 아이템 픽업 처리
     /// 
-    /// 새로운 플로우:
-    /// 1. 유효성 검사
-    /// 2. 인벤토리에 추가 시도
-    /// 3. 성공 시 월드에서 제거
-    /// 4. 실패 시 바닥에 유지
-    /// 
-    /// 자동 장착 제거됨!
+    /// 수정사항:
+    /// - Item.IsPickedUp 제거 (불필요)
+    /// - ItemInventory.LoadItemToSlot() 사용
+    /// - Item.MarkAsPickedUp() 대신 Destroy 사용
     /// </summary>
-    private void PickupItem(Item item)
+    private bool PickupItem(Item item)
     {
         if (item == null || item.ItemData == null)
-            return;
-
-        Log($"아이템 픽업 시도: {item.ItemName} ({item.Quality})");
-
-        // 아이템 OnPickup 호출 (로그 등)
-        item.OnPickup();
-
-        // 인벤토리에 추가 시도
-        if (ItemInventory.Instance != null)
         {
-            bool added = ItemInventory.Instance.GetItem(item.ItemData);
+            LogWarning("PickupItem: 아이템 또는 ItemData가 null입니다!");
+            return false;
+        }
 
-            if (added)
-            {
-                Log($"✓ 인벤토리 추가 성공: {item.ItemName}");
+        if (ItemInventory.Instance == null)
+        {
+            LogWarning("PickupItem: ItemInventory가 null입니다!");
+            return false;
+        }
 
-                // 월드에서 제거
-                UnregisterItem(item);
-                Destroy(item.gameObject);
-            }
-            else
-            {
-                LogWarning($"✗ 인벤토리 가득 참! 바닥에 유지: {item.ItemName}");
-                // 아이템을 바닥에 그대로 둠
-            }
+        // 인벤토리에 추가 시도 (빈 슬롯 자동 검색)
+        bool addedToInventory = TryAddToFirstAvailableSlot(item.ItemData);
+
+        if (addedToInventory)
+        {
+            // 아이템 픽업 이벤트 발생
+            item.OnPickup();
+
+            // 월드에서 제거
+            _itemsInWorld.Remove(item);
+            Destroy(item.gameObject);
+
+            Log($"아이템 픽업 완료: {item.ItemName}");
+            return true;
         }
         else
         {
-            LogError("ItemInventory 인스턴스를 찾을 수 없습니다!");
+            LogWarning($"인벤토리 공간 부족: {item.ItemName}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 첫 번째 사용 가능한 슬롯에 아이템 추가
+    /// ItemInventory.LoadItemToSlot() 사용
+    /// </summary>
+    private bool TryAddToFirstAvailableSlot(ItemData itemData)
+    {
+        // 인벤토리 크기 (10x4 = 40 슬롯)
+        int inventorySize = 40;
+
+        for (int slotIndex = 0; slotIndex < inventorySize; slotIndex++)
+        {
+            if (ItemInventory.Instance.LoadItemToSlot(itemData, slotIndex))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    #endregion
+
+    #region 디버그 기즈모
+
+    private void OnDrawGizmosSelected()
+    {
+        if (_playerTransform != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(_playerTransform.position, _pickupRange);
         }
     }
 
     #endregion
 
-    #region 디버그
+    #region 로깅
 
     private void Log(string message)
     {
@@ -221,40 +276,6 @@ public class ItemPickupManager : MonoBehaviour
     private void LogError(string message)
     {
         Debug.LogError($"[ItemPickupManager] {message}");
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (_playerTransform == null)
-            return;
-
-        // 픽업 범위 시각화
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(_playerTransform.position, _pickupRange);
-
-        if (!Application.isPlaying)
-            return;
-
-        // 가장 가까운 아이템 표시
-        Item closest = FindClosestItemOptimized();
-        if (closest != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(_playerTransform.position, closest.transform.position);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(closest.transform.position, 0.2f);
-        }
-    }
-
-    [ContextMenu("Debug: Print Pickup Status")]
-    private void DebugPrintStatus()
-    {
-        Debug.Log("===== ItemPickupManager 상태 =====");
-        Debug.Log($"플레이어: {(_playerTransform != null ? _playerTransform.name : "없음")}");
-        Debug.Log($"줍기 범위: {_pickupRange}m");
-        Debug.Log($"월드 아이템: {_itemsInWorld.Count}개");
-        Debug.Log($"ItemInventory: {(ItemInventory.Instance != null ? "연결됨" : "없음")}");
     }
 
     #endregion

@@ -2,17 +2,21 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 플레이어 스폰 / 텔레포트 시스템 (리팩토링)
+/// 플레이어 스폰 / 텔레포트 시스템
 /// 
 /// 변경사항:
-/// - 단일 프리팹 → 직업별 프리팹 배열로 변경
-/// - GameSessionManager에서 선택된 직업 정보 읽기
-/// - 직업에 맞는 프리팹 자동 선택
+/// - 기존 기능 유지
+/// - PlayerInitializationManager와 통합 가능하도록 준비
+/// - GetPlayer() 메서드를 통해 스폰 상태 확인 가능
 /// 
 /// 기능:
 /// - 지정한 위치에 직업별 플레이어 스폰
 /// - 위치 간의 텔레포트 관리
 /// - 싱글톤 구조
+/// 
+/// 참고:
+/// - PlayerInitializationManager가 이 클래스의 GetPlayer()를 폴링하여 스폰 완료 감지
+/// - Start()에서 자동 스폰하므로 변경 없음
 /// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
@@ -31,6 +35,9 @@ public class PlayerSpawner : MonoBehaviour
 
     [Header("Teleport Points")]
     [SerializeField] private TeleportPoint[] _teleportPoints;
+
+    [Header("디버그")]
+    [SerializeField] private bool _enableDebugLogs = true;
 
     private GameObject _currentPlayer;
 
@@ -58,7 +65,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (_defaultSpawnPoint == null)
         {
-            Debug.LogError("Default spawn point not set!");
+            LogError("Default spawn point not set!");
             return;
         }
 
@@ -82,14 +89,14 @@ public class PlayerSpawner : MonoBehaviour
 
         if (prefabToSpawn == null)
         {
-            Debug.LogError("선택된 직업에 해당하는 프리팹을 찾을 수 없습니다!");
+            LogError("선택된 직업에 해당하는 프리팹을 찾을 수 없습니다!");
             return;
         }
 
         // 플레이어 인스턴스화
         _currentPlayer = Instantiate(prefabToSpawn, position, rotation);
 
-        Debug.Log($"Player spawned at {position} - Prefab: {prefabToSpawn.name}");
+        Log($"Player spawned at {position} - Prefab: {prefabToSpawn.name}");
     }
 
     /// <summary>
@@ -100,7 +107,7 @@ public class PlayerSpawner : MonoBehaviour
         // GameSessionManager가 없으면 기본값 (Laon)
         if (GameSessionManager.Instance == null)
         {
-            Debug.LogWarning("GameSessionManager가 없습니다. Laon 프리팹 사용");
+            LogWarning("GameSessionManager가 없습니다. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
@@ -108,7 +115,7 @@ public class PlayerSpawner : MonoBehaviour
         CharacterSaveData characterData = GameSessionManager.Instance.CurrentCharacterData;
         if (characterData == null)
         {
-            Debug.LogWarning("캐릭터 데이터가 없습니다. Laon 프리팹 사용");
+            LogWarning("캐릭터 데이터가 없습니다. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
@@ -118,7 +125,7 @@ public class PlayerSpawner : MonoBehaviour
 
         if (!System.Enum.TryParse(classString, out characterClass))
         {
-            Debug.LogError($"알 수 없는 직업: {classString}. Laon 프리팹 사용");
+            LogError($"알 수 없는 직업: {classString}. Laon 프리팹 사용");
             return _warriorPrefab;
         }
 
@@ -127,21 +134,21 @@ public class PlayerSpawner : MonoBehaviour
         {
             case CharacterClass.Laon:
                 if (_warriorPrefab == null)
-                    Debug.LogError("Laon 프리팹이 할당되지 않았습니다!");
+                    LogError("Laon 프리팹이 할당되지 않았습니다!");
                 return _warriorPrefab;
 
             case CharacterClass.Sian:
                 if (_magePrefab == null)
-                    Debug.LogError("Sian 프리팹이 할당되지 않았습니다!");
+                    LogError("Sian 프리팹이 할당되지 않았습니다!");
                 return _magePrefab;
 
             case CharacterClass.Yujin:
                 if (_archerPrefab == null)
-                    Debug.LogError("Yujin 프리팹이 할당되지 않았습니다!");
+                    LogError("Yujin 프리팹이 할당되지 않았습니다!");
                 return _archerPrefab;
 
             default:
-                Debug.LogWarning($"처리되지 않은 직업: {characterClass}. Laon 프리팹 사용");
+                LogWarning($"처리되지 않은 직업: {characterClass}. Laon 프리팹 사용");
                 return _warriorPrefab;
         }
     }
@@ -151,7 +158,7 @@ public class PlayerSpawner : MonoBehaviour
     /// </summary>
     public void TeleportToLocation(string locationName)
     {
-        TeleportPoint point = System.Array.Find(_teleportPoints,
+        TeleportPoint point = Array.Find(_teleportPoints,
             tp => tp.LocationName == locationName);
 
         if (point != null && _currentPlayer != null)
@@ -159,22 +166,29 @@ public class PlayerSpawner : MonoBehaviour
             _currentPlayer.transform.position = point.Position;
             _currentPlayer.transform.rotation = point.Rotation;
 
-            Debug.Log($"Teleported to {locationName}");
+            Log($"Teleported to {locationName}");
+
+            // 텔레포트 후 위치 저장
+            SavePlayerPosition();
         }
         else
         {
-            Debug.LogWarning($"Teleport location '{locationName}' not found!");
+            LogWarning($"Teleport location '{locationName}' not found!");
         }
     }
 
     /// <summary>
     /// 현재 플레이어 인스턴스 가져오기
+    /// PlayerInitializationManager가 이 메서드로 스폰 상태 확인
     /// </summary>
     public GameObject GetPlayer()
     {
         return _currentPlayer;
     }
 
+    /// <summary>
+    /// 플레이어 위치 저장
+    /// </summary>
     public void SavePlayerPosition()
     {
         if (_currentPlayer != null)
@@ -182,9 +196,15 @@ public class PlayerSpawner : MonoBehaviour
             PlayerPrefs.SetFloat("LastPosX", _currentPlayer.transform.position.x);
             PlayerPrefs.SetFloat("LastPosY", _currentPlayer.transform.position.y);
             PlayerPrefs.SetFloat("LastPosZ", _currentPlayer.transform.position.z);
+            PlayerPrefs.Save();
+
+            Log("플레이어 위치 저장 완료");
         }
     }
 
+    /// <summary>
+    /// 마지막 저장 위치에 플레이어 스폰
+    /// </summary>
     public void SpawnAtLastPosition()
     {
         Vector3 lastPos = new Vector3(
@@ -192,8 +212,35 @@ public class PlayerSpawner : MonoBehaviour
             PlayerPrefs.GetFloat("LastPosY", 0),
             PlayerPrefs.GetFloat("LastPosZ", 0)
         );
+
+        Log($"마지막 저장 위치에 스폰: {lastPos}");
         SpawnPlayer(lastPos, Quaternion.identity);
     }
+
+    #region 로깅
+
+    private void Log(string message)
+    {
+        if (_enableDebugLogs)
+        {
+            Debug.Log($"[PlayerSpawner] {message}");
+        }
+    }
+
+    private void LogWarning(string message)
+    {
+        if (_enableDebugLogs)
+        {
+            Debug.LogWarning($"[PlayerSpawner] {message}");
+        }
+    }
+
+    private void LogError(string message)
+    {
+        Debug.LogError($"[PlayerSpawner] {message}");
+    }
+
+    #endregion
 }
 
 /// <summary>
