@@ -10,7 +10,7 @@ using TMPro;
 /// - 쿨다운 시각화 (Fill Amount + 텍스트)
 /// - 마나 부족 시각적 피드백 (빨간색)
 /// - 잠금/언락 상태 표시
-/// - 키 바인드 표시 (신규)
+/// - 키 바인드 표시
 /// 
 /// UI 구성:
 /// - Skill Icon: 스킬 아이콘 이미지
@@ -21,8 +21,8 @@ using TMPro;
 /// - Locked Overlay: 잠금 상태 표시
 /// 
 /// 최근 변경사항:
-/// - 키 바인드 표시 기능 추가
-/// - SkillActivationSystem과 연동
+/// - UpdateCooldown(float, float) public 메서드 추가 (외부 쿨다운 동기화)
+/// - 쿨다운 관리 방식 통합 (SkillActivationSystem과 연동)
 /// </summary>
 public class SkillSlotUI : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class SkillSlotUI : MonoBehaviour
     [SerializeField] private Image _cooldownOverlay;           // 쿨다운 오버레이 (Fill Amount)
     [SerializeField] private TextMeshProUGUI _cooldownText;    // 쿨다운 남은 시간
     [SerializeField] private TextMeshProUGUI _manaCostText;    // 마나 소비량
-    [SerializeField] private TextMeshProUGUI _keyBindText;     // 키 바인드 표시 (신규)
+    [SerializeField] private TextMeshProUGUI _keyBindText;     // 키 바인드 표시
     [SerializeField] private Image _lockedOverlay;             // 잠금 상태 오버레이
 
     #endregion
@@ -64,12 +64,6 @@ public class SkillSlotUI : MonoBehaviour
     public SkillData SkillData => _skillData;
     public bool IsOnCooldown => _currentCooldown > 0f;
     public bool IsLocked => _isLocked;
-    
-    private void Update()
-    {
-        // 매 프레임 쿨다운 업데이트
-        UpdateCooldown();
-    }
 
     /// <summary>
     /// 스킬 슬롯 초기화
@@ -80,7 +74,7 @@ public class SkillSlotUI : MonoBehaviour
     /// 1. SkillData 할당
     /// 2. 스킬 아이콘 설정
     /// 3. 마나 소비량 텍스트 설정
-    /// 4. 키 바인드 텍스트 설정 (신규)
+    /// 4. 키 바인드 텍스트 설정
     /// 5. 초기 상태 UI 업데이트
     /// </summary>
     public void Initialize(SkillData skillData, int slotIndex)
@@ -102,7 +96,7 @@ public class SkillSlotUI : MonoBehaviour
                 _manaCostText.text = _skillData.ManaCost.ToString("F0");
             }
 
-            // 키 바인드 표시 (신규)
+            // 키 바인드 표시
             UpdateKeyBindDisplay();
         }
 
@@ -111,7 +105,7 @@ public class SkillSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 키 바인드 표시 업데이트 (신규)
+    /// 키 바인드 표시 업데이트
     /// 
     /// SkillActivationSystem에서 할당된 키를 가져와 표시
     /// </summary>
@@ -151,65 +145,25 @@ public class SkillSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 쿨다운 시작
+    /// 쿨다운 업데이트 (외부 호출용)
     /// 
-    /// SkillActivationSystem.StartCooldown()에서 호출
-    /// </summary>
-    public void StartCooldown()
-    {
-        if (_skillData != null)
-        {
-            _currentCooldown = _skillData.Cooldown;
-        }
-    }
-
-    /// <summary>
-    /// 쿨다운 업데이트 (매 프레임)
+    /// SkillActivationSystem.UpdateCooldownUI()에서 호출
     /// 
-    /// 처리:
-    /// - 쿨다운 시간 감소
-    /// - Fill Amount 업데이트
-    /// - 쿨다운 텍스트 업데이트
+    /// 매개변수:
+    /// - remainingTime: 남은 쿨다운 시간
+    /// - maxCooldown: 최대 쿨다운 시간
     /// </summary>
-    private void UpdateCooldown()
+    public void UpdateCooldown(float remainingTime, float maxCooldown)
     {
-        if (_currentCooldown > 0f)
+        _currentCooldown = remainingTime;
+
+        if (maxCooldown <= 0f)
         {
-            _currentCooldown -= Time.deltaTime;
-
-            if (_currentCooldown < 0f)
-            {
-                _currentCooldown = 0f;
-            }
-
-            // 쿨다운 UI 업데이트
-            UpdateCooldownDisplay();
+            Debug.LogWarning($"[SkillSlotUI] 최대 쿨다운이 0 이하입니다: {maxCooldown}");
+            maxCooldown = 1f; // 0 나누기 방지
         }
-        else if (_cooldownOverlay != null && _cooldownOverlay.fillAmount > 0f)
-        {
-            // 쿨다운 종료 시 오버레이 제거
-            _cooldownOverlay.fillAmount = 0f;
-            if (_cooldownText != null)
-            {
-                _cooldownText.text = "";
-            }
-            RefreshIconColor();
-        }
-    }
 
-    /// <summary>
-    /// 쿨다운 시각 업데이트
-    /// 
-    /// Fill Amount:
-    /// - 1.0 = 쿨다운 시작 (완전히 가려짐)
-    /// - 0.0 = 쿨다운 종료 (완전히 보임)
-    /// </summary>
-    private void UpdateCooldownDisplay()
-    {
-        if (_skillData == null)
-            return;
-
-        float cooldownPercent = _currentCooldown / _skillData.Cooldown;
+        float cooldownPercent = Mathf.Clamp01(_currentCooldown / maxCooldown);
 
         // Fill Amount 업데이트
         if (_cooldownOverlay != null)
@@ -224,11 +178,18 @@ public class SkillSlotUI : MonoBehaviour
             {
                 _cooldownText.text = Mathf.Ceil(_currentCooldown).ToString("F0");
             }
+            else if (_currentCooldown > 0f)
+            {
+                _cooldownText.text = _currentCooldown.ToString("F1");
+            }
             else
             {
                 _cooldownText.text = "";
             }
         }
+
+        // 아이콘 색상 업데이트
+        RefreshIconColor();
     }
 
     /// <summary>
