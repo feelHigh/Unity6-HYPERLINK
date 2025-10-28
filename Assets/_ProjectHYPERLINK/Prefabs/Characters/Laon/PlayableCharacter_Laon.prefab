@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8015958755211429487}
   - component: {fileID: 3046726209654251968}
   - component: {fileID: 1803515443096613692}
+  - component: {fileID: 1080784757948748187}
   - component: {fileID: 1492089533889283871}
   - component: {fileID: 3735128981493473489}
   - component: {fileID: 6274837084202361495}
@@ -112,6 +113,18 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 0
+--- !u!114 &1080784757948748187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6055df2973403d8419c9ca37f66d8d25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1492089533889283871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,6 +146,7 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 2048
+  _knockbackDuration: 0.3
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -171,6 +185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
+  _stateController: {fileID: 0}
   _skillSlots: []
   _skill1Key: 113
   _skill2Key: 119
@@ -252,6 +267,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
+  _stateController: {fileID: 0}
+  _navController: {fileID: 0}
 --- !u!114 &341333240480795390
 MonoBehaviour:
   m_ObjectHideFlags: 0
