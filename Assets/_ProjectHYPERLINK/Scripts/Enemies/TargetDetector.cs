@@ -72,14 +72,14 @@ public class TargetDetector : MonoBehaviour
         //플레이어와 충돌했을 때
         if (other.CompareTag("Player"))
         {
-            PlayerCharacter player = other.GetComponent<PlayerCharacter>();
+            PlayerCombat player = other.GetComponent<PlayerCombat>();
 
             if (player != null)
             {
                 //특수 공격 데이터가 있으면 특수 공격
                 if (_specialAttack != null)
                 {
-                    //player.ApplySpecialEffect(_specialAttack);
+                    player.ApplySpecialEffect(_specialAttack);
 
                     Debug.Log("[TergetDetector] 특수 공격!");
                 }
