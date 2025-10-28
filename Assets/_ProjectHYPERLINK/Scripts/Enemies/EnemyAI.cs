@@ -300,6 +300,7 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     void PerformSpecialAttack()
     {
+        _lastAttackTime = Time.time;
         _lastSpecialAttackTime = Time.time;
 
         StartCoroutine(AttackRoutine());
@@ -349,6 +350,7 @@ public class EnemyAI : MonoBehaviour
     }
 
     /// <summary>
+    /// 애니메이션 이벤트에서 호출할
     /// 원거리 일반 공격 실행 함수
     /// </summary>
     public void PerformRangedAttack()
@@ -359,7 +361,7 @@ public class EnemyAI : MonoBehaviour
         Vector3 spawnPos = _projectileFirePos != null ? _projectileFirePos.position :
             transform.position + Vector3.up * _heightOffset;
 
-        //타격 지점
+        //목표 지점
         Vector3 targetPos = _target.position + Vector3.up * _heightOffset;
 
         //방향 구하기
