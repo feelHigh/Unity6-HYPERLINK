@@ -113,7 +113,7 @@ public class TargetDetector : MonoBehaviour
             if (GetComponent<EnemyProjectile>() != null)
             {
                 Destroy(gameObject);
-                Debug.Log(other.gameObject.name);
+                Debug.Log(other.gameObject.name + other.gameObject.transform);
             }
         }
     }

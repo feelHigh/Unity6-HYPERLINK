@@ -17,7 +17,7 @@ MonoBehaviour:
   _coolTime: 10
   _playerLayerMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 1024
   _cachedFirePos: {fileID: 0}
   _meleeAttackEffect: {fileID: 1329003909241738500, guid: 46ebdf6ac37d86b479684d0e806ee606, type: 3}
   _meleeRadius: 3
