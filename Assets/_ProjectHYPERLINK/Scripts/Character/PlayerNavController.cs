@@ -11,9 +11,11 @@ using DG.Tweening;
 /// 우클릭: 회전 & 전방 원뿔 범위 공격
 /// 
 /// 최근 변경사항:
-/// - 피격/사망 애니메이션 지원
-/// - 스킬 실행 중 이동 제한
-/// - PlayerCharacter 이벤트 구독
+/// - PlayerStateController 연동 추가
+/// - 상태이상 체크 (이동/공격 제어)
+/// - ForceStop() 메소드 추가 (빙결/속박)
+/// - ApplyKnockback() 메소드 추가 (넉백)
+/// - 이동속도 배율 적용
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -27,6 +29,7 @@ public class PlayerNavController : MonoBehaviour
     private Animator _animator;
     private Camera _mainCamera;
     private PlayerCharacter _playerCharacter;
+    private PlayerStateController _stateController;
 
     private bool _isAttacking = false;
     private bool _isPerformingSkill = false;
@@ -37,6 +40,9 @@ public class PlayerNavController : MonoBehaviour
     // 상호작용 시스템
     private IInteractable _pendingInteraction;
     private Coroutine _interactionCoroutine;
+
+    // 기본 이동속도 저장
+    private float _baseSpeed;
 
     [Header("애니메이션 설정")]
     [SerializeField] private float _animationDampTime = 0.1f;
@@ -53,6 +59,9 @@ public class PlayerNavController : MonoBehaviour
     [SerializeField] private float _attackCooldown = 1.5f;
     [SerializeField] private LayerMask _enemyLayer = 1;
 
+    [Header("넉백 설정")]
+    [SerializeField] private float _knockbackDuration = 0.3f;
+
     [Header("레이어 설정")]
     [SerializeField] private LayerMask _groundLayer = ~0;
 
@@ -64,6 +73,15 @@ public class PlayerNavController : MonoBehaviour
         _animator = GetComponent<Animator>();
         _mainCamera = Camera.main;
         _playerCharacter = GetComponent<PlayerCharacter>();
+        _stateController = GetComponent<PlayerStateController>();
+
+        if (_stateController == null)
+        {
+            Debug.LogError("[PlayerNavController] PlayerStateController가 없습니다!");
+        }
+
+        // 기본 이동속도 저장
+        _baseSpeed = _agent.speed;
     }
 
     private void Start()
@@ -93,8 +111,6 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 플레이어 사망 시 처리
-    /// - 모든 이동/공격 정지
-    /// - NavMeshAgent 비활성화
     /// </summary>
     private void HandlePlayerDead()
     {
@@ -120,8 +136,6 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 스킬 실행 시 처리
-    /// - 스킬 실행 중 플래그 설정
-    /// - NavMeshAgent는 SkillAnimationController에서 제어
     /// </summary>
     private void HandleSkillExecuted(SkillData skill)
     {
@@ -137,7 +151,7 @@ public class PlayerNavController : MonoBehaviour
             _pendingInteraction = null;
         }
 
-        // 스킬 애니메이션이 끝날 때까지 대기 (대략적인 시간)
+        // 스킬 애니메이션이 끝날 때까지 대기
         StartCoroutine(ResetSkillFlag(1.5f));
     }
 
@@ -154,8 +168,10 @@ public class PlayerNavController : MonoBehaviour
 
     private void Update()
     {
-        // 사망 시 모든 입력 무시
         if (_isDead) return;
+
+        // 이동속도 배율 적용
+        UpdateMovementSpeed();
 
         HandleMouseInput();
         UpdateAnimator();
@@ -170,13 +186,25 @@ public class PlayerNavController : MonoBehaviour
 
     private void HandleMouseInput()
     {
-        // 스킬 실행 중에는 입력 무시
+        // 스킬 실행 중이거나 이동 불가 상태면 입력 무시
         if (_isPerformingSkill) return;
+
+        // 이동 불가 상태 체크 (빙결, 속박, 넉다운)
+        if (_stateController != null && !_stateController.CanMove)
+        {
+            return;
+        }
 
         // 좌클릭: 이동 & 상호작용
         if (Input.GetMouseButtonDown(0))
         {
             HandleLeftClick();
+        }
+
+        // ✅ 공격 불가 상태 체크
+        if (_stateController != null && !_stateController.CanAttack)
+        {
+            return;
         }
 
         // 우클릭: 회전 & 공격
@@ -185,7 +213,7 @@ public class PlayerNavController : MonoBehaviour
             HandleRightClick();
         }
     }
-    
+
     /// <summary>
     /// 좌클릭 처리: IInteractable 우선, 없으면 이동
     /// </summary>
@@ -244,7 +272,7 @@ public class PlayerNavController : MonoBehaviour
         {
             // 클릭 위치 바라보기
             Vector3 lookDirection = hit.point - transform.position;
-            lookDirection.y = 0; // y축 회전만
+            lookDirection.y = 0;
 
             if (lookDirection != Vector3.zero)
             {
@@ -256,12 +284,10 @@ public class PlayerNavController : MonoBehaviour
 
             if (enemiesInFront.Count > 0)
             {
-                // 범위 내 모든 적 공격
                 PerformMultiAttack(enemiesInFront);
             }
             else
             {
-                // 적 없으면 헛스윙
                 PerformAttack(null);
             }
         }
@@ -269,29 +295,20 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 전방 원뿔 범위 내 적 탐색
-    /// 
-    /// 작동 방식:
-    /// 1. OverlapSphere로 범위 내 모든 적 찾기
-    /// 2. Vector3.Angle로 플레이어 전방과의 각도 계산
-    /// 3. 각도가 _attackAngle/2 이하인 적만 반환
     /// </summary>
     private List<Transform> GetEnemiesInFrontCone()
     {
         List<Transform> validEnemies = new List<Transform>();
 
-        // 범위 내 모든 적 찾기
         Collider[] enemies = Physics.OverlapSphere(transform.position, _attackRange, _enemyLayer);
 
         foreach (Collider enemy in enemies)
         {
-            // 적 방향 벡터 계산 (수평만)
             Vector3 directionToEnemy = enemy.transform.position - transform.position;
             directionToEnemy.y = 0;
 
-            // 전방과의 각도 계산
             float angleToEnemy = Vector3.Angle(transform.forward, directionToEnemy);
 
-            // 원뿔 범위 내에 있는지 체크
             if (angleToEnemy <= _attackAngle / 2f)
             {
                 validEnemies.Add(enemy.transform);
@@ -303,15 +320,15 @@ public class PlayerNavController : MonoBehaviour
 
     #endregion
 
-    #region 상호작용 시스템
+    #region 상호작용
 
     /// <summary>
-    /// 목표까지 이동 후 상호작용 실행
+    /// 목표 지점으로 이동 후 상호작용
     /// </summary>
     private IEnumerator MoveAndInteract(GameObject target, IInteractable interactable)
     {
         _pendingInteraction = interactable;
-        float interactionRange = interactable.GetInteractionRange();
+        float interactionRange = 1.5f;
 
         // 목표 범위 도달까지 대기
         while (Vector3.Distance(transform.position, target.transform.position) > interactionRange)
@@ -344,6 +361,13 @@ public class PlayerNavController : MonoBehaviour
     {
         if (_isAttacking || _isOnCooldown || _isDead) return;
 
+        // 공격 불가 상태 체크
+        if (_stateController != null && !_stateController.CanAttack)
+        {
+            Debug.Log("[공격] 공격 불가 상태");
+            return;
+        }
+
         StartCoroutine(AttackSequence(target));
     }
 
@@ -353,6 +377,13 @@ public class PlayerNavController : MonoBehaviour
     private void PerformMultiAttack(List<Transform> targets)
     {
         if (_isAttacking || _isOnCooldown || _isDead) return;
+
+        // 공격 불가 상태 체크
+        if (_stateController != null && !_stateController.CanAttack)
+        {
+            Debug.Log("[공격] 공격 불가 상태");
+            return;
+        }
 
         StartCoroutine(MultiAttackSequence(targets));
     }
@@ -368,7 +399,6 @@ public class PlayerNavController : MonoBehaviour
         _agent.isStopped = true;
         _animator.SetTrigger(ATTACK_HASH);
 
-        // 데미지 타이밍까지 대기
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
         // 데미지 적용
@@ -382,18 +412,15 @@ public class PlayerNavController : MonoBehaviour
             }
         }
 
-        // 애니메이션 종료 대기
         yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
 
         _isAttacking = false;
 
-        // ⭐ 사망 시 NavMeshAgent 재활성화하지 않음
         if (!_isDead)
         {
             _agent.isStopped = false;
         }
 
-        // 쿨다운 대기
         yield return new WaitForSeconds(_attackCooldown - _attackAnimationDuration);
 
         _isOnCooldown = false;
@@ -401,12 +428,6 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 다중 공격 시퀀스
-    /// 
-    /// 타이밍:
-    /// 0.0s: 애니메이션 시작
-    /// 0.5s: 모든 적에게 데미지 적용
-    /// 1.0s: 애니메이션 종료, 이동 가능
-    /// 1.5s: 쿨다운 종료, 재공격 가능
     /// </summary>
     private IEnumerator MultiAttackSequence(List<Transform> targets)
     {
@@ -446,7 +467,6 @@ public class PlayerNavController : MonoBehaviour
 
         _isAttacking = false;
 
-        // 사망 시 NavMeshAgent 재활성화하지 않음
         if (!_isDead)
         {
             _agent.isStopped = false;
@@ -458,9 +478,7 @@ public class PlayerNavController : MonoBehaviour
     }
 
     /// <summary>
-    /// 데미지 계산
-    /// 
-    /// 공식: 기본 데미지 × (1 + 주요스탯/100) × 크리티컬 배율
+    /// 데미지 계산 (방어력 약화 적용)
     /// </summary>
     private float CalculateDamage()
     {
@@ -476,16 +494,30 @@ public class PlayerNavController : MonoBehaviour
             Debug.Log("크리티컬 히트!");
         }
 
+        // 방어력 약화 상태 체크
+        if (_stateController != null && _stateController.IsWeakened)
+        {
+            float defenseMultiplier = _stateController.GetDefenseMultiplier();
+            // TODO: 적의 방어력 계산에 적용 (현재는 플레이어 데미지만 계산)
+            Debug.Log($"[약화] 방어력 배율: {defenseMultiplier:P0}");
+        }
+
         return damage;
     }
 
     /// <summary>
-    /// 타겟 추적 (적 클릭 시)
+    /// 타겟 추적
     /// </summary>
     private void FollowTarget()
     {
         if (_currentTarget == null || _isDead)
             return;
+
+        // 이동 불가 상태 체크
+        if (_stateController != null && !_stateController.CanMove)
+        {
+            return;
+        }
 
         float distance = Vector3.Distance(transform.position, _currentTarget.position);
 
@@ -495,13 +527,92 @@ public class PlayerNavController : MonoBehaviour
         }
         else if (distance <= _attackRange && !_isAttacking && !_isOnCooldown)
         {
-            // 범위 내 도달 시 전방 원뿔 공격
             List<Transform> enemies = GetEnemiesInFrontCone();
             if (enemies.Count > 0)
             {
                 PerformMultiAttack(enemies);
             }
         }
+    }
+
+    #endregion
+
+    #region 상태이상 효과
+
+    /// <summary>
+    /// 강제 정지 (빙결/속박 시 호출)
+    /// </summary>
+    public void ForceStop()
+    {
+        if (_agent != null && _agent.enabled)
+        {
+            _agent.isStopped = true;
+            _agent.ResetPath();
+        }
+
+        _currentTarget = null;
+
+        if (_interactionCoroutine != null)
+        {
+            StopCoroutine(_interactionCoroutine);
+            _interactionCoroutine = null;
+            _pendingInteraction = null;
+        }
+
+        Debug.Log("[PlayerNavController] 강제 정지");
+    }
+
+    /// <summary>
+    /// 넉백 적용
+    /// </summary>
+    public void ApplyKnockback(float knockbackPower)
+    {
+        if (_isDead || _agent == null) return;
+
+        StartCoroutine(KnockbackCoroutine(knockbackPower));
+    }
+
+    /// <summary>
+    /// 넉백 코루틴
+    /// </summary>
+    private IEnumerator KnockbackCoroutine(float power)
+    {
+        // NavMeshAgent 일시 정지
+        bool wasEnabled = _agent.enabled;
+        if (wasEnabled)
+        {
+            _agent.enabled = false;
+        }
+
+        // 뒤로 밀려나는 방향 계산
+        Vector3 knockbackDirection = -transform.forward;
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = startPosition + (knockbackDirection * power);
+
+        // DOTween으로 부드러운 넉백
+        transform.DOMove(targetPosition, _knockbackDuration)
+            .SetEase(Ease.OutQuad);
+
+        yield return new WaitForSeconds(_knockbackDuration);
+
+        // NavMeshAgent 재활성화
+        if (wasEnabled && !_isDead)
+        {
+            _agent.enabled = true;
+        }
+
+        Debug.Log($"[넉백] {power}m 밀려남");
+    }
+
+    /// <summary>
+    /// 이동속도 배율 적용
+    /// </summary>
+    private void UpdateMovementSpeed()
+    {
+        if (_agent == null || _stateController == null) return;
+
+        float speedMultiplier = _stateController.GetMovementSpeedMultiplier();
+        _agent.speed = _baseSpeed * speedMultiplier;
     }
 
     #endregion
@@ -518,43 +629,31 @@ public class PlayerNavController : MonoBehaviour
 
     #region 디버그 시각화
 
-    /// <summary>
-    /// 씬 뷰에서 공격 범위 시각화
-    /// 
-    /// 표시 내용:
-    /// - 빨간 원: 공격 범위
-    /// - 노란 원뿔: 공격 각도
-    /// - 빨간 선/구체: 공격 가능한 적
-    /// </summary>
     private void OnDrawGizmosSelected()
     {
         if (!Application.isPlaying) return;
 
         Vector3 position = transform.position;
 
-        // 1. 공격 범위 구체 (외곽선)
+        // 공격 범위 구체
         Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
         Gizmos.DrawWireSphere(position, _attackRange);
 
-        // 2. 공격 원뿔 그리기
+        // 공격 원뿔
         DrawAttackCone(position);
 
-        // 3. 범위 내 적 강조
+        // 범위 내 적
         DrawEnemiesInCone();
     }
 
-    /// <summary>
-    /// 공격 원뿔 시각화
-    /// </summary>
     private void DrawAttackCone(Vector3 position)
     {
         Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
 
         Vector3 forward = transform.forward * _attackRange;
-        int segments = 20; // 원뿔 부드러움
+        int segments = 20;
         float angleStep = _attackAngle / segments;
 
-        // 원뿔 외곽선 그리기
         Vector3 prevPoint = position + Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
 
         for (int i = 0; i <= segments; i++)
@@ -563,10 +662,8 @@ public class PlayerNavController : MonoBehaviour
             Vector3 direction = Quaternion.Euler(0, angle, 0) * forward;
             Vector3 point = position + direction;
 
-            // 원뿔 가장자리 연결
             Gizmos.DrawLine(prevPoint, point);
 
-            // 중심에서 가장자리로 선 (5개마다)
             if (i % 5 == 0)
             {
                 Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
@@ -577,7 +674,7 @@ public class PlayerNavController : MonoBehaviour
             prevPoint = point;
         }
 
-        // 원뿔 경계선 강조
+        // 원뿔 경계선
         Gizmos.color = Color.yellow;
         Vector3 leftBound = Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
         Vector3 rightBound = Quaternion.Euler(0, _attackAngle / 2f, 0) * forward;
@@ -585,9 +682,6 @@ public class PlayerNavController : MonoBehaviour
         Gizmos.DrawLine(position, position + rightBound);
     }
 
-    /// <summary>
-    /// 공격 가능한 적 강조 표시
-    /// </summary>
     private void DrawEnemiesInCone()
     {
         List<Transform> enemiesInCone = GetEnemiesInFrontCone();
@@ -596,11 +690,9 @@ public class PlayerNavController : MonoBehaviour
         {
             if (enemy == null) continue;
 
-            // 플레이어에서 적으로 선
             Gizmos.color = Color.red;
             Gizmos.DrawLine(transform.position, enemy.position);
 
-            // 적 위치에 구체
             Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
             Gizmos.DrawSphere(enemy.position, 0.5f);
         }

@@ -36,7 +36,7 @@ MonoBehaviour:
   _animationDuration: 1
   _useRootMotion: 0
   _dashDistanceMode: 0
-  _dashDistance: 5
+  _dashDistance: 2
   _minDashDistance: 2
   _maxDashDistance: 8
   _dashDuration: 0.3
