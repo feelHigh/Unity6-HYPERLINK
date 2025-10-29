@@ -2,27 +2,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
 
 /// <summary>
-/// 캐릭터 선택/생성 화면 컨트롤러
+/// 캐릭터 선택 및 생성 화면 컨트롤러
 /// 
-/// 기능:
-/// - 기존 캐릭터 표시 및 계속하기
-/// - 새 캐릭터 생성 (직업 선택)
-/// - 캐릭터 삭제
-/// - Cloud Save 통합
+/// 변경사항:
+/// - CharacterStats SO 참조 3개 추가 (각 직업별)
+/// - OnCreateCharacterClicked() 수정 - baseStats 전달
+/// - GetBaseStatsForClass() 헬퍼 메서드 추가
 /// </summary>
 public class CharacterSelectionController : MonoBehaviour
 {
-    [Header("패널")]
+    [Header("UI 패널")]
     [SerializeField] private GameObject _existingCharacterPanel;
     [SerializeField] private GameObject _classSelectionPanel;
-    [SerializeField] private GameObject _loadingPanel;
-    [SerializeField] private GameObject _errorPanel;
 
-    [Header("기존 캐릭터 UI")]
+    [Header("기존 캐릭터 정보")]
     [SerializeField] private TextMeshProUGUI _characterNameText;
     [SerializeField] private TextMeshProUGUI _classText;
     [SerializeField] private TextMeshProUGUI _levelText;
@@ -32,22 +29,34 @@ public class CharacterSelectionController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _vitalityText;
     [SerializeField] private TextMeshProUGUI _playTimeText;
     [SerializeField] private TextMeshProUGUI _lastPlayedText;
+
+    [Header("버튼")]
     [SerializeField] private Button _continueButton;
     [SerializeField] private Button _deleteButton;
-
-    [Header("직업 선택 UI")]
     [SerializeField] private Button _laonButton;
     [SerializeField] private Button _sianButton;
     [SerializeField] private Button _yujinButton;
-    [SerializeField] private TMP_InputField _characterNameInput;
     [SerializeField] private Button _createCharacterButton;
 
-    [Header("피드백 UI")]
+    [Header("캐릭터 생성")]
+    [SerializeField] private TMP_InputField _characterNameInput;
+
+    [Header("로딩 UI")]
+    [SerializeField] private GameObject _loadingPanel;
     [SerializeField] private TextMeshProUGUI _loadingText;
+
+    [Header("에러 UI")]
+    [SerializeField] private GameObject _errorPanel;
     [SerializeField] private TextMeshProUGUI _errorText;
+    [SerializeField] private Button _errorOkButton;
 
     [Header("씬 설정")]
     [SerializeField] private string _gameScene = "TutorialTestScene";
+
+    [Header("캐릭터 기본 스탯 (Unity 에디터 설정)")]
+    [SerializeField] private CharacterStats _laonBaseStats;   // Laon(Warrior) 기본 스탯
+    [SerializeField] private CharacterStats _sianBaseStats;   // Sian(Mage) 기본 스탯
+    [SerializeField] private CharacterStats _yujinBaseStats;  // Yujin(Archer) 기본 스탯
 
     private CharacterSaveData _currentCharacterData;
     private CharacterClass _selectedClass;
@@ -70,6 +79,11 @@ public class CharacterSelectionController : MonoBehaviour
         _yujinButton.onClick.AddListener(() => OnClassSelected(CharacterClass.Yujin));
 
         _createCharacterButton.onClick.AddListener(OnCreateCharacterClicked);
+
+        if (_errorOkButton != null)
+        {
+            _errorOkButton.onClick.AddListener(HideError);
+        }
     }
 
     /// <summary>
@@ -159,6 +173,10 @@ public class CharacterSelectionController : MonoBehaviour
 
     /// <summary>
     /// 캐릭터 생성
+    /// 
+    /// 변경사항:
+    /// - GetBaseStatsForClass()로 선택한 직업의 CharacterStats SO 가져오기
+    /// - CharacterSaveData.CreateNew()에 baseStats 전달
     /// </summary>
     private async void OnCreateCharacterClicked()
     {
@@ -186,7 +204,19 @@ public class CharacterSelectionController : MonoBehaviour
 
         try
         {
-            CharacterSaveData newCharacter = CharacterSaveData.CreateNew(characterName, _selectedClass);
+            // 선택한 직업에 맞는 CharacterStats SO 가져오기
+            CharacterStats baseStats = GetBaseStatsForClass(_selectedClass);
+
+            if (baseStats == null)
+            {
+                ShowError($"{_selectedClass} 직업의 기본 스탯이 설정되지 않았습니다!\nInspector에서 CharacterStats를 할당하세요.");
+                _isCreatingCharacter = false;
+                HideLoading();
+                return;
+            }
+
+            // CharacterStats를 포함하여 새 캐릭터 생성
+            CharacterSaveData newCharacter = CharacterSaveData.CreateNew(characterName, _selectedClass, baseStats);
             bool success = await CloudSaveManager.Instance.SaveCharacterDataAsync(newCharacter);
 
             if (success)
@@ -229,24 +259,76 @@ public class CharacterSelectionController : MonoBehaviour
     {
         bool confirm = await ShowConfirmDialog("캐릭터를 영구 삭제하시겠습니까?");
 
-        if (confirm)
+        if (!confirm)
         {
-            ShowLoading("캐릭터 삭제 중...");
+            return;
+        }
 
+        ShowLoading("캐릭터 삭제 중...");
+
+        try
+        {
             bool success = await CloudSaveManager.Instance.DeleteCharacterAsync();
 
             if (success)
             {
                 _currentCharacterData = null;
-                _existingCharacterPanel.SetActive(false);
+                HideAllPanels();
                 ShowClassSelection();
+                Debug.Log("캐릭터 삭제 완료");
             }
             else
             {
                 ShowError("캐릭터 삭제 실패");
             }
-
+        }
+        catch (Exception e)
+        {
+            ShowError($"오류: {e.Message}");
+        }
+        finally
+        {
             HideLoading();
+        }
+    }
+
+    /// <summary>
+    /// 선택한 직업에 맞는 CharacterStats ScriptableObject 반환
+    /// 
+    /// 핵심 메서드:
+    /// - Inspector에서 할당한 CharacterStats SO 반환
+    /// - null 체크로 설정 누락 방지
+    /// </summary>
+    /// <param name="characterClass">선택한 캐릭터 직업</param>
+    /// <returns>해당 직업의 기본 스탯 ScriptableObject</returns>
+    private CharacterStats GetBaseStatsForClass(CharacterClass characterClass)
+    {
+        switch (characterClass)
+        {
+            case CharacterClass.Laon:
+                if (_laonBaseStats == null)
+                {
+                    Debug.LogError("[CharacterSelection] Laon Base Stats가 할당되지 않았습니다!");
+                }
+                return _laonBaseStats;
+
+            case CharacterClass.Sian:
+                if (_sianBaseStats == null)
+                {
+                    Debug.LogError("[CharacterSelection] Sian Base Stats가 할당되지 않았습니다!");
+                }
+                return _sianBaseStats;
+
+            case CharacterClass.Yujin:
+                if (_yujinBaseStats == null)
+                {
+                    Debug.LogError("[CharacterSelection] Yujin Base Stats가 할당되지 않았습니다!");
+                }
+                return _yujinBaseStats;
+
+            default:
+                Debug.LogError($"[CharacterSelection] 알 수 없는 직업: {characterClass}");
+                return null;
         }
     }
 
@@ -260,51 +342,80 @@ public class CharacterSelectionController : MonoBehaviour
     {
         _existingCharacterPanel.SetActive(false);
         _classSelectionPanel.SetActive(false);
-        _loadingPanel.SetActive(false);
-        _errorPanel.SetActive(false);
+        HideLoading();
+        HideError();
     }
 
     private void ShowLoading(string message)
     {
-        _loadingPanel.SetActive(true);
-        _loadingText.text = message;
+        if (_loadingPanel != null)
+        {
+            _loadingPanel.SetActive(true);
+            if (_loadingText != null)
+            {
+                _loadingText.text = message;
+            }
+        }
     }
 
     private void HideLoading()
     {
-        _loadingPanel.SetActive(false);
+        if (_loadingPanel != null)
+        {
+            _loadingPanel.SetActive(false);
+        }
     }
 
     private void ShowError(string message)
     {
-        _errorPanel.SetActive(true);
-        _errorText.text = message;
-        HideErrorAfterDelay();
+        if (_errorPanel != null)
+        {
+            _errorPanel.SetActive(true);
+            if (_errorText != null)
+            {
+                _errorText.text = message;
+            }
+        }
+        Debug.LogError($"[CharacterSelection] {message}");
     }
 
-    private async void HideErrorAfterDelay()
+    private void HideError()
     {
-        await Task.Delay(5000);
-        _errorPanel.SetActive(false);
+        if (_errorPanel != null)
+        {
+            _errorPanel.SetActive(false);
+        }
     }
 
     private async Task<bool> ShowConfirmDialog(string message)
     {
-        Debug.Log($"확인: {message}");
-        return await Task.FromResult(true);
+        // 간단한 확인 창 구현 (실제로는 별도 UI 패널 사용 권장)
+        Debug.LogWarning($"확인 다이얼로그: {message}");
+        await Task.Delay(100);
+        return true;  // 테스트용: 항상 true 반환
     }
 
-    /// <summary>
-    /// 시간 경과 포맷
-    /// </summary>
-    private string FormatTimeSince(TimeSpan time)
+    private string FormatTimeSince(TimeSpan timeSince)
     {
-        if (time.TotalDays >= 1)
-            return $"{(int)time.TotalDays}일 전";
-        if (time.TotalHours >= 1)
-            return $"{(int)time.TotalHours}시간 전";
-        if (time.TotalMinutes >= 1)
-            return $"{(int)time.TotalMinutes}분 전";
-        return "방금";
+        if (timeSince.TotalMinutes < 1)
+        {
+            return "방금 전";
+        }
+        else if (timeSince.TotalHours < 1)
+        {
+            return $"{(int)timeSince.TotalMinutes}분 전";
+        }
+        else if (timeSince.TotalDays < 1)
+        {
+            return $"{(int)timeSince.TotalHours}시간 전";
+        }
+        else if (timeSince.TotalDays < 7)
+        {
+            return $"{(int)timeSince.TotalDays}일 전";
+        }
+        else
+        {
+            return $"{(int)(timeSince.TotalDays / 7)}주 전";
+        }
     }
 }

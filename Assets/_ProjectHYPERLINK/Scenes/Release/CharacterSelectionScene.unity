@@ -1955,8 +1955,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _existingCharacterPanel: {fileID: 1427479220}
   _classSelectionPanel: {fileID: 1599455511}
-  _loadingPanel: {fileID: 434171969}
-  _errorPanel: {fileID: 1207231394}
   _characterNameText: {fileID: 305826110}
   _classText: {fileID: 2068099535}
   _levelText: {fileID: 2047763818}
@@ -1971,11 +1969,17 @@ MonoBehaviour:
   _laonButton: {fileID: 1062640923}
   _sianButton: {fileID: 317208335}
   _yujinButton: {fileID: 1791779431}
-  _characterNameInput: {fileID: 1865959636}
   _createCharacterButton: {fileID: 634720423}
+  _characterNameInput: {fileID: 1865959636}
+  _loadingPanel: {fileID: 434171969}
   _loadingText: {fileID: 1449219769}
+  _errorPanel: {fileID: 1207231394}
   _errorText: {fileID: 955117820}
+  _errorOkButton: {fileID: 0}
   _gameScene: TutorialScene
+  _laonBaseStats: {fileID: 11400000, guid: df6cce04975362f4297ad7e2e83d99b7, type: 2}
+  _sianBaseStats: {fileID: 0}
+  _yujinBaseStats: {fileID: 0}
 --- !u!4 &828252831
 Transform:
   m_ObjectHideFlags: 0

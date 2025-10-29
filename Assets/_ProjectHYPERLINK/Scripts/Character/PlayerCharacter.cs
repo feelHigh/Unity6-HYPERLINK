@@ -6,16 +6,23 @@ using System.Collections.Generic;
 /// <summary>
 /// 플레이어 캐릭터 핵심 시스템
 /// 
-/// 최근 변경사항:
-/// - PlayerStateController 연동 추가
-/// - TakeDamage에 방어력 약화 상태 반영
-/// - 방어력 계산 로직 추가
+/// 변경사항:
+/// - RecalculateResources() → RecalculateStats()
+/// - CalculateDerivedStats() 추가 (주요 스탯 기반 파생 스탯 계산)
+/// - GetTotalStats()에 파생 스탯 계산 로직 추가
+/// - LoadFromSaveData()에서 2차 스탯 로드 제거
+/// - SaveToData()에서 2차 스탯 저장 제거
+/// 
+/// 공식:
+/// - Strength (1당): Physical Attack +1, All Resistance +0.1
+/// - Dexterity (1당): Critical Chance +1, Attack Speed +0.1
+/// - Intelligence (1당): Magical Attack +1, Max Mana +10, Mana Regen +0.1
+/// - Vitality (1당): Armor +1, Max Health +10
 /// </summary>
 public class PlayerCharacter : MonoBehaviour
 {
     [Header("캐릭터 설정")]
     [SerializeField] private CharacterClass _characterClass = CharacterClass.Laon;
-    [SerializeField] private CharacterStats _baseStats;
     [SerializeField] private SkillData[] _availableSkills;
 
     [Header("현재 리소스")]
@@ -26,36 +33,28 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private int _redSoda = 3;
     [SerializeField] private float _redSodaHealAmount = 50f;
 
-    // 참조
     private PlayerStateController _stateController;
 
-    // 기존 이벤트
     public static event Action<float, float> OnHealthChanged;
     public static event Action<float, float> OnManaChanged;
     public static event Action<CharacterStats> OnStatsChanged;
     public static event Action<int> OnRedSodaChanged;
     public static event Action<SkillData> OnSkillUnlocked;
-
-    // 전투 작용 이벤트
     public static event Action<float> OnPlayerHit;
     public static event Action OnPlayerDead;
 
-    // 스탯
     private CharacterStats _currentStats;
     private CharacterStats _equipmentStats;
     private List<SkillData> _unlockedSkills = new List<SkillData>();
     private List<CharacterStats> _temporaryBuffs = new List<CharacterStats>();
 
-    // 계산된 값
     private float _maxHealth;
     private float _maxMana;
 
-    // 재생
     private float _healthRegenTimer = 0f;
     private float _manaRegenTimer = 0f;
     private const float REGEN_TICK_INTERVAL = 1f;
 
-    // Public 프로퍼티
     public CharacterClass CharacterClass => _characterClass;
     public CharacterStats CurrentStats => GetTotalStats();
     public CharacterStats BaseStats => _currentStats;
@@ -76,11 +75,10 @@ public class PlayerCharacter : MonoBehaviour
     {
         InitializeCharacter();
 
-        // PlayerStateController 참조 가져오기
         _stateController = GetComponent<PlayerStateController>();
         if (_stateController == null)
         {
-            Debug.LogWarning("[PlayerCharacter] PlayerStateController가 없습니다. 방어력 약화 효과가 적용되지 않습니다.");
+            Debug.LogWarning("[PlayerCharacter] PlayerStateController가 없습니다.");
         }
     }
 
@@ -98,13 +96,8 @@ public class PlayerCharacter : MonoBehaviour
     {
         _currentStats = ScriptableObject.CreateInstance<CharacterStats>();
         _equipmentStats = ScriptableObject.CreateInstance<CharacterStats>();
-
-        if (_baseStats != null)
-        {
-            _currentStats = _baseStats.Clone();
-        }
-
-        RecalculateResources();
+        
+        RecalculateStats();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
 
@@ -130,7 +123,7 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         _currentStats = _currentStats.AddStats(statGains);
-        RecalculateResources();
+        RecalculateStats();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
         UpdateUI();
@@ -141,7 +134,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (buffStats == null) return;
         _temporaryBuffs.Add(buffStats);
-        RecalculateResources();
+        RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
     }
@@ -150,7 +143,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (buffStats == null) return;
         _temporaryBuffs.Remove(buffStats);
-        RecalculateResources();
+        RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
     }
@@ -158,7 +151,7 @@ public class PlayerCharacter : MonoBehaviour
     private void ClearAllTemporaryBuffs()
     {
         _temporaryBuffs.Clear();
-        RecalculateResources();
+        RecalculateStats();
         UpdateUI();
     }
 
@@ -174,11 +167,14 @@ public class PlayerCharacter : MonoBehaviour
             _equipmentStats = equipmentStats;
         }
 
-        RecalculateResources();
+        RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
     }
 
+    /// <summary>
+    /// 모든 스탯 합산 (기본 + 장비 + 버프 + 파생 스탯)
+    /// </summary>
     public CharacterStats GetTotalStats()
     {
         CharacterStats total = _currentStats;
@@ -196,7 +192,31 @@ public class PlayerCharacter : MonoBehaviour
             }
         }
 
+        CharacterStats derivedStats = CalculateDerivedStats(total);
+        total = total.AddStats(derivedStats);
+
         return total;
+    }
+
+    /// <summary>
+    /// 주요 스탯에서 파생 스탯 자동 계산
+    /// </summary>
+    private CharacterStats CalculateDerivedStats(CharacterStats baseStats)
+    {
+        CharacterStatsBuilder builder = new CharacterStatsBuilder();
+
+        builder.AddPhysicalAttack(baseStats.Strength * 1f);
+        builder.AddAllResistance(baseStats.Strength * 0.1f);
+
+        builder.AddCriticalChance(baseStats.Dexterity * 1f);
+        builder.AddAttackSpeed(baseStats.Dexterity * 0.1f);
+
+        builder.AddMagicalAttack(baseStats.Intelligence * 1f);
+        builder.AddManaRegeneration(baseStats.Intelligence * 0.1f);
+
+        builder.AddArmor(baseStats.Vitality * 1f);
+
+        return builder.Build();
     }
 
     public int GetMainStat()
@@ -216,11 +236,18 @@ public class PlayerCharacter : MonoBehaviour
         }
     }
 
-    private void RecalculateResources()
+    /// <summary>
+    /// 리소스 재계산
+    /// </summary>
+    private void RecalculateStats()
     {
         CharacterStats totalStats = GetTotalStats();
+
         _maxHealth = (totalStats.Vitality * 10f) + totalStats.MaxHealth;
-        _maxMana = totalStats.MaxMana;
+
+        float baseMana = totalStats.Intelligence * 10f;
+        _maxMana = baseMana + totalStats.MaxMana;
+
         _currentHealth = Mathf.Min(_currentHealth, _maxHealth);
         _currentMana = Mathf.Min(_currentMana, _maxMana);
     }
@@ -272,43 +299,29 @@ public class PlayerCharacter : MonoBehaviour
             {
                 _unlockedSkills.Add(skill);
                 OnSkillUnlocked?.Invoke(skill);
-                Debug.Log($"스킬 언락: {skill.SkillName}");
+                Debug.Log($"[PlayerCharacter] 스킬 언락: {skill.SkillName}");
             }
         }
     }
 
     #endregion
 
-    #region 전투 시스템
+    #region 전투 및 리소스 관리
 
-    /// <summary>
-    /// 데미지 받기
-    /// 
-    /// 새로운 기능:
-    /// - 방어력 약화 상태 반영
-    /// - 실제 받는 데미지 = 기본 데미지 / 방어력 배율
-    /// </summary>
     public void TakeDamage(float amount)
     {
         if (!IsAlive) return;
 
-        // 방어력 약화 상태 적용
         float actualDamage = amount;
         if (_stateController != null && _stateController.IsWeakened)
         {
             float defenseMultiplier = _stateController.GetDefenseMultiplier();
-
-            // 방어력이 감소하면 받는 데미지 증가
-            // 예: 방어력 70% (0.7) → 데미지 약 43% 증가 (1/0.7 ≈ 1.43)
             actualDamage = amount / defenseMultiplier;
-
-            Debug.Log($"[약화] 데미지 증가: {amount:F1} → {actualDamage:F1} (방어력 {defenseMultiplier:P0})");
+            Debug.Log($"[약화] 데미지 증가: {amount:F1} → {actualDamage:F1}");
         }
 
         _currentHealth = Mathf.Max(0, _currentHealth - actualDamage);
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
-
-        // 피격 이벤트 발생
         OnPlayerHit?.Invoke(actualDamage);
 
         if (_currentHealth <= 0)
@@ -340,9 +353,6 @@ public class PlayerCharacter : MonoBehaviour
         OnManaChanged?.Invoke(_currentMana, _maxMana);
     }
 
-    /// <summary>
-    /// 레드 소다 사용 (Number 1 키)
-    /// </summary>
     public void UseRedSoda()
     {
         if (_redSoda <= 0)
@@ -359,14 +369,10 @@ public class PlayerCharacter : MonoBehaviour
 
         _redSoda--;
         Heal(_redSodaHealAmount);
-
-        Debug.Log($"레드 소다 사용! 체력 {_redSodaHealAmount} 회복 (남은 개수: {_redSoda})");
+        Debug.Log($"레드 소다 사용! (남은 개수: {_redSoda})");
         OnRedSodaChanged?.Invoke(_redSoda);
     }
 
-    /// <summary>
-    /// 레드 소다 추가 (드랍/구매)
-    /// </summary>
     public void AddRedSoda(int amount)
     {
         _redSoda += amount;
@@ -374,15 +380,10 @@ public class PlayerCharacter : MonoBehaviour
         OnRedSodaChanged?.Invoke(_redSoda);
     }
 
-    /// <summary>
-    /// 사망 처리
-    /// </summary>
     private void Die()
     {
         Debug.Log("플레이어 사망!");
         ClearAllTemporaryBuffs();
-
-        // 사망 이벤트 발생
         OnPlayerDead?.Invoke();
     }
 
@@ -401,6 +402,9 @@ public class PlayerCharacter : MonoBehaviour
 
     #region Cloud Save 통합
 
+    /// <summary>
+    /// 2차 스탯 로드 제거 (파생 스탯 자동 계산)
+    /// </summary>
     public void LoadFromSaveData(CharacterSaveData data)
     {
         if (data == null)
@@ -416,23 +420,10 @@ public class PlayerCharacter : MonoBehaviour
                 .SetDexterity(data.stats.baseStats.dexterity)
                 .SetIntelligence(data.stats.baseStats.intelligence)
                 .SetVitality(data.stats.baseStats.vitality)
-                .SetMaxHealth(data.stats.maxHealth)
-                .SetMaxMana(data.stats.maxMana)
                 .Build();
         }
 
-        if (data.stats?.secondaryStats != null)
-        {
-            CharacterStats secondaryStats = new CharacterStatsBuilder()
-                .SetCriticalChance(data.stats.secondaryStats.criticalChance)
-                .SetCriticalDamage(data.stats.secondaryStats.criticalDamage)
-                .SetAttackSpeed(data.stats.secondaryStats.attackSpeed)
-                .Build();
-
-            _currentStats = _currentStats.AddStats(secondaryStats);
-        }
-
-        RecalculateResources();
+        RecalculateStats();
         _currentHealth = data.stats.currentHealth;
         _currentMana = data.stats.currentMana;
         _redSoda = data.stats.redSoda;
@@ -453,6 +444,9 @@ public class PlayerCharacter : MonoBehaviour
         Debug.Log($"캐릭터 데이터 로드 완료 (레벨: {data.character.level})");
     }
 
+    /// <summary>
+    /// 2차 스탯 저장 제거 (로드 시 재계산)
+    /// </summary>
     public void SaveToData(CharacterSaveData data)
     {
         if (data == null)
@@ -466,8 +460,6 @@ public class PlayerCharacter : MonoBehaviour
             data.stats = new CharacterSaveData.CharacterStatsData();
         }
 
-        CharacterStats totalStats = GetTotalStats();
-
         if (data.stats.baseStats == null)
         {
             data.stats.baseStats = new CharacterSaveData.CharacterStatsData.BaseStats();
@@ -477,15 +469,6 @@ public class PlayerCharacter : MonoBehaviour
         data.stats.baseStats.dexterity = _currentStats.Dexterity;
         data.stats.baseStats.intelligence = _currentStats.Intelligence;
         data.stats.baseStats.vitality = _currentStats.Vitality;
-
-        if (data.stats.secondaryStats == null)
-        {
-            data.stats.secondaryStats = new CharacterSaveData.CharacterStatsData.SecondaryStats();
-        }
-
-        data.stats.secondaryStats.criticalChance = totalStats.CriticalChance;
-        data.stats.secondaryStats.criticalDamage = totalStats.CriticalDamage;
-        data.stats.secondaryStats.attackSpeed = totalStats.AttackSpeed;
 
         data.stats.currentHealth = _currentHealth;
         data.stats.currentMana = _currentMana;
@@ -516,26 +499,25 @@ public class PlayerCharacter : MonoBehaviour
     {
         Debug.Log("===== PlayerCharacter 정보 =====");
         Debug.Log($"클래스: {_characterClass}");
-        Debug.Log($"체력: {_currentHealth:F0}/{_maxHealth:F0} ({HealthPercentage:P0})");
-        Debug.Log($"마나: {_currentMana:F0}/{_maxMana:F0} ({ManaPercentage:P0})");
+        Debug.Log($"체력: {_currentHealth:F0}/{_maxHealth:F0}");
+        Debug.Log($"마나: {_currentMana:F0}/{_maxMana:F0}");
         Debug.Log($"레드 소다: {_redSoda}개");
-        Debug.Log($"언락된 스킬: {_unlockedSkills.Count}개");
-        Debug.Log($"활성 버프: {_temporaryBuffs.Count}개");
 
         CharacterStats totalStats = GetTotalStats();
-        Debug.Log($"--- 총 스탯 ---");
+        Debug.Log($"--- 주요 스탯 ---");
         Debug.Log($"  힘: {totalStats.Strength}");
         Debug.Log($"  민첩: {totalStats.Dexterity}");
         Debug.Log($"  지능: {totalStats.Intelligence}");
-        Debug.Log($"  체력: {totalStats.Vitality}");
-        Debug.Log($"  주요 스탯: {GetMainStat()}");
+        Debug.Log($"  활력: {totalStats.Vitality}");
 
-        // 방어력 상태 체크
-        if (_stateController != null && _stateController.IsWeakened)
-        {
-            float defMult = _stateController.GetDefenseMultiplier();
-            Debug.Log($"⚠️ 방어력 약화 상태: {defMult:P0} ({_stateController.WeakenPercent}% 감소)");
-        }
+        Debug.Log($"--- 파생 스탯 ---");
+        Debug.Log($"  물리 공격력: {totalStats.PhysicalAttack:F1}");
+        Debug.Log($"  마법 공격력: {totalStats.MagicalAttack:F1}");
+        Debug.Log($"  방어력: {totalStats.Armor:F1}");
+        Debug.Log($"  모든 저항: {totalStats.AllResistance:F1}");
+        Debug.Log($"  크리티컬 확률: {totalStats.CriticalChance:F1}");
+        Debug.Log($"  공격 속도: {totalStats.AttackSpeed:F1}");
+        Debug.Log($"  마나 재생: {totalStats.ManaRegeneration:F1}");
     }
 
     [ContextMenu("Test: Take Damage (100)")]
@@ -548,6 +530,17 @@ public class PlayerCharacter : MonoBehaviour
     private void TestHealFull()
     {
         Heal(_maxHealth);
+    }
+
+    [ContextMenu("Test: Add Strength +10")]
+    private void TestAddStrength()
+    {
+        CharacterStats strengthBonus = new CharacterStatsBuilder()
+            .SetStrength(10)
+            .Build();
+
+        AddLevelUpStats(strengthBonus);
+        Debug.Log("[테스트] Strength +10 추가");
     }
 
     #endregion
