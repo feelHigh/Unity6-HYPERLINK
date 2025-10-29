@@ -139,7 +139,7 @@ public class SkillAnimationController : MonoBehaviour
 
     private void HandlePlayerDead()
     {
-        _animator.SetBool(HASH_DEAD, true);
+        _animator.SetTrigger(HASH_DEAD);
         _isPerformingSkill = false;
         _currentSkill = null;
 
