@@ -43,6 +43,7 @@ public class SA_Water : SpecialAttackBase
 
         //적의 위치에서 소환
         Vector3 spawnPos = attacker.position;
+        spawnPos.y = 1;
         //플레이어를 바라보도록 회전
         Quaternion spawnRot = Quaternion.LookRotation(target.position - attacker.position);
 

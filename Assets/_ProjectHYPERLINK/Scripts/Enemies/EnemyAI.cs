@@ -256,6 +256,33 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
+        //자신과 타겟 사이의 거리 구하기
+        float distance = Vector3.Distance(transform.position, _target.position);
+
+        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면
+        if (distance > _data.AttackRange)
+        {
+            //상태를 추격 상태로 바꾸고 리턴
+            ChangeState(EnemyState.Chase);
+            return;
+        }
+
+        //경로 유효성 확인, 경로가 유효하지 않으면
+        if (!CheckPath(_target.position))
+        {
+            //대기 상태로 변경
+            ChangeState(EnemyState.Idle);
+            return;
+        }
+
+        //시야 확보 여부 체크
+        if (!HasLineOfSight(_target))
+        {
+            Debug.Log("시야 확보 불가능, 추격 상태로 전환");
+            ChangeState(EnemyState.Chase);
+            return;
+        }
+
         if (_isAttacking) return;
 
         //타겟을 바라보도록 설정
@@ -281,17 +308,6 @@ public class EnemyAI : MonoBehaviour
         {
             //일반 공격 실행
             PerformBasicAttack();
-        }
-
-        //자신과 타겟 사이의 거리 구하기
-        float distance = Vector3.Distance(transform.position, _target.position);
-
-        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면
-        if (distance > _data.AttackRange)
-        {
-            //상태를 추격 상태로 바꾸고 리턴
-            ChangeState(EnemyState.Chase);
-            return;
         }
     }
 
@@ -432,6 +448,37 @@ public class EnemyAI : MonoBehaviour
 
         //찾은 경로가 막혀잇으면 false, 아무 이상 없으면 true
         return path.status == NavMeshPathStatus.PathComplete;
+    }
+
+    /// <summary>
+    /// 타겟까지 시야가 확보되어 있는지 레이캐스트로 체크하는 함수
+    /// </summary>
+    /// <param name="target">타겟 (플레이어) 트랜스폼</param>
+    /// <returns>시야 확보 여부</returns>
+    bool HasLineOfSight(Transform target)
+    {
+        if (target == null) return false;
+
+        //발사 위치 (적 위치)
+        Vector3 startPos = transform.position + Vector3.up * _heightOffset;
+        //타겟 위치 (플레이어 위치)
+        Vector3 targetPos = target.position + Vector3.up * _heightOffset;
+
+        //방향 및 거리 계산
+        Vector3 dir = targetPos - startPos;
+        float distance = dir.magnitude;
+
+        //만약 발사한 레이캐스트가 플레이어를 제외한 다른 레이어에 맞았다면
+        if (Physics.Raycast(startPos, dir.normalized, out RaycastHit hit, distance, ~_playerLayerMask))
+        {
+            //시야 막힘 레이 발사
+            Debug.DrawRay(startPos, dir.normalized * hit.distance, Color.red, 0.1f);
+            return false;
+        }
+
+        //장애물 없으면 시야 확보 성공
+        Debug.DrawRay(startPos, dir.normalized * distance, Color.green, 0.1f);
+        return true;
     }
     #endregion
 

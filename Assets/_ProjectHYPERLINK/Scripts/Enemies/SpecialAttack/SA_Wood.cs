@@ -42,6 +42,7 @@ public class SA_Wood : SpecialAttackBase
 
         // 타겟의 현재 위치에 AoE 프리팹 생성
         Vector3 spawnPos = target.position;
+        spawnPos.y = 1;
         GameObject aoeGO = Instantiate(_aoePrefab, spawnPos, Quaternion.identity);
 
         AoEController controller = aoeGO.GetComponent<AoEController>();

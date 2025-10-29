@@ -114915,7 +114915,7 @@ GameObject:
   - component: {fileID: 3255276734844716600}
   - component: {fileID: 1808320744215488685}
   m_Layer: 0
-  m_Name: Wood_AoE
+  m_Name: Wood_AttackEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -114931,7 +114931,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8978918540417515002}
@@ -237838,7 +237838,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4b96c6eadd8dee14f932b386f9cf956c, type: 2}
+  - {fileID: 2100000, guid: dfb4b865ae100894ca53c8317beddb4d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
