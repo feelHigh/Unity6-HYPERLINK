@@ -8,6 +8,7 @@ using UnityEngine;
 /// 최근 변경사항:
 /// - PlayerStateController 연동 (침묵 상태 체크)
 /// - SkillData.cs 실제 구조에 맞춤
+/// - UpdateCooldowns() 딕셔너리 수정 버그 수정
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
@@ -252,10 +253,16 @@ public class SkillActivationSystem : MonoBehaviour
 
     #region 쿨다운 관리
 
+    /// <summary>
+    /// 쿨다운 업데이트 (딕셔너리 수정 버그 수정)
+    /// </summary>
     private void UpdateCooldowns()
     {
+        // 수정 사항을 임시 저장
         List<SkillData> cooldownsToRemove = new List<SkillData>();
+        Dictionary<SkillData, float> cooldownsToUpdate = new Dictionary<SkillData, float>();
 
+        // 읽기 전용으로 순회
         foreach (var kvp in _skillCooldowns)
         {
             SkillData skill = kvp.Key;
@@ -267,9 +274,15 @@ public class SkillActivationSystem : MonoBehaviour
             }
             else
             {
-                _skillCooldowns[skill] = remainingTime;
-                UpdateCooldownUI(skill, remainingTime);
+                cooldownsToUpdate[skill] = remainingTime;
             }
+        }
+
+        // 순회 완료 후 딕셔너리 수정
+        foreach (var kvp in cooldownsToUpdate)
+        {
+            _skillCooldowns[kvp.Key] = kvp.Value;
+            UpdateCooldownUI(kvp.Key, kvp.Value);
         }
 
         foreach (SkillData skill in cooldownsToRemove)
