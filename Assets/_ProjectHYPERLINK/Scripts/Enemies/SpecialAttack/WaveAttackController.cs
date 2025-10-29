@@ -3,12 +3,15 @@ using System.Collections;
 
 public class WaveAttackController : MonoBehaviour
 {
-    [SerializeField] float _maxDistance = 16f;      //최종 길이
-    [SerializeField] float _expandSpeed = 8f;       //초당 늘어나는 속도
+    [SerializeField] float _maxDistance = 7.5f;     //최종 길이
+    [SerializeField] float _expandSpeed = 3.25f;    //초당 늘어나는 속도
     [SerializeField] Vector3 _boxHalfExtents = new Vector3(0.5f, 1f, 0.5f);     //공격 면적
+    [SerializeField] LayerMask _playerLayerMask;    //감지할 플레이어 레이어 마스크
 
     SpecialAttackBase _specialAttack;
-    BoxCollider _collider;
+    float _curLength = 0f;      //현재 공격 길이
+    bool _isActive = false;     //공격 실행 여부
+    bool _isHitEnvironment = false;
 
     /// <summary>
     /// 파동형 공격을 초기화하는 함수
@@ -16,18 +19,28 @@ public class WaveAttackController : MonoBehaviour
     public void Initialize(SpecialAttackBase specialAttack)
     {
         _specialAttack = specialAttack;
-        // _collider.enabled = false;
-
-        //StartCoroutine(AttackCoroutine());
+        _isActive = true;
 
         Destroy(gameObject, 2f);
     }
 
-    //IEnumerator AttackCoroutine()
-    //{
-    //    float timer = 0f;
-    //     while (timer >= )
-    //}
+    private void Update()
+    {
+        if (!_isActive) return;
+
+        //길이 증가
+        _curLength += _expandSpeed * Time.deltaTime;
+        _curLength = Mathf.Min(_curLength, _maxDistance);
+
+        //RayCast로 전방 체크
+        Ray ray = new Ray(transform.position, transform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, _curLength, _playerLayerMask))
+        {
+            Debug.Log("플레이어 레이어 감지");
+        }
+
+        
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -45,5 +58,18 @@ public class WaveAttackController : MonoBehaviour
                 enabled = false;
             }
         }
+        else if (other.CompareTag("Enemy"))
+        {
+            return;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        
     }
 }
