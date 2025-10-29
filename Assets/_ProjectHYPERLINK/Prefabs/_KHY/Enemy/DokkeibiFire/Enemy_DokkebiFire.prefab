@@ -498,7 +498,7 @@ MonoBehaviour:
   _basicAttack: 1
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 0}
-  _projectileFirePos: {fileID: 3865605204338358174, guid: 3e6d7dcbc0fd656439fa04074ebb5162, type: 3}
+  _projectileFirePos: {fileID: 1062222856517846744}
   _heightOffset: 1.1
 --- !u!1 &8527512564750005010
 GameObject:

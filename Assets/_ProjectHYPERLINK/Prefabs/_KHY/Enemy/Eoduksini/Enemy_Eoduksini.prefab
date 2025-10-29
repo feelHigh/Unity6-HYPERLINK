@@ -259,7 +259,6 @@ Transform:
   - {fileID: 5635422050521242899}
   - {fileID: 5628736955680491731}
   - {fileID: 17475458793817914}
-  - {fileID: 1533818810889938830}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &-4258607214474432638
@@ -369,7 +368,7 @@ MonoBehaviour:
   _basicAttack: 1
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 0}
-  _projectileFirePos: {fileID: 1533818810889938830}
+  _projectileFirePos: {fileID: 17475458793817914}
   _heightOffset: 1.1
 --- !u!1 &3184361407583171324
 GameObject:
@@ -403,37 +402,6 @@ Transform:
   - {fileID: 1628093079155450891}
   m_Father: {fileID: 5628736955680491731}
   m_LocalEulerAnglesHint: {x: -0.0000025166225, y: 0, z: 0}
---- !u!1 &5608436328553075949
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1533818810889938830}
-  m_Layer: 0
-  m_Name: ProjectilefirePos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1533818810889938830
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5608436328553075949}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.47, z: 0.93}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6367015300225023908}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6869658966114690239
 GameObject:
   m_ObjectHideFlags: 0
