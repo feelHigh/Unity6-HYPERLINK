@@ -113,7 +113,7 @@ public class SkillAnimationController : MonoBehaviour
 
         CleanupDashTween();
 
-        // ✅ 추가: NavMeshAgent 상태 복원
+        // NavMeshAgent 상태 복원
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.updateRotation = true;
@@ -185,7 +185,7 @@ public class SkillAnimationController : MonoBehaviour
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
-            _navAgent.updateRotation = false;  // ✅ 추가: 사망 시 회전 비활성화
+            _navAgent.updateRotation = false;  // 사망 시 회전 비활성화
         }
 
         if (_skillCoroutine != null)
