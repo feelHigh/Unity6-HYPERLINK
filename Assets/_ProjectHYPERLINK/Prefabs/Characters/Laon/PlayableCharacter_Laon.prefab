@@ -142,14 +142,12 @@ MonoBehaviour:
   _attackRange: 3
   _attackAngle: 90
   _attackDamage: 25
-  _attackCooldown: 1
-  _enemyLayer:
-    serializedVersion: 2
-    m_Bits: 2048
+  _attackSpeed: 1
   _knockbackDuration: 0.3
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  _enableDebugLogs: 1
 --- !u!114 &3735128981493473489
 MonoBehaviour:
   m_ObjectHideFlags: 0

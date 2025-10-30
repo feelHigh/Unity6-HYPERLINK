@@ -23,6 +23,7 @@ MonoBehaviour:
   _criticalChance: 5
   _criticalDamage: 200
   _attackSpeed: 1
+  _movementSpeed: 0
   _maxHealth: 0
   _maxMana: 0
   _healthRegeneration: 0

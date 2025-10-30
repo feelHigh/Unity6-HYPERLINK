@@ -12,10 +12,12 @@ using System.Collections.Generic;
 /// - GetTotalStats()에 파생 스탯 계산 로직 추가
 /// - LoadFromSaveData()에서 2차 스탯 로드 제거
 /// - SaveToData()에서 2차 스탯 저장 제거
+/// - Dexterity에 MovementSpeed 파생 스탯 추가
+/// - Dexterity → Attack Speed 비율 변경 (0.1 → 0.05)
 /// 
 /// 공식:
 /// - Strength (1당): Physical Attack +1, All Resistance +0.1
-/// - Dexterity (1당): Critical Chance +1, Attack Speed +0.1
+/// - Dexterity (1당): Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
 /// - Intelligence (1당): Magical Attack +1, Max Mana +10, Mana Regen +0.1
 /// - Vitality (1당): Armor +1, Max Health +10
 /// </summary>
@@ -96,7 +98,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         _currentStats = ScriptableObject.CreateInstance<CharacterStats>();
         _equipmentStats = ScriptableObject.CreateInstance<CharacterStats>();
-        
+
         RecalculateStats();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
@@ -205,15 +207,20 @@ public class PlayerCharacter : MonoBehaviour
     {
         CharacterStatsBuilder builder = new CharacterStatsBuilder();
 
+        // Strength: Physical Attack +1, All Resistance +0.1
         builder.AddPhysicalAttack(baseStats.Strength * 1f);
         builder.AddAllResistance(baseStats.Strength * 0.1f);
 
+        // Dexterity: Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
         builder.AddCriticalChance(baseStats.Dexterity * 1f);
-        builder.AddAttackSpeed(baseStats.Dexterity * 0.1f);
+        builder.AddAttackSpeed(baseStats.Dexterity * 0.05f);
+        builder.AddMovementSpeed(baseStats.Dexterity * 0.1f);
 
+        // Intelligence: Magical Attack +1, Mana Regen +0.1
         builder.AddMagicalAttack(baseStats.Intelligence * 1f);
         builder.AddManaRegeneration(baseStats.Intelligence * 0.1f);
 
+        // Vitality: Armor +1
         builder.AddArmor(baseStats.Vitality * 1f);
 
         return builder.Build();
@@ -517,6 +524,7 @@ public class PlayerCharacter : MonoBehaviour
         Debug.Log($"  모든 저항: {totalStats.AllResistance:F1}");
         Debug.Log($"  크리티컬 확률: {totalStats.CriticalChance:F1}");
         Debug.Log($"  공격 속도: {totalStats.AttackSpeed:F1}");
+        Debug.Log($"  이동 속도: {totalStats.MovementSpeed:F1}");
         Debug.Log($"  마나 재생: {totalStats.ManaRegeneration:F1}");
     }
 
