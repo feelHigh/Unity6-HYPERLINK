@@ -9,6 +9,11 @@ using DG.Tweening;
 /// 마우스 거리 기반 대시:
 /// - CalculateActualDashDistance(): 모드별 대시 거리 결정
 /// - GetMousePositionDistance(): 마우스까지 수평 거리 계산
+/// 
+/// 수정사항 (스킬 회전 문제 해결):
+/// - HandleSkillExecuted()에서 회전 전에 NavMeshAgent 제어
+/// - NavMeshAgent.updateRotation 비활성화/재활성화 로직 추가
+/// - 이동 중 스킬 사용 시 올바른 방향 회전 보장
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -45,7 +50,7 @@ public class SkillAnimationController : MonoBehaviour
     private Vector3 _lastRaycastEnd;
     private bool _lastRaycastHit;
 
-    // [NEW] 마우스 거리 디버그
+    // 마우스 거리 디버그
     private Vector3 _lastMouseWorldPosition;
     private float _lastCalculatedDistance;
 
@@ -107,12 +112,26 @@ public class SkillAnimationController : MonoBehaviour
         }
 
         CleanupDashTween();
+
+        // ✅ 추가: NavMeshAgent 상태 복원
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.updateRotation = true;
+            _navAgent.isStopped = false;
+        }
     }
 
     #endregion
 
     #region 이벤트 핸들러
 
+    /// <summary>
+    /// 스킬 실행 이벤트 핸들러
+    /// 
+    /// 수정사항:
+    /// - 회전 전에 NavMeshAgent 제어 (이동 정지 + 자동 회전 비활성화)
+    /// - 이제 이동 중에도 마우스 방향으로 올바르게 회전
+    /// </summary>
     private void HandleSkillExecuted(SkillData skill)
     {
         if (skill == null || _isPerformingSkill)
@@ -123,8 +142,21 @@ public class SkillAnimationController : MonoBehaviour
 
         _currentSkill = skill;
 
+        // 회전 전에 NavMeshAgent 제어
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.isStopped = true;           // 이동 정지
+            _navAgent.ResetPath();                 // 경로 초기화
+            _navAgent.updateRotation = false;      // 자동 회전 비활성화
+            Log("NavMeshAgent 제어: 이동 정지 + updateRotation OFF");
+        }
+
+        // 이제 회전이 NavMeshAgent에 의해 덮어씌워지지 않음
         if (_rotateTowardsMouse)
+        {
             RotateTowardsMousePosition();
+            Log($"마우스 방향 회전 완료: {transform.rotation.eulerAngles.y:F1}도");
+        }
 
         _skillCoroutine = StartCoroutine(PerformSkillCoroutine(skill));
     }
@@ -137,6 +169,12 @@ public class SkillAnimationController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 플레이어 사망 이벤트 핸들러
+    /// 
+    /// 수정사항:
+    /// - updateRotation 비활성화 추가
+    /// </summary>
     private void HandlePlayerDead()
     {
         _animator.SetTrigger(HASH_DEAD);
@@ -147,6 +185,7 @@ public class SkillAnimationController : MonoBehaviour
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
+            _navAgent.updateRotation = false;  // ✅ 추가: 사망 시 회전 비활성화
         }
 
         if (_skillCoroutine != null)
@@ -162,17 +201,20 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 스킬 실행 코루틴
 
+    /// <summary>
+    /// 스킬 실행 코루틴
+    /// 
+    /// 수정사항:
+    /// - NavMeshAgent 정지 로직 제거 (이미 HandleSkillExecuted()에서 처리)
+    /// - 종료 시 updateRotation 재활성화 추가
+    /// </summary>
     private IEnumerator PerformSkillCoroutine(SkillData skill)
     {
         _isPerformingSkill = true;
         Log($"스킬 시작: {skill.SkillName}");
 
-        // NavMeshAgent 정지
-        if (_navAgent != null && _navAgent.enabled)
-        {
-            _navAgent.isStopped = true;
-            _navAgent.ResetPath();
-        }
+        // ✅ NavMeshAgent 제어는 이미 HandleSkillExecuted()에서 완료
+        // 중복 로직 제거
 
         // Root Motion 설정
         bool wasUsingRootMotion = _animator.applyRootMotion;
@@ -232,11 +274,13 @@ public class SkillAnimationController : MonoBehaviour
             _animator.applyRootMotion = wasUsingRootMotion;
         }
 
-        // NavMesh 동기화
+        // ✅ 수정: NavMesh 동기화 + updateRotation 재활성화
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.Warp(transform.position);
+            _navAgent.updateRotation = true;   // ✅ 추가: 자동 회전 재활성화
             _navAgent.isStopped = false;
+            Log("NavMeshAgent 재활성화: 이동 재개 + updateRotation ON");
         }
 
         // 정리

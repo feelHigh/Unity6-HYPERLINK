@@ -254,7 +254,7 @@ public class SkillActivationSystem : MonoBehaviour
     #region 쿨다운 관리
 
     /// <summary>
-    /// 쿨다운 업데이트 (딕셔너리 수정 버그 수정)
+    /// 쿨다운 업데이트
     /// </summary>
     private void UpdateCooldowns()
     {

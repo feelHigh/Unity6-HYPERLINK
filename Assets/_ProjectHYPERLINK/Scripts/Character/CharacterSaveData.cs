@@ -7,8 +7,9 @@ using UnityEngine;
 /// 
 /// 변경사항:
 /// - CreateNew()에 CharacterStats 파라미터 추가
-/// - CreateInitialStats() → CreateInitialStatsFromScriptableObject()로 교체
+/// - CreateInitialStatsFromScriptableObject() → Intelligence * 10 공식 적용
 /// - Unity 에디터 스탯을 초기 스탯으로 사용
+/// - currentMana와 maxMana 계산에 Intelligence * 10 추가 (마나 초기화 수정)
 /// </summary>
 [Serializable]
 public class CharacterSaveData
@@ -165,6 +166,11 @@ public class CharacterSaveData
     /// 핵심 메서드:
     /// - 하드코딩된 스탯 대신 Unity 에디터 값 사용
     /// - ScriptableObject → Serializable 데이터 구조 변환
+    /// 
+    /// 수정사항 (마나 초기화 수정):
+    /// - currentMana: baseStats.MaxMana → (baseStats.Intelligence * 10f) + baseStats.MaxMana
+    /// - maxMana: baseStats.MaxMana → (baseStats.Intelligence * 10f) + baseStats.MaxMana
+    /// - HP와 동일한 계산 공식 적용 (주 스탯 * 10 + 보너스)
     /// </summary>
     /// <param name="baseStats">Unity에서 설정한 캐릭터 기본 스탯</param>
     /// <returns>저장 가능한 CharacterStatsData</returns>
@@ -178,7 +184,7 @@ public class CharacterSaveData
             return new CharacterStatsData
             {
                 currentHealth = 100,
-                currentMana = 50,
+                currentMana = 150,  // Intelligence 10 * 10 + MaxMana 50 = 150
                 redSoda = 3,
                 baseStats = new CharacterStatsData.BaseStats
                 {
@@ -194,16 +200,18 @@ public class CharacterSaveData
                     attackSpeed = 1.0f
                 },
                 maxHealth = 100,
-                maxMana = 50
+                maxMana = 150  // Intelligence 10 * 10 + MaxMana 50 = 150
             };
         }
 
         // Unity 에디터 스탯에서 값 추출
         var stats = new CharacterStatsData
         {
-            // 초기 리소스는 MaxHealth/MaxMana로 설정
+            // 초기 리소스는 최대값으로 설정 (HP와 Mana 모두)
+            // HP: Vitality * 10 + MaxHealth
+            // Mana: Intelligence * 10 + MaxMana
             currentHealth = (baseStats.Vitality * 10f) + baseStats.MaxHealth,
-            currentMana = baseStats.MaxMana,
+            currentMana = (baseStats.Intelligence * 10f) + baseStats.MaxMana,  // 수정: Intelligence * 10 추가
             redSoda = 3,  // 시작 시 레드 소다 3개
 
             // 주요 스탯 (Unity 에디터 값 사용)
@@ -224,12 +232,14 @@ public class CharacterSaveData
             },
 
             // 최대 리소스 계산
-            // Intelligence → MaxMana 공식 적용됨
+            // HP: Vitality * 10 + MaxHealth
+            // Mana: Intelligence * 10 + MaxMana
             maxHealth = (baseStats.Vitality * 10f) + baseStats.MaxHealth,
-            maxMana = baseStats.MaxMana
+            maxMana = (baseStats.Intelligence * 10f) + baseStats.MaxMana  // 수정: Intelligence * 10 추가
         };
 
         Debug.Log($"[CharacterSaveData] {baseStats.name} 스탯으로 초기화: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
+        Debug.Log($"[CharacterSaveData] 초기 리소스: HP {stats.currentHealth}/{stats.maxHealth}, Mana {stats.currentMana}/{stats.maxMana}");
 
         return stats;
     }
