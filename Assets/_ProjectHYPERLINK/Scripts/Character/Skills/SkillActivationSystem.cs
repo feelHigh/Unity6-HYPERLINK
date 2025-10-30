@@ -9,12 +9,14 @@ using UnityEngine;
 /// - PlayerStateController 연동 (침묵 상태 체크)
 /// - SkillData.cs 실제 구조에 맞춤
 /// - UpdateCooldowns() 딕셔너리 수정 버그 수정
+/// - 새로운 데미지 공식 적용: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
     [Header("캐릭터 참조")]
     [SerializeField] private PlayerCharacter _playerCharacter;
     [SerializeField] private PlayerStateController _stateController;
+    [SerializeField] private PlayerNavController _navController;
 
     [Header("스킬 슬롯")]
     [SerializeField] private List<SkillSlotUI> _skillSlots = new List<SkillSlotUI>();
@@ -43,6 +45,11 @@ public class SkillActivationSystem : MonoBehaviour
     /// </summary>
     public static event System.Action<SkillData> OnSkillExecuted;
 
+    /// <summary>
+    /// 스킬 실행 이벤트 (데미지 포함)
+    /// </summary>
+    public static event System.Action<SkillData, float> OnSkillExecutedWithDamage;
+
     #region 초기화
 
     private void Awake()
@@ -62,6 +69,15 @@ public class SkillActivationSystem : MonoBehaviour
             if (_stateController == null)
             {
                 Debug.LogError("[SkillActivationSystem] PlayerStateController를 찾을 수 없습니다!");
+            }
+        }
+
+        if (_navController == null)
+        {
+            _navController = GetComponent<PlayerNavController>();
+            if (_navController == null)
+            {
+                Debug.LogWarning("[SkillActivationSystem] PlayerNavController를 찾을 수 없습니다! 기본 공격력 값을 사용합니다.");
             }
         }
 
@@ -189,17 +205,21 @@ public class SkillActivationSystem : MonoBehaviour
     /// </summary>
     private void ExecuteSkill(SkillData skill)
     {
+        // 데미지 계산 (모든 스킬 타입에서 공통으로 사용)
+        float damage = CalculateSkillDamage(skill);
+
         switch (skill.SkillType)
         {
             case SkillType.Melee:
             case SkillType.AreaOfEffect:
                 // SkillAnimationController에서 데미지 처리
                 OnSkillExecuted?.Invoke(skill);
-                Debug.Log($"[{skill.SkillName}] 애니메이션 시작");
+                OnSkillExecutedWithDamage?.Invoke(skill, damage);
+                Debug.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
                 break;
 
             case SkillType.Ranged:
-                ExecuteRangedSkill(skill);
+                ExecuteRangedSkill(skill, damage);
                 OnSkillExecuted?.Invoke(skill);
                 break;
 
@@ -219,7 +239,7 @@ public class SkillActivationSystem : MonoBehaviour
     /// <summary>
     /// 원거리 스킬 실행
     /// </summary>
-    private void ExecuteRangedSkill(SkillData skill)
+    private void ExecuteRangedSkill(SkillData skill, float damage)
     {
         if (skill.ProjectilePrefab == null)
         {
@@ -239,9 +259,8 @@ public class SkillActivationSystem : MonoBehaviour
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
-            float damage = CalculateSkillDamage(skill);
             projectile.Initialize(damage, skill.Range, _playerCharacter);
-            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F0}");
+            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F1}");
         }
         else
         {
@@ -318,15 +337,42 @@ public class SkillActivationSystem : MonoBehaviour
 
     #region 데미지 계산
 
+    /// <summary>
+    /// 스킬 데미지 계산
+    /// 
+    /// 공식: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+    /// 
+    /// 예시: Sian, Intelligence 10
+    /// - 캐릭터 공격력 = 25
+    /// - 스킬 배율 = 10
+    /// - 스킬 기본 데미지 = 15
+    /// - 주요 스탯 (Intelligence) = 10
+    /// - 스탯당 데미지 증가% = 0.01
+    /// 
+    /// 계산: ((25 × 10) + 15) × (1 + (10 × 0.01))
+    ///      = (250 + 15) × 1.1
+    ///      = 265 × 1.1
+    ///      = 291.5
+    /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
+        // 1. 캐릭터 공격력 가져오기
+        float characterAttackDamage = GetCharacterAttackDamage();
+
+        // 2. 주요 스탯 가져오기
         int mainStat = _playerCharacter.GetMainStat();
-        float baseDamage = skill.Damage;
 
-        // 주요 스탯 보너스 (1% per point)
-        float damage = baseDamage * (1f + mainStat / 100f);
+        // 3. 스킬 파라미터 가져오기
+        float skillMultiplier = skill.SkillMultiplier;
+        float skillBaseDamage = skill.SkillBaseDamage;
+        float mainStatDamageIncrease = skill.MainStatDamageIncrease;
 
-        // 크리티컬 판정
+        // 4. 최종 데미지 계산
+        // ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+        float damage = ((characterAttackDamage * skillMultiplier) + skillBaseDamage)
+                       * (1f + (mainStat * mainStatDamageIncrease));
+
+        // 5. 크리티컬 판정
         CharacterStats stats = _playerCharacter.CurrentStats;
         if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
@@ -334,7 +380,29 @@ public class SkillActivationSystem : MonoBehaviour
             Debug.Log($"[{skill.SkillName}] 크리티컬 히트!");
         }
 
+        Debug.Log($"[{skill.SkillName}] 데미지 계산: " +
+                  $"(({characterAttackDamage:F1} × {skillMultiplier:F1}) + {skillBaseDamage:F1}) × " +
+                  $"(1 + ({mainStat} × {mainStatDamageIncrease:F2})) = {damage:F1}");
+
         return damage;
+    }
+
+    /// <summary>
+    /// 캐릭터 공격력 가져오기
+    /// 
+    /// PlayerNavController의 AttackDamage를 사용합니다.
+    /// NavController가 없으면 기본값 25를 사용합니다.
+    /// </summary>
+    private float GetCharacterAttackDamage()
+    {
+        if (_navController != null)
+        {
+            return _navController.AttackDamage;
+        }
+
+        // 기본값 (NavController가 없을 때)
+        Debug.LogWarning("[SkillActivation] PlayerNavController가 없어 기본 공격력(25)을 사용합니다.");
+        return 25f;
     }
 
     #endregion
@@ -410,6 +478,15 @@ public class SkillActivationSystem : MonoBehaviour
                 Debug.Log($"  - 빙결: {_stateController.IsFrozen}");
                 Debug.Log($"  - 넉다운: {_stateController.IsStunned}");
             }
+        }
+
+        // 데미지 계산 정보
+        if (_playerCharacter != null)
+        {
+            Debug.Log("--- 데미지 계산 정보 ---");
+            Debug.Log($"  캐릭터 공격력: {GetCharacterAttackDamage():F1}");
+            Debug.Log($"  주요 스탯: {_playerCharacter.GetMainStat()}");
+            Debug.Log($"  클래스: {_playerCharacter.CharacterClass}");
         }
     }
 

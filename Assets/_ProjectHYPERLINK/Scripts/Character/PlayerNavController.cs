@@ -69,6 +69,7 @@ public class PlayerNavController : MonoBehaviour
     [SerializeField] private float _attackAngle = 90f;
 
     [SerializeField] private float _attackDamage = 25f;
+    public float AttackDamage => _attackDamage;
 
     [Tooltip("기본 공격 쿨다운 (초) - Attack Speed 스탯에 의해 감소됨")]
     [SerializeField] private float _attackSpeed = 1f;
