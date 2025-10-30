@@ -16,6 +16,7 @@ using DG.Tweening;
 /// - ForceStop() 메소드 추가 (빙결/속박)
 /// - ApplyKnockback() 메소드 추가 (넉백)
 /// - 이동속도 배율 적용
+/// - 데미지 적용 방식 변경: IDamageable → EnemyController 직접 호출 (스킬과 동일)
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -50,20 +51,22 @@ public class PlayerNavController : MonoBehaviour
 
     [Header("전투 설정")]
     [Tooltip("공격 범위 (미터)")]
-    [SerializeField] private float _attackRange = 1f;
+    [SerializeField] private float _attackRange = 3f;
 
     [Tooltip("공격 각도 (전방 원뿔 범위, 90° = 전방 1/4 원)")]
     [SerializeField] private float _attackAngle = 90f;
 
     [SerializeField] private float _attackDamage = 25f;
     [SerializeField] private float _attackCooldown = 1.5f;
-    [SerializeField] private LayerMask _enemyLayer = 1;
 
     [Header("넉백 설정")]
     [SerializeField] private float _knockbackDuration = 0.3f;
 
     [Header("레이어 설정")]
     [SerializeField] private LayerMask _groundLayer = ~0;
+
+    [Header("디버그")]
+    [SerializeField] private bool _enableDebugLogs = false;
 
     #region 초기화
 
@@ -82,6 +85,8 @@ public class PlayerNavController : MonoBehaviour
 
         // 기본 이동속도 저장
         _baseSpeed = _agent.speed;
+
+        Log("초기화 완료");
     }
 
     private void Start()
@@ -131,7 +136,7 @@ public class PlayerNavController : MonoBehaviour
         _pendingInteraction = null;
         _interactionCoroutine = null;
 
-        Debug.Log("[PlayerNavController] 사망 - 모든 행동 정지");
+        Log("사망 - 모든 행동 정지");
     }
 
     /// <summary>
@@ -201,7 +206,7 @@ public class PlayerNavController : MonoBehaviour
             HandleLeftClick();
         }
 
-        // ✅ 공격 불가 상태 체크
+        // 공격 불가 상태 체크
         if (_stateController != null && !_stateController.CanAttack)
         {
             return;
@@ -280,14 +285,16 @@ public class PlayerNavController : MonoBehaviour
             }
 
             // 전방 원뿔 범위 내 적 탐색
-            List<Transform> enemiesInFront = GetEnemiesInFrontCone();
+            List<EnemyController> enemiesInFront = GetEnemiesInFrontCone();
 
             if (enemiesInFront.Count > 0)
             {
+                Log($"우클릭 공격: {enemiesInFront.Count}명의 적 발견!");
                 PerformMultiAttack(enemiesInFront);
             }
             else
             {
+                Log("우클릭 공격: 범위 내 적 없음 - 헛스윙");
                 PerformAttack(null);
             }
         }
@@ -295,26 +302,42 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 전방 원뿔 범위 내 적 탐색
+    /// 스킬 시스템과 동일한 방식: EnemyController 직접 검색
     /// </summary>
-    private List<Transform> GetEnemiesInFrontCone()
+    private List<EnemyController> GetEnemiesInFrontCone()
     {
-        List<Transform> validEnemies = new List<Transform>();
+        List<EnemyController> validEnemies = new List<EnemyController>();
 
-        Collider[] enemies = Physics.OverlapSphere(transform.position, _attackRange, _enemyLayer);
+        // OverlapSphere로 범위 내 모든 Collider 찾기
+        Collider[] colliders = Physics.OverlapSphere(transform.position, _attackRange);
 
-        foreach (Collider enemy in enemies)
+        Log($"적 탐색: OverlapSphere 결과 {colliders.Length}개 Collider");
+
+        foreach (Collider col in colliders)
         {
-            Vector3 directionToEnemy = enemy.transform.position - transform.position;
-            directionToEnemy.y = 0;
+            // ✅ 스킬과 동일: EnemyController 직접 가져오기
+            EnemyController enemy = col.GetComponent<EnemyController>();
 
-            float angleToEnemy = Vector3.Angle(transform.forward, directionToEnemy);
-
-            if (angleToEnemy <= _attackAngle / 2f)
+            if (enemy != null)
             {
-                validEnemies.Add(enemy.transform);
+                Vector3 directionToEnemy = enemy.transform.position - transform.position;
+                directionToEnemy.y = 0;
+
+                float angleToEnemy = Vector3.Angle(transform.forward, directionToEnemy);
+
+                if (angleToEnemy <= _attackAngle / 2f)
+                {
+                    validEnemies.Add(enemy);
+                    Log($"적 추가: {enemy.name}, 각도: {angleToEnemy:F1}°");
+                }
+                else
+                {
+                    Log($"범위 밖: {enemy.name}, 각도: {angleToEnemy:F1}°");
+                }
             }
         }
 
+        Log($"최종 적 수: {validEnemies.Count}명");
         return validEnemies;
     }
 
@@ -357,14 +380,14 @@ public class PlayerNavController : MonoBehaviour
     /// <summary>
     /// 단일 공격 (헛스윙용)
     /// </summary>
-    private void PerformAttack(Transform target)
+    private void PerformAttack(EnemyController target)
     {
         if (_isAttacking || _isOnCooldown || _isDead) return;
 
         // 공격 불가 상태 체크
         if (_stateController != null && !_stateController.CanAttack)
         {
-            Debug.Log("[공격] 공격 불가 상태");
+            Log("공격 불가 상태");
             return;
         }
 
@@ -374,14 +397,14 @@ public class PlayerNavController : MonoBehaviour
     /// <summary>
     /// 다중 공격 (범위 내 모든 적)
     /// </summary>
-    private void PerformMultiAttack(List<Transform> targets)
+    private void PerformMultiAttack(List<EnemyController> targets)
     {
         if (_isAttacking || _isOnCooldown || _isDead) return;
 
         // 공격 불가 상태 체크
         if (_stateController != null && !_stateController.CanAttack)
         {
-            Debug.Log("[공격] 공격 불가 상태");
+            Log("공격 불가 상태");
             return;
         }
 
@@ -391,7 +414,7 @@ public class PlayerNavController : MonoBehaviour
     /// <summary>
     /// 단일 공격 시퀀스
     /// </summary>
-    private IEnumerator AttackSequence(Transform target)
+    private IEnumerator AttackSequence(EnemyController target)
     {
         _isAttacking = true;
         _isOnCooldown = true;
@@ -401,15 +424,12 @@ public class PlayerNavController : MonoBehaviour
 
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
-        // 데미지 적용
+        // 데미지 적용 - 스킬과 동일한 방식
         if (target != null && !_isDead)
         {
-            IDamageable damageable = target.GetComponent<IDamageable>();
-            if (damageable != null)
-            {
-                float damage = CalculateDamage();
-                damageable.TakeDamage(damage);
-            }
+            float damage = CalculateDamage();
+            target.TakeDamage(damage);
+            Log($"단일 공격: {target.name}에게 {damage:F1} 데미지!");
         }
 
         yield return new WaitForSeconds(_attackAnimationDuration - ATTACK_DAMAGE_TIMING);
@@ -428,8 +448,9 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 다중 공격 시퀀스
+    /// 스킬 시스템과 동일한 방식으로 데미지 적용
     /// </summary>
-    private IEnumerator MultiAttackSequence(List<Transform> targets)
+    private IEnumerator MultiAttackSequence(List<EnemyController> targets)
     {
         _isAttacking = true;
         _isOnCooldown = true;
@@ -445,21 +466,19 @@ public class PlayerNavController : MonoBehaviour
             float damage = CalculateDamage();
             int hitCount = 0;
 
-            foreach (Transform target in targets)
+            foreach (EnemyController enemy in targets)
             {
-                if (target == null) continue;
+                if (enemy == null) continue;
 
-                IDamageable damageable = target.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(damage);
-                    hitCount++;
-                }
+                // ✅ 스킬과 동일: EnemyController.TakeDamage() 직접 호출
+                enemy.TakeDamage(damage);
+                hitCount++;
+                Log($"다중 공격: {enemy.name}에게 {damage:F1} 데미지!");
             }
 
             if (hitCount > 0)
             {
-                Debug.Log($"{hitCount}명의 적 공격!");
+                Debug.Log($"[PlayerNavController] 다중 공격 완료: 총 {hitCount}명 타격!");
             }
         }
 
@@ -478,11 +497,15 @@ public class PlayerNavController : MonoBehaviour
     }
 
     /// <summary>
-    /// 데미지 계산 (방어력 약화 적용)
+    /// 데미지 계산
+    /// 스킬과 동일한 공식 사용
     /// </summary>
     private float CalculateDamage()
     {
-        // 주요 스탯 보너스 적용
+        if (_playerCharacter == null)
+            return _attackDamage;
+
+        // 주요 스탯 보너스 적용 (스킬과 동일)
         int mainStat = _playerCharacter.GetMainStat();
         float damage = _attackDamage * (1f + mainStat / 100f);
 
@@ -491,15 +514,7 @@ public class PlayerNavController : MonoBehaviour
         if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
             damage *= (1f + stats.CriticalDamage / 100f);
-            Debug.Log("크리티컬 히트!");
-        }
-
-        // 방어력 약화 상태 체크
-        if (_stateController != null && _stateController.IsWeakened)
-        {
-            float defenseMultiplier = _stateController.GetDefenseMultiplier();
-            // TODO: 적의 방어력 계산에 적용 (현재는 플레이어 데미지만 계산)
-            Debug.Log($"[약화] 방어력 배율: {defenseMultiplier:P0}");
+            Debug.Log("[PlayerNavController] 크리티컬 히트!");
         }
 
         return damage;
@@ -527,7 +542,7 @@ public class PlayerNavController : MonoBehaviour
         }
         else if (distance <= _attackRange && !_isAttacking && !_isOnCooldown)
         {
-            List<Transform> enemies = GetEnemiesInFrontCone();
+            List<EnemyController> enemies = GetEnemiesInFrontCone();
             if (enemies.Count > 0)
             {
                 PerformMultiAttack(enemies);
@@ -559,7 +574,7 @@ public class PlayerNavController : MonoBehaviour
             _pendingInteraction = null;
         }
 
-        Debug.Log("[PlayerNavController] 강제 정지");
+        Log("강제 정지");
     }
 
     /// <summary>
@@ -601,7 +616,7 @@ public class PlayerNavController : MonoBehaviour
             _agent.enabled = true;
         }
 
-        Debug.Log($"[넉백] {power}m 밀려남");
+        Log($"넉백: {power}m 밀려남");
     }
 
     /// <summary>
@@ -627,7 +642,15 @@ public class PlayerNavController : MonoBehaviour
 
     #endregion
 
-    #region 디버그 시각화
+    #region 디버그
+
+    private void Log(string message)
+    {
+        if (_enableDebugLogs)
+        {
+            Debug.Log($"[PlayerNavController] {message}");
+        }
+    }
 
     private void OnDrawGizmosSelected()
     {
@@ -684,17 +707,17 @@ public class PlayerNavController : MonoBehaviour
 
     private void DrawEnemiesInCone()
     {
-        List<Transform> enemiesInCone = GetEnemiesInFrontCone();
+        List<EnemyController> enemiesInCone = GetEnemiesInFrontCone();
 
-        foreach (Transform enemy in enemiesInCone)
+        foreach (EnemyController enemy in enemiesInCone)
         {
             if (enemy == null) continue;
 
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, enemy.position);
+            Gizmos.DrawLine(transform.position, enemy.transform.position);
 
             Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
-            Gizmos.DrawSphere(enemy.position, 0.5f);
+            Gizmos.DrawSphere(enemy.transform.position, 0.5f);
         }
     }
 

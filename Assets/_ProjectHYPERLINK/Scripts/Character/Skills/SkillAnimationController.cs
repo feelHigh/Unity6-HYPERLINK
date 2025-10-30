@@ -10,6 +10,10 @@ using DG.Tweening;
 /// - CalculateActualDashDistance(): 모드별 대시 거리 결정
 /// - GetMousePositionDistance(): 마우스까지 수평 거리 계산
 /// 
+/// AOE 크기 설정:
+/// - Sphere: SphereRadius 사용
+/// - Box: BoxSize 사용
+/// 
 /// 수정사항 (스킬 회전 문제 해결):
 /// - HandleSkillExecuted()에서 회전 전에 NavMeshAgent 제어
 /// - NavMeshAgent.updateRotation 비활성화/재활성화 로직 추가
@@ -113,7 +117,7 @@ public class SkillAnimationController : MonoBehaviour
 
         CleanupDashTween();
 
-        // ✅ 추가: NavMeshAgent 상태 복원
+        // NavMeshAgent 상태 복원
         if (_navAgent != null && _navAgent.enabled)
         {
             _navAgent.updateRotation = true;
@@ -185,7 +189,7 @@ public class SkillAnimationController : MonoBehaviour
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
-            _navAgent.updateRotation = false;  // ✅ 추가: 사망 시 회전 비활성화
+            _navAgent.updateRotation = false;  // 사망 시 회전 비활성화
         }
 
         if (_skillCoroutine != null)
@@ -507,7 +511,8 @@ public class SkillAnimationController : MonoBehaviour
 
         if (skill.AoeShape == AOEShape.Sphere)
         {
-            hits = Physics.OverlapSphere(centerPosition, skill.Range);
+            // Range 대신 SphereRadius 사용
+            hits = Physics.OverlapSphere(centerPosition, skill.SphereRadius);
         }
         else
         {
@@ -642,7 +647,8 @@ public class SkillAnimationController : MonoBehaviour
 
             if (_currentSkill.AoeShape == AOEShape.Sphere)
             {
-                Gizmos.DrawWireSphere(centerPosition, _currentSkill.Range);
+                // Range 대신 SphereRadius 사용
+                Gizmos.DrawWireSphere(centerPosition, _currentSkill.SphereRadius);
             }
             else
             {

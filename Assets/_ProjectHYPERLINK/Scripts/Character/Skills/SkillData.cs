@@ -7,6 +7,10 @@ using DG.Tweening;
 /// 대시 거리 모드:
 /// - Fixed: 고정 거리 (_dashDistance 사용)
 /// - MouseDistance: 마우스까지 거리 기반 (_minDashDistance ~ _maxDashDistance)
+/// 
+/// AOE 크기 설정:
+/// - Sphere: _sphereRadius로 반지름 설정
+/// - Box: _boxSize로 크기 설정
 /// </summary>
 [CreateAssetMenu(fileName = "SkillData", menuName = "Character/Skill Data")]
 public class SkillData : ScriptableObject
@@ -52,7 +56,10 @@ public class SkillData : ScriptableObject
     [Tooltip("AOE 생성 위치 오프셋 (플레이어 로컬 좌표)")]
     [SerializeField] private Vector3 _aoeOffset = Vector3.zero;
 
-    [Tooltip("Box 형태일 때만 사용 - 박스 크기")]
+    [Tooltip("Sphere 형태일 때 반지름")]
+    [SerializeField] private float _sphereRadius = 5f;
+
+    [Tooltip("Box 형태일 때 박스 크기")]
     [SerializeField] private Vector3 _boxSize = new Vector3(3f, 2f, 4f);
 
     [Header("VFX 설정")]
@@ -135,6 +142,7 @@ public class SkillData : ScriptableObject
     public AOEShape AoeShape => _aoeShape;
     public float DamagePointTiming => _damagePointTiming;
     public Vector3 AoeOffset => _aoeOffset;
+    public float SphereRadius => _sphereRadius;
     public Vector3 BoxSize => _boxSize;
     public float AnimationDuration => _animationDuration;
     public bool UseRootMotion => _useRootMotion;
@@ -203,7 +211,13 @@ public class SkillData : ScriptableObject
             if (_range <= 0)
                 Debug.LogWarning($"[{_skillName}] Range > 0이어야 합니다!", this);
 
-            if (_aoeShape == AOEShape.Box)
+            // Sphere AOE 검증
+            if (_aoeShape == AOEShape.Sphere)
+            {
+                _sphereRadius = Mathf.Max(0.1f, _sphereRadius);
+            }
+            // Box AOE 검증
+            else if (_aoeShape == AOEShape.Box)
             {
                 _boxSize.x = Mathf.Max(0.1f, _boxSize.x);
                 _boxSize.y = Mathf.Max(0.1f, _boxSize.y);
