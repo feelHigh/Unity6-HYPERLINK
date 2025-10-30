@@ -34,9 +34,9 @@ MonoBehaviour:
   _vfxRotationOffset: {x: 0, y: 0, z: 180}
   _vfxLifetime: 0.3
   _animationDuration: 1
-  _useRootMotion: 1
+  _useRootMotion: 0
   _dashDistanceMode: 0
-  _dashDistance: 5
+  _dashDistance: 1
   _minDashDistance: 2
   _maxDashDistance: 8
   _dashDuration: 0.3

@@ -45,7 +45,7 @@ public class SkillAnimationController : MonoBehaviour
     private Vector3 _lastRaycastEnd;
     private bool _lastRaycastHit;
 
-    // [NEW] 마우스 거리 디버그
+    // 마우스 거리 디버그
     private Vector3 _lastMouseWorldPosition;
     private float _lastCalculatedDistance;
 
