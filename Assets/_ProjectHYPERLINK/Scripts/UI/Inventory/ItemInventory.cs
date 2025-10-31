@@ -106,6 +106,13 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         _startPosition = coners[1];
     }
 
+    public void SetStartPos()
+    {
+        Vector3[] coners = new Vector3[4];
+        _inventory[0].Icon.rectTransform.GetWorldCorners(coners);
+        _sideLength = coners[3].x - coners[1].x;
+        _startPosition = coners[1];
+    }
     /// <summary>
     /// 아이템을 인벤토리에 추가
     /// ItemPickupManager에서 호출

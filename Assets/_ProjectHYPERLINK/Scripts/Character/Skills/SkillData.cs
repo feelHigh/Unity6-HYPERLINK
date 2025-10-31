@@ -4,13 +4,11 @@ using DG.Tweening;
 /// <summary>
 /// 스킬 데이터 ScriptableObject
 /// 
-/// 대시 거리 모드:
-/// - Fixed: 고정 거리 (_dashDistance 사용)
-/// - MouseDistance: 마우스까지 거리 기반 (_minDashDistance ~ _maxDashDistance)
+/// 새로운 데미지 시스템:
+/// 최종 데미지 = ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
 /// 
-/// AOE 크기 설정:
-/// - Sphere: _sphereRadius로 반지름 설정
-/// - Box: _boxSize로 크기 설정
+/// 예시: Sian, Intelligence 10, 캐릭터 공격력 25
+/// ((25 × 10) + 15) × (1 + (10 × 0.01)) = 291.5
 /// </summary>
 [CreateAssetMenu(fileName = "SkillData", menuName = "Character/Skill Data")]
 public class SkillData : ScriptableObject
@@ -30,9 +28,18 @@ public class SkillData : ScriptableObject
     [Header("스킬 속성")]
     [SerializeField] private float _manaCost;
     [SerializeField] private float _cooldown;
-    [SerializeField] private float _damage;
     [SerializeField] private float _range;
     [SerializeField] private SkillType _skillType;
+
+    [Header("데미지 계산 파라미터")]
+    [Tooltip("스킬 배율 - 캐릭터 공격력에 곱해지는 값 (예: 10)")]
+    [SerializeField] private float _skillMultiplier = 1f;
+
+    [Tooltip("스킬 기본 데미지 - 계산 후 더해지는 고정 데미지 (예: 15)")]
+    [SerializeField] private float _skillBaseDamage = 0f;
+
+    [Tooltip("주요 스탯당 데미지 증가% - 주요 스탯 1당 증가하는 데미지 비율 (예: 0.01 = 1%)")]
+    [SerializeField] private float _mainStatDamageIncrease = 0.01f;
 
     [Header("원거리 스킬 설정 (Ranged 타입 전용)")]
     [Tooltip("투사체 프리팹 (Projectile 스크립트 포함 필수)")]
@@ -132,9 +139,14 @@ public class SkillData : ScriptableObject
     public int RequiredLevel => _requiredLevel;
     public float ManaCost => _manaCost;
     public float Cooldown => _cooldown;
-    public float Damage => _damage;
     public float Range => _range;
     public SkillType SkillType => _skillType;
+
+    // 새로운 데미지 계산 파라미터
+    public float SkillMultiplier => _skillMultiplier;
+    public float SkillBaseDamage => _skillBaseDamage;
+    public float MainStatDamageIncrease => _mainStatDamageIncrease;
+
     public GameObject ProjectilePrefab => _projectilePrefab;
     public float BuffAmount => _buffAmount;
     public float BuffDuration => _buffDuration;
@@ -161,7 +173,6 @@ public class SkillData : ScriptableObject
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
 
-
     // VFX 프로퍼티
     public GameObject VfxPrefab => _vfxPrefab;
     public float VfxSpawnTiming => _vfxSpawnTiming;
@@ -177,11 +188,15 @@ public class SkillData : ScriptableObject
         // 기본 검증
         _manaCost = Mathf.Max(0f, _manaCost);
         _cooldown = Mathf.Max(0f, _cooldown);
-        _damage = Mathf.Max(0f, _damage);
         _range = Mathf.Max(0f, _range);
         _buffAmount = Mathf.Max(0f, _buffAmount);
         _buffDuration = Mathf.Max(0f, _buffDuration);
         _animationDuration = Mathf.Max(0.1f, _animationDuration);
+
+        // 새로운 데미지 파라미터 검증
+        _skillMultiplier = Mathf.Max(0f, _skillMultiplier);
+        _skillBaseDamage = Mathf.Max(0f, _skillBaseDamage);
+        _mainStatDamageIncrease = Mathf.Max(0f, _mainStatDamageIncrease);
 
         // DOTween 대시 검증
         _dashDistance = Mathf.Max(0f, _dashDistance);

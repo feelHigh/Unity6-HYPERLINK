@@ -75,6 +75,7 @@ public class InventoryItemEventHandler : MonoBehaviour
         _dragItem.Spawn(item);
         if (ownerSlot is InventorySlot slot)
             _inventory.OnBeginDrag(slot);
+        _inventory.SetStartPos();
     }
 
     /// <summary>
