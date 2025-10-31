@@ -119846,7 +119846,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6341c2470fad1e4fb3616f15e38ac9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _delay: 1.5
+  _delay: 1
   _radius: 3
   _playerLayerMask:
     serializedVersion: 2
