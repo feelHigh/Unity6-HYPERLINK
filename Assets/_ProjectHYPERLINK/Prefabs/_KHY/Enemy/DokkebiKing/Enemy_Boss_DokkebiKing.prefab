@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2595277584398912242}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-hand.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -44,9 +44,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5293008119221024534}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.01.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -76,9 +76,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8422186521430154108}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.02.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -108,9 +108,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8829941858386608636}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.003
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -144,9 +144,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3626688367708139753}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.02.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -176,9 +176,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1699743793413039228}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.02.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -208,9 +208,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 289475155164636962}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-forearm.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -240,9 +240,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8604804290391362869}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-upper_arm.R.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -272,9 +272,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6781891104147520638}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shin.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -304,9 +304,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3378956657723401138}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-upper_arm.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -337,9 +337,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3524228465284207149}
   - component: {fileID: 3477458586809430105}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Eye_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -489,9 +489,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 562989528170292164}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thigh.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -526,9 +526,9 @@ GameObject:
   - component: {fileID: 5851692400716248643}
   - component: {fileID: -729229560652725796}
   - component: {fileID: 7569660838358475634}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Enemy_Boss_DokkebiKing
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -640,6 +640,7 @@ MonoBehaviour:
   _dropChance: 0.5
   _group: {fileID: 0}
   _specialAttack: {fileID: 0}
+  _epicOrbs: []
 --- !u!114 &7569660838358475634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,7 +660,10 @@ MonoBehaviour:
   _target: {fileID: 0}
   _playerLayerMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 1024
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 2048
   _basicAttack: 0
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 6447629479624633351}
@@ -674,9 +678,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 649842729231020502}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shin.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -706,9 +710,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 408638133065334330}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.03.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -737,9 +741,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6934808278361610955}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.02.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -769,9 +773,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8571750177206296444}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shoulder.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -801,9 +805,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3769763172819462268}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-foot.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -833,9 +837,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6977979809989608312}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.002
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -865,9 +869,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9163494494452427615}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.02.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -897,9 +901,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2390807435265106630}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.02.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -929,9 +933,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5187571980246512072}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.01.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -961,9 +965,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5128128804722834824}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.01.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -993,9 +997,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5975789695233214744}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.01.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1025,9 +1029,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 293745059433623539}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-forearm.R.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1057,9 +1061,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1801881011006130015}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.03.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1089,9 +1093,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5572130700355789895}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shoulder.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1121,9 +1125,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 610613818655816687}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.01.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1154,9 +1158,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2460937231446493094}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.03.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1185,9 +1189,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 96491314892503409}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.03.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1216,9 +1220,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6841247460862676111}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.004
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1248,9 +1252,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1639110502601434888}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.01.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1282,9 +1286,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5558418890150951721}
   - component: {fileID: 6954848160101729175}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Teeth_Top_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1434,9 +1438,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4780530900809456126}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-palm.03.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1466,9 +1470,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1506593665609159538}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-upper_arm.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1498,9 +1502,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6473882108824383596}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-breast.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1529,9 +1533,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2703641872034884206}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-pelvis.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1560,9 +1564,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2823817755024717915}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-pelvis.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1591,9 +1595,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8925987488523667226}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.02.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1623,9 +1627,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7267039749333632808}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-forearm.L.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1655,9 +1659,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1671501223343204902}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-upper_arm.L.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1687,9 +1691,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1084302399990755891}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-foot.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1719,9 +1723,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5976701187442084894}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-forearm.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1751,9 +1755,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1353727606712953694}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.02.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1783,9 +1787,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5891690075458038551}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.03.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1814,9 +1818,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 295417541959783239}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-toe.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1845,9 +1849,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7545927463403035316}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-hand.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1879,9 +1883,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3475045524074447784}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.02.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1911,9 +1915,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 728211104776051170}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1947,9 +1951,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5481274241891513180}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.01.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1980,9 +1984,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8306610319586308189}
   - component: {fileID: 1107357289539069086}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Teeth_Down_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2132,9 +2136,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1543995953618949599}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.03.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2163,9 +2167,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 567686973949293723}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.01.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2195,9 +2199,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6803708397472229869}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-breast.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2226,9 +2230,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7170180649993876109}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shin.L.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2258,9 +2262,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3407003132653013410}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thigh.L.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2290,9 +2294,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4886158925898499365}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2322,9 +2326,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7461145900926531154}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.03.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2353,9 +2357,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4700841936620967653}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-shin.R.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2385,9 +2389,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5575273516886512134}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_middle.01.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2417,9 +2421,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8141022853361872890}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: rig_deform
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2449,9 +2453,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7536697180244292523}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.006
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2480,9 +2484,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9142252767274376068}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_index.03.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2512,9 +2516,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8825470202491175364}
   - component: {fileID: 6257229213802598135}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Low_Poly.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2664,9 +2668,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2534191033569813485}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-toe.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2695,9 +2699,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3804241339499653154}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thigh.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2727,9 +2731,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5309130420495796136}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-f_ring.01.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2759,9 +2763,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6484002345099445571}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-spine.005
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2791,9 +2795,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2050585317947368815}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thigh.R.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2824,9 +2828,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8261171705244290589}
   - component: {fileID: 2976886613627857100}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Tongue_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2976,9 +2980,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1938743400665573130}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.02.L
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3010,7 +3014,7 @@ GameObject:
   - component: {fileID: 8320224982996511797}
   - component: {fileID: 8042390965731841355}
   - component: {fileID: 6447629479624633351}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: TargetDetector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3075,9 +3079,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7971156860266460024}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DEF-thumb.03.R
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3107,9 +3111,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1341335945037661309}
   - component: {fileID: 3762034308794171483}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Pants_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3260,9 +3264,9 @@ GameObject:
   m_Component:
   - component: {fileID: 433188433542790324}
   - component: {fileID: 5909551022964607803}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Horn_Lp.001
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3414,6 +3418,14 @@ PrefabInstance:
     - target: {fileID: 2599200476275698572, guid: ad5f766836bac4e4c863d185cd424928, type: 3}
       propertyPath: m_Name
       value: Club_DokkebiKing
+      objectReference: {fileID: 0}
+    - target: {fileID: 2599200476275698572, guid: ad5f766836bac4e4c863d185cd424928, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2599200476275698572, guid: ad5f766836bac4e4c863d185cd424928, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 2979139747491054217, guid: ad5f766836bac4e4c863d185cd424928, type: 3}
       propertyPath: m_LocalPosition.x

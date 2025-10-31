@@ -495,6 +495,9 @@ MonoBehaviour:
   _playerLayerMask:
     serializedVersion: 2
     m_Bits: 1024
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 2048
   _basicAttack: 1
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 0}

@@ -20,7 +20,7 @@ MonoBehaviour:
     m_Bits: 1024
   _cachedFirePos: {fileID: 0}
   _meleeAttackEffect: {fileID: 486288787791865395, guid: 4e94acbb46e4c15468f630be506225cd, type: 3}
-  _coneAngle: 60
+  _coneAngle: 75
   _coneRange: 5
   _projectilePrefab: {fileID: 1892502001658377723, guid: b5a6c68834dd2614e9805a3c439af95c, type: 3}
   _projectileSpeed: 12

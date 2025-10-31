@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -11,14 +12,15 @@ public class EnemyController : MonoBehaviour, IDamageable
     [SerializeField] EnemyData _data;       //적 데이터
 
     [Header("----- 드랍 설정 -----")]
-    [SerializeField] private ItemDropTableData _dropTable;         // 아이템 드랍 테이블
-    [SerializeField][Range(0f, 1f)] private float _dropChance = 0.5f;  // 드랍 확률 (50%)
+    [SerializeField] private ItemDropTableData _dropTable;              // 아이템 드랍 테이블
+    [SerializeField][Range(0f, 1f)] private float _dropChance = 0.5f;   // 드랍 확률 (50%)
 
     [Header("----- 현재 속한 그룹 -----")]
     [SerializeField] EnemyGroup _group;     //현재 속한 그룹
 
     [Header("----- 에픽 몬스터 -----")]
     [SerializeField] SpecialAttackBase _specialAttack;  //특수 공격 데이터
+    [SerializeField] List<GameObject> _epicOrbs = new List<GameObject>();   //에픽 몬스터 오브 이펙트 리스트
 
     // 이벤트 //
     public event Action OnInitialized;      //초기화 완료 이벤트
@@ -80,6 +82,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
                     GameObject orbGO = Instantiate(_specialAttack.EpicEffect, transform);
                     orbGO.transform.localRotation = Quaternion.identity;
+                    _epicOrbs.Add(orbGO);
 
                     EffectOrbit orb = orbGO.GetComponent<EffectOrbit>();
 
@@ -122,6 +125,17 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //콜라이더 비활성화
         GetComponent<Collider>().enabled = false;
+
+        //에픽 몬스터라면 오브 이펙트 파괴
+        if (_isEpic)
+        {
+            foreach (GameObject orb in _epicOrbs)
+            {
+                Destroy(orb);
+            }
+
+            _epicOrbs.Clear();
+        }
 
         //보상 지급
         //경험치

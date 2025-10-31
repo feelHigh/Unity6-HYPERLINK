@@ -53,6 +53,11 @@ public class TargetDetector : MonoBehaviour
         if (_detectorColl != null)
         {
             _detectorColl.enabled = true;
+            Debug.Log("[TergetDetector] 콜라이더 활성화");
+        }
+        else
+        {
+            Debug.Log("[TergetDetector] 콜라이더가 없습니다.");
         }
     }
     
@@ -69,9 +74,12 @@ public class TargetDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log(other.gameObject.name + other.gameObject.transform);
+
         //플레이어와 충돌했을 때
         if (other.CompareTag("Player"))
         {
+            Debug.Log("[TergetDetector] 플레이어 감지");
             PlayerCombat player = other.GetComponent<PlayerCombat>();
 
             if (player != null)
@@ -99,6 +107,10 @@ public class TargetDetector : MonoBehaviour
                 {
                     Destroy(gameObject);
                 }
+            }
+            else
+            {
+                Debug.Log("[TergetDetector] PlayerCombat을 찾을 수 없습니다.");
             }
         }
         //적 동료는 무시

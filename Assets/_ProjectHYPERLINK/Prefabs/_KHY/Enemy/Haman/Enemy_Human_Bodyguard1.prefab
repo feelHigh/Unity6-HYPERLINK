@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 6170788990169084115}
   - component: {fileID: 7227488842599461735}
   - component: {fileID: 8398267240819206181}
-  m_Layer: 0
+  - component: {fileID: 6207607046159829383}
+  m_Layer: 11
   m_Name: TargetDetector
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -48,7 +49,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -67,6 +68,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _detectorColl: {fileID: 7227488842599461735}
+--- !u!54 &6207607046159829383
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122005806792800465}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &126255941005956339
 GameObject:
   m_ObjectHideFlags: 0
@@ -76,9 +104,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5664289186349641162}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftUpLeg
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -109,9 +137,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1957596832619112029}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandMiddle3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -141,9 +169,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1949424543287945947}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandMiddle3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -173,9 +201,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1948683028912907779}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandRing2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -205,9 +233,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7063390816107606439}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightLegRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -236,9 +264,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6481825525074399233}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightShoulder
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -268,9 +296,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6914020608787359025}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightUpLeg
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -301,9 +329,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2690331148037460320}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftForeArm
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -334,9 +362,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2276964861249126491}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightToeBase
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -366,9 +394,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6957202808327587675}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Spine1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -400,9 +428,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 662354961245714429}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandMiddle1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -437,7 +465,7 @@ GameObject:
   - component: {fileID: 6686947072017730056}
   - component: {fileID: 8094236093037867607}
   - component: {fileID: 4947353065973579577}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Enemy_Human_Bodyguard1
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -569,6 +597,9 @@ MonoBehaviour:
   _playerLayerMask:
     serializedVersion: 2
     m_Bits: 1024
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 2048
   _basicAttack: 0
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 8398267240819206181}
@@ -583,9 +614,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3134784109542402291}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandRing4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -614,9 +645,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3374805258941848571}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightForeArmRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -645,9 +676,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4514493388342747529}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandPinky3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -677,9 +708,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 488326310643520926}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftLeg
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -710,9 +741,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 736571463319301597}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Hips
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -744,9 +775,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1391902027094213071}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandPinky1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -776,9 +807,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3666753287739991710}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandIndex4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -808,9 +839,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3959508528785426505}
   - component: {fileID: 4669471420296986745}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BodyGuard_Pants
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -903,9 +934,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 248871069691127285}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftArm
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -936,9 +967,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2423137492493803047}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandThumb3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -968,9 +999,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2832748754092829336}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandIndex3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1000,9 +1031,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2643319128840752451}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftToeBase
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1032,9 +1063,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5631949872502035892}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightArmRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1063,9 +1094,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6070498572727638647}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandRing1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1095,9 +1126,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1722712427040828704}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Root
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1128,9 +1159,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8893576743252108610}
   - component: {fileID: 8193776544674234917}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bodyguard04_head
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1219,9 +1250,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5154046223454372515}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandProp
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1250,9 +1281,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4463728488980114605}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandProp
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1281,9 +1312,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4392996685202918743}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftLegRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1312,9 +1343,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4545204159411747291}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandPinky4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1343,9 +1374,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1274447318629777077}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandRing2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1375,9 +1406,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 451592351037965063}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftToeBase_END
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1406,9 +1437,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5113562817927124186}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandPinky1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1438,9 +1469,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 832916276066553014}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandIndex2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1470,9 +1501,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 140178607650006158}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandThumb1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1502,9 +1533,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9121852961177897507}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandThumb4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1533,9 +1564,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7908799538339114261}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandThumb1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1565,9 +1596,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 203669979972863711}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightForeArm
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1598,9 +1629,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3893170028541975201}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHand
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1635,9 +1666,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6954929452698683338}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Spine
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1667,9 +1698,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4191621373334732741}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightFoot
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1699,9 +1730,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5829014397803600052}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandPinky2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1731,9 +1762,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6408980920862670796}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftUpLegRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1763,9 +1794,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4223921037953933778}
   - component: {fileID: 3793732956530898941}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BodyGuard04_Torso
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1868,9 +1899,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2748139706687774618}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandThumb3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1900,9 +1931,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1782235118395792220}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightUpLegRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1931,9 +1962,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3946676600353904926}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandIndex1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1963,9 +1994,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7477243127428848483}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightArm
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1996,9 +2027,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7930788464666332137}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandPinky3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2028,9 +2059,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4196348864239659233}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandRing1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2060,9 +2091,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2283199097136721784}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandIndex1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2092,9 +2123,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 680020477095103549}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandThumb4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2123,9 +2154,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7362067085567486813}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandThumb2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2155,9 +2186,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8976568711504167809}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandRing3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2187,9 +2218,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2368413039804949622}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftForeArmRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2219,9 +2250,9 @@ GameObject:
   m_Component:
   - component: {fileID: 644631393109784234}
   - component: {fileID: 990413275975898870}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BodyGuard_Hands
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2350,9 +2381,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6140931748108431488}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftShoulder
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2382,9 +2413,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 486541797689990803}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandIndex3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2414,9 +2445,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2523610723302458125}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftArmRoll
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2445,9 +2476,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 336420615000171474}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightToeBase_END
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2476,9 +2507,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7645745601060846694}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandRing4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2507,9 +2538,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6364412398342310715}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandPinky4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2539,9 +2570,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1169198382685728269}
   - component: {fileID: 5778697848227592463}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: BodyGuard_Shoes
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2632,9 +2663,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2848698385811580817}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandPinky2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2664,9 +2695,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4236338811920447025}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandMiddle1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2696,9 +2727,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1525130565660098545}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Head
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2727,9 +2758,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8173840307235530085}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftFoot
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2759,9 +2790,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 896444133039628695}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandMiddle4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2790,9 +2821,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6907858346942187301}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandMiddle2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2822,9 +2853,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5066916330255749396}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandThumb2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2854,9 +2885,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1877190851085095408}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandMiddle4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2885,9 +2916,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1725610109544620199}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Neck
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2918,9 +2949,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4957905162181326913}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandMiddle2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2950,9 +2981,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4070146525690663620}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHand
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2988,9 +3019,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3117110045948993901}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandIndex2
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3020,9 +3051,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4248988982555931445}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightLeg
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3053,9 +3084,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4953795037689913813}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandIndex4
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3084,9 +3115,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3944457107877938019}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RightHandRing3
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3115,9 +3146,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1725610109544620199}
     m_Modifications:
+    - target: {fileID: 509868129928337461, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3931281521416738368, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 4056215239200377803, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
       propertyPath: m_Name
       value: Enemy_Human_BaseEffect
+      objectReference: {fileID: 0}
+    - target: {fileID: 4056215239200377803, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4056215239200377803, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221806799167643054, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7303375492653845048, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8290123477075992558, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
       propertyPath: m_LocalPosition.x

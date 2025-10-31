@@ -33,6 +33,7 @@ public class EnemyAI : MonoBehaviour
     [Header("----- 전투 -----")]
     [SerializeField] Transform _target;                 //타겟(플레이어) 트랜스폼
     [SerializeField] LayerMask _playerLayerMask;        //플레이어 레이어 마스크
+    [SerializeField] LayerMask _enemyLayerMask;        //적 레이어 마스크
     [SerializeField] BasicAttackType _basicAttack;      //일반 공격 타입
     [SerializeField] SpecialAttackBase _specialAttack;  //특수 공격 데이터
 
@@ -54,6 +55,9 @@ public class EnemyAI : MonoBehaviour
     float _backToSpawnTimer;        //원위치로 돌아가기까지의 타이머
     float _pathCheckTimer;          //NavMesh 길을 체크하는 타이머
     int _pathCheckCount = 0;        //NavMesh 길을 체크한 횟수
+
+    bool _isFlakingToAttack = false;//우회 이동 중인지 여부
+    Vector3 _curFlankTarget;        //현재 우회 목표 위치
 
     // 애니메이터 파라미터 해시값 //
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");               //이동
@@ -190,9 +194,7 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
-        //경로가 유효하면 타겟을 따라가도록 설정
         _agent.isStopped = false;
-        _agent.SetDestination(_target.position);
 
         //0.5초마다 경로 유효성 확인
         _pathCheckTimer += Time.deltaTime;
@@ -224,6 +226,7 @@ public class EnemyAI : MonoBehaviour
         //자신과 타겟 사이의 거리 구하기
         float distance = Vector3.Distance(transform.position, _target.position);
 
+        //그룹이 null이 아니고, 어그로 상태가 아닐 때
         if (_controller.Group != null && !_controller.Group.HasAggro)
         {
             //자신과 타겟 사이의 거리가 감지 범위보다 크다면
@@ -240,8 +243,52 @@ public class EnemyAI : MonoBehaviour
         //자신과 타겟 사이의 거리가 공격 범위보다 작다면
         if (distance <= _data.AttackRange)
         {
-            //상태를 공격 상태로 변경
-            ChangeState(EnemyState.Attack);
+            //시야가 확보 됐을 때
+            if (HasLineOfSight(_target))
+            {
+                //우회 플래그 초기화
+                _isFlakingToAttack = false;
+
+                //agent 이동 초기화
+                _agent.isStopped = true;
+                _agent.ResetPath();
+
+                //상태를 공격 상태로 변경
+                ChangeState(EnemyState.Attack);
+                return;
+            }
+            //시야가 막혔을 때
+            else
+            {
+                //처음 시야 막힘 -> 새 우회 위치 탐색
+                if (!_isFlakingToAttack)
+                {
+                    _curFlankTarget = FindFlankPosition(_target.position, _data.AttackRange * 0.8f);
+                    _isFlakingToAttack = true;
+
+                    _agent.SetDestination(_curFlankTarget);
+
+                    Debug.Log("우회 위치로 이동 시도");
+                }
+                //이미 우회 이동 중일 때는 목표 우회 위치 유지
+                else
+                {
+                    float distanceToFlankTarget = Vector3.Distance(transform.position, _curFlankTarget);
+
+                    if (distanceToFlankTarget < 1.5f)
+                    {
+                        Debug.Log("우회 위치 도착, 새 위치 탐색");
+
+                        //플래그 초기화
+                        _isFlakingToAttack = false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            _isFlakingToAttack = false;
+            _agent.SetDestination(_target.position);
         }
     }
 
@@ -250,6 +297,7 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     void UpdateAttackState()
     {
+        //타겟이 null이면 대기 상태로 전환
         if (_target == null)
         {
             ChangeState(EnemyState.Idle);
@@ -259,7 +307,7 @@ public class EnemyAI : MonoBehaviour
         //자신과 타겟 사이의 거리 구하기
         float distance = Vector3.Distance(transform.position, _target.position);
 
-        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면
+        //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면 (공격 범위를 벗어났다면)
         if (distance > _data.AttackRange)
         {
             //상태를 추격 상태로 바꾸고 리턴
@@ -283,6 +331,7 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
+        //공격 중이면 리턴
         if (_isAttacking) return;
 
         //타겟을 바라보도록 설정
@@ -399,9 +448,12 @@ public class EnemyAI : MonoBehaviour
     {
         _isAttacking = true;
 
-        _agent.isStopped = true;
-        _agent.velocity = Vector3.zero;
-        _agent.ResetPath();
+        if (_curState == EnemyState.Attack)
+        {
+            _agent.isStopped = true;
+            _agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+        }
 
         yield return new WaitForSeconds(2f);
 
@@ -423,7 +475,8 @@ public class EnemyAI : MonoBehaviour
         {
             //타겟을 비우고
             _target = null;
-
+            //우회 플래그 초기화
+            _isFlakingToAttack = false;
             //네이게이션 경로 초기화
             _agent.ResetPath();
 
@@ -468,17 +521,74 @@ public class EnemyAI : MonoBehaviour
         Vector3 dir = targetPos - startPos;
         float distance = dir.magnitude;
 
+        int ignoreLayerMask = _playerLayerMask | _enemyLayerMask;
+
         //만약 발사한 레이캐스트가 플레이어를 제외한 다른 레이어에 맞았다면
-        if (Physics.Raycast(startPos, dir.normalized, out RaycastHit hit, distance, ~_playerLayerMask))
+        if (Physics.Raycast(startPos, dir.normalized, out RaycastHit hit, distance, ~ignoreLayerMask))
         {
-            //시야 막힘 레이 발사
+            //시야 막힘 반환
             Debug.DrawRay(startPos, dir.normalized * hit.distance, Color.red, 0.1f);
             return false;
         }
 
-        //장애물 없으면 시야 확보 성공
+        //장애물 없으면 시야 확보 반환
         Debug.DrawRay(startPos, dir.normalized * distance, Color.green, 0.1f);
         return true;
+    }
+
+    /// <summary>
+    /// 타겟 주변에서 시야가 확보된 위치를 찾는 함수
+    /// </summary>
+    /// <param name="targetPos">타겟 위치</param>
+    /// <param name="radius">타겟으로부터의 거리</param>
+    /// <returns></returns>
+    Vector3 FindFlankPosition(Vector3 targetPos, float radius)
+    {
+        //타겟을 중심으로 이동을 시도할 여러 각도
+        float[] angles = { 45f, -45f, 90f, -90f, 135f, -135f, 180f };
+
+        foreach (float angle in angles)
+        {
+            //타겟 방향 구하기
+            Vector3 dirToTarget = (targetPos - transform.position).normalized;
+
+            //해당 각도만큼 회전한 방향 계산
+            Quaternion rotation = Quaternion.Euler(0, angle, 0);
+            Vector3 offset = rotation * dirToTarget * radius;
+
+            //후보 위치 계산
+            Vector3 candidatePos = targetPos + offset;
+
+            //NavMesh에서 유효한 위치인지 확인
+            if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            {
+                if (CheckPath(hit.position))
+                {
+                    return hit.position;
+                }
+                /*
+                //해당 위치에서 타겟까지 경로가 있는지 확인
+                NavMeshPath path = new NavMeshPath();
+                if (NavMesh.CalculatePath(hit.position, targetPos, NavMesh.AllAreas, path)
+                    && path.status == NavMeshPathStatus.PathComplete)
+                {
+                    //해당 위치에서 타겟까지 시야가 확보되는지 임시 체크
+                    Vector3 checkStart = hit.position + Vector3.up * _heightOffset;
+                    Vector3 checkTarget = targetPos + Vector3.up * _heightOffset;
+                    Vector3 dir = checkTarget - checkStart;
+
+                    //장애물이 없으면 이 위치를 우회 위치로 선택
+                    if (!Physics.Raycast(checkStart, dir.normalized, dir.magnitude, ~_playerLayerMask))
+                    {
+                        return hit.position;
+                    }
+                }
+                */
+            }
+        }
+
+        Debug.Log("적절한 우회 위치를 찾지 못함");
+        return targetPos;
     }
     #endregion
 
