@@ -363,21 +363,70 @@ public class PlayerCharacter : MonoBehaviour
 
     #region 전투 및 리소스 관리
 
+    /// <summary>
+    /// 데미지 감소 계산
+    /// 
+    /// 공식: 최종 데미지 = IncomingDamage / (IncomingDamage + Armor × All Resistance)
+    /// 
+    /// 예시:
+    /// - Armor 100, All Resistance 10, 받는 데미지 1000
+    /// - 최종 = 1000 / (1000 + 100 × 10) = 1000 / 2000 = 500 (50% 감소)
+    /// </summary>
+    /// <param name="incomingDamage">받는 데미지</param>
+    /// <returns>감소 적용된 최종 데미지</returns>
+    private float CalculateDamageReduction(float incomingDamage)
+    {
+        CharacterStats stats = GetTotalStats();
+
+        float armor = stats.Armor;
+        float allResistance = stats.AllResistance;
+
+        // 방어력이 0이면 데미지 그대로 받음
+        float defenseValue = armor * allResistance;
+        if (defenseValue <= 0f)
+        {
+            return incomingDamage;
+        }
+
+        // 감소형 공식 적용
+        float reducedDamage = incomingDamage / (incomingDamage + defenseValue);
+
+        return reducedDamage;
+    }
+
+    /// <summary>
+    /// 데미지 받기
+    /// 
+    /// 처리 순서:
+    /// 1. 방어력 감소 적용: Damage / (Damage + Armor × All Resistance)
+    /// 2. 약화 상태 적용: 방어력 감소 시
+    /// 3. 최종 데미지로 체력 차감
+    /// </summary>
     public void TakeDamage(float amount)
     {
         if (!IsAlive) return;
 
-        float actualDamage = amount;
+        // 1. 방어력 기반 데미지 감소 계산
+        float reducedDamage = CalculateDamageReduction(amount);
+
+        // 2. 약화 상태 체크 (방어력 감소)
+        float finalDamage = reducedDamage;
         if (_stateController != null && _stateController.IsWeakened)
         {
             float defenseMultiplier = _stateController.GetDefenseMultiplier();
-            actualDamage = amount / defenseMultiplier;
-            Debug.Log($"[약화] 데미지 증가: {amount:F1} → {actualDamage:F1}");
+            finalDamage = reducedDamage / defenseMultiplier;
+
+            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {reducedDamage:F1} → 약화 적용: {finalDamage:F1}");
+        }
+        else
+        {
+            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {finalDamage:F1}");
         }
 
-        _currentHealth = Mathf.Max(0, _currentHealth - actualDamage);
+        // 3. 체력 차감
+        _currentHealth = Mathf.Max(0, _currentHealth - finalDamage);
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
-        OnPlayerHit?.Invoke(actualDamage);
+        OnPlayerHit?.Invoke(finalDamage);
 
         if (_currentHealth <= 0)
         {
