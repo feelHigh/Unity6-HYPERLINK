@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f84db572ed180b49bfed01810afcd8a, type: 3}
+  m_Name: MapConfig
+  m_EditorClassIdentifier: 
+  _groundPrefab: {fileID: 4742955903478519683, guid: c72c2253b902001449c50917ccc7a9ce, type: 3}
+  _normalMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+  _color:
+  - {r: 0, g: 0, b: 0, a: 1}
+  - {r: 1, g: 1, b: 0, a: 1}
+  - {r: 0, g: 0.6470318, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  _tileMaterials:
+  - {fileID: 2100000, guid: 57c62a4ec8ee21d47be8e192782e2c21, type: 2}
+  - {fileID: 2100000, guid: edd36163aa61d0a41bc406b83919aec2, type: 2}
+  - {fileID: 2100000, guid: e3edda85282e9764899541f0c47970d2, type: 2}
+  - {fileID: 2100000, guid: 670b2e49e49aba74f91815b3b42ae400, type: 2}
+  - {fileID: 2100000, guid: 873a33f11c275604dba489b7b08f40d6, type: 2}
+  - {fileID: 2100000, guid: 91dbaed3a61385c44b089a238ae6e954, type: 2}
+  _wallMaterials:
+  - {fileID: 2100000, guid: d6f74a6616bec444e9f7bc559e25e888, type: 2}
+  - {fileID: 2100000, guid: c4ab2b73a962b1142959b995a2119ec7, type: 2}
+  - {fileID: 2100000, guid: b8d0f5531da9c6b40b227881708fcd7a, type: 2}
+  - {fileID: 2100000, guid: 50206bdee04286b4f9dfc0b9364af840, type: 2}
+  - {fileID: 2100000, guid: 7c583890468183949bae98cab5f68de3, type: 2}
+  - {fileID: 2100000, guid: a6dde328453539345b8a56c776846b05, type: 2}
+  _doorPrefab: {fileID: 1761728152423473159, guid: 7c88d3e3fc20378488b735b01f5ddfe2, type: 3}
