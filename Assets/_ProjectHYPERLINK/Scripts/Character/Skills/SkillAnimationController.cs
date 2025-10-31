@@ -1,10 +1,17 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
 /// 스킬 애니메이션 컨트롤러
+/// 
+/// 리팩토링 변경사항:
+/// - PlaySkillAnimation() 메서드 단순화: switch-case 제거
+/// - SkillData의 AnimatorTriggerName을 직접 사용
+/// - 애니메이터 해시 캐싱 시스템 추가 (성능 최적화)
+/// - 새 스킬 추가 시 코드 수정 불필요
 /// 
 /// 마우스 거리 기반 대시:
 /// - CalculateActualDashDistance(): 모드별 대시 거리 결정
@@ -45,7 +52,7 @@ public class SkillAnimationController : MonoBehaviour
 
     private NavMeshAgent _navAgent;
     private PlayerCharacter _playerCharacter;
-    private PlayerNavController _navController;  // ✅ 추가
+    private PlayerNavController _navController;
     private Camera _mainCamera;
     private CharacterController _characterController;
 
@@ -63,9 +70,10 @@ public class SkillAnimationController : MonoBehaviour
     private Vector3 _lastMouseWorldPosition;
     private float _lastCalculatedDistance;
 
-    private static readonly int HASH_SKILL_JUDGEMENT = Animator.StringToHash("SkillJudgement");
-    private static readonly int HASH_SKILL_SWIFT_SLASH = Animator.StringToHash("SkillSwiftSlash");
-    private static readonly int HASH_SKILL_CONVICTION = Animator.StringToHash("SkillConviction");
+    // 애니메이터 해시 캐싱 시스템
+    private Dictionary<string, int> _animatorHashCache = new Dictionary<string, int>();
+
+    // 고정 애니메이션 해시 (Hit, Dead 등 플레이어 상태용)
     private static readonly int HASH_HIT = Animator.StringToHash("Hit");
     private static readonly int HASH_DEAD = Animator.StringToHash("Dead");
 
@@ -81,7 +89,7 @@ public class SkillAnimationController : MonoBehaviour
 
         _navAgent = GetComponent<NavMeshAgent>();
         _playerCharacter = GetComponent<PlayerCharacter>();
-        _navController = GetComponent<PlayerNavController>();  // ✅ 추가
+        _navController = GetComponent<PlayerNavController>();
         _characterController = GetComponent<CharacterController>();
         _mainCamera = Camera.main;
 
@@ -223,7 +231,7 @@ public class SkillAnimationController : MonoBehaviour
         _isPerformingSkill = true;
         Log($"스킬 시작: {skill.SkillName}");
 
-        // ✅ NavMeshAgent 제어는 이미 HandleSkillExecuted()에서 완료
+        // NavMeshAgent 제어는 이미 HandleSkillExecuted()에서 완료
         // 중복 로직 제거
 
         // Root Motion 설정
@@ -239,8 +247,8 @@ public class SkillAnimationController : MonoBehaviour
             _animator.applyRootMotion = false;
         }
 
-        // 애니메이션 트리거
-        PlaySkillAnimation(skill.SkillName);
+        // 애니메이션 트리거 (동적 처리)
+        PlaySkillAnimation(skill);
 
         // VFX 생성 타이밍 처리
         if (skill.VfxPrefab != null)
@@ -268,101 +276,93 @@ public class SkillAnimationController : MonoBehaviour
 
         ApplySkillDamage(skill);
 
-        // 나머지 애니메이션
-        float remainingTime = skill.AnimationDuration * (1f - skill.DamagePointTiming);
-        yield return new WaitForSeconds(remainingTime);
+        // 애니메이션 종료 대기
+        float remainingTime = skill.AnimationDuration - (useDOTweenDash
+            ? skill.AnimationDuration * skill.DamagePointTiming
+            : skill.AnimationDuration * skill.DamagePointTiming);
 
-        // 대시 완료 대기
-        if (useDOTweenDash && _currentDashTween != null && _currentDashTween.IsActive())
-        {
-            yield return _currentDashTween.WaitForCompletion();
-        }
+        if (remainingTime > 0)
+            yield return new WaitForSeconds(remainingTime);
 
         // Root Motion 복원
         _animator.applyRootMotion = wasUsingRootMotion;
 
-        // 스킬 종료 시 NavMeshAgent 복원
-        if (_navAgent != null && _navAgent.enabled)
-        {
-            _navAgent.isStopped = false;
-            _navAgent.updateRotation = true;  // ✅ 회전 재활성화
-            Log("NavMeshAgent 복원: isStopped = false, updateRotation = true");
-        }
-
+        // 스킬 종료
         _isPerformingSkill = false;
         _currentSkill = null;
         _skillCoroutine = null;
 
-        Log($"스킬 종료: {skill.SkillName}");
+        // NavMeshAgent 상태 복원
+        if (_navAgent != null && _navAgent.enabled)
+        {
+            _navAgent.updateRotation = true;  // 회전 자동 제어 재활성화
+            _navAgent.isStopped = false;       // 이동 가능 상태로 복원
+            Log("NavMeshAgent 상태 복원: updateRotation ON + 이동 가능");
+        }
+
+        Log("스킬 종료");
     }
 
     #endregion
 
-    #region 대시 처리
+    #region 대시 시스템
 
     /// <summary>
-    /// DOTween 대시 실행
+    /// DOTween 기반 대시 실행
     /// 
-    /// 수정사항:
-    /// - 마우스 거리 모드 추가
-    /// - 벽 충돌 감지 및 대시 거리 조정
+    /// 변경사항:
+    /// - 벽 충돌 감지 지원
+    /// - MouseDistance 모드 지원
     /// </summary>
     private void PerformDOTweenDash(SkillData skill)
     {
-        // 실제 대시 거리 계산
-        float actualDistance = CalculateActualDashDistance(skill);
-
-        // 벽 충돌 감지
-        Vector3 dashDirection = transform.forward;
-        float checkedDistance = CheckWallCollision(dashDirection, actualDistance);
-
-        if (checkedDistance < actualDistance)
-        {
-            Log($"벽 감지: {actualDistance:F2}m → {checkedDistance:F2}m로 제한");
-            actualDistance = checkedDistance;
-        }
-
-        // 최종 목표 위치
-        Vector3 targetPosition = transform.position + dashDirection * actualDistance;
-
-        float duration = skill.DashDuration;
-
         CleanupDashTween();
 
-        _currentDashTween = transform.DOMove(targetPosition, duration)
-            .SetEase(Ease.OutQuad)
-            .OnUpdate(() =>
-            {
-                if (_characterController != null && _characterController.enabled)
-                {
-                    _characterController.Move(Vector3.zero);
-                }
-            })
-            .OnComplete(() => Log($"대시 완료: {actualDistance:F2}m"));
+        // 실제 대시 거리 계산
+        float actualDashDistance = CalculateActualDashDistance(skill);
 
-        Log($"DOTween 대시 시작: {actualDistance:F2}m / {duration:F2}초");
+        // 벽 충돌 체크
+        if (skill.CheckWallCollision)
+        {
+            actualDashDistance = CheckWallCollision(actualDashDistance, skill.WallLayer, skill.WallStopBuffer);
+        }
+
+        Vector3 targetPosition = transform.position + transform.forward * actualDashDistance;
+
+        Log($"DOTween 대시 실행: {actualDashDistance:F2}m");
+
+        _currentDashTween = transform.DOMove(targetPosition, skill.DashDuration)
+            .SetEase(skill.DashEase)
+            .OnComplete(() =>
+            {
+                _currentDashTween = null;
+                Log("대시 완료");
+            });
     }
 
     /// <summary>
-    /// 마우스 거리 또는 고정 거리 모드에 따라 실제 대시 거리 결정
+    /// 실제 대시 거리 계산
+    /// 
+    /// Fixed 모드: DashDistance 사용
+    /// MouseDistance 모드: 마우스 거리 기반 (Min ~ Max)
     /// </summary>
     private float CalculateActualDashDistance(SkillData skill)
     {
-        float desiredDistance = skill.DashDistance;
-
-        if (skill.DashDistanceMode == DashDistanceMode.MouseDistance)
+        if (skill.DashDistanceMode == DashDistanceMode.Fixed)
+        {
+            return skill.DashDistance;
+        }
+        else // MouseDistance
         {
             float mouseDistance = GetMousePositionDistance();
-            desiredDistance = Mathf.Min(mouseDistance, skill.DashDistance);
-
-            Log($"마우스 거리: {mouseDistance:F2}m, 제한 거리: {skill.DashDistance:F2}m → 최종: {desiredDistance:F2}m");
+            _lastCalculatedDistance = Mathf.Clamp(mouseDistance, skill.MinDashDistance, skill.MaxDashDistance);
+            Log($"마우스 거리: {mouseDistance:F2}m → 대시 거리: {_lastCalculatedDistance:F2}m");
+            return _lastCalculatedDistance;
         }
-
-        return desiredDistance;
     }
 
     /// <summary>
-    /// 마우스 위치까지의 수평 거리 계산
+    /// 마우스 위치까지 수평 거리 계산
     /// </summary>
     private float GetMousePositionDistance()
     {
@@ -376,45 +376,51 @@ public class SkillAnimationController : MonoBehaviour
         {
             _lastMouseWorldPosition = hit.point;
 
-            Vector3 horizontalDiff = hit.point - transform.position;
-            horizontalDiff.y = 0;
+            // Y축 무시한 수평 거리
+            Vector3 playerPos = transform.position;
+            Vector3 mousePos = hit.point;
+            playerPos.y = 0;
+            mousePos.y = 0;
 
-            _lastCalculatedDistance = horizontalDiff.magnitude;
-            return _lastCalculatedDistance;
+            return Vector3.Distance(playerPos, mousePos);
         }
 
-        _lastMouseWorldPosition = Vector3.zero;
-        _lastCalculatedDistance = 0f;
         return 0f;
     }
 
     /// <summary>
-    /// 대시 경로에 벽이 있는지 확인하고 충돌하지 않는 최대 거리 반환
+    /// 벽 충돌 감지
+    /// 
+    /// 대시 경로에 벽이 있으면 벽 앞까지만 대시
     /// </summary>
-    private float CheckWallCollision(Vector3 direction, float desiredDistance)
+    private float CheckWallCollision(float requestedDistance, LayerMask wallLayer, float buffer)
     {
-        Vector3 startPos = transform.position + Vector3.up * 0.5f;
-        Vector3 endPos = startPos + direction * desiredDistance;
+        _lastRaycastStart = transform.position;
+        _lastRaycastEnd = transform.position + transform.forward * requestedDistance;
 
-        _lastRaycastStart = startPos;
-        _lastRaycastEnd = endPos;
+        RaycastHit hit;
+        _lastRaycastHit = Physics.Raycast(
+            transform.position,
+            transform.forward,
+            out hit,
+            requestedDistance,
+            wallLayer
+        );
 
-        if (Physics.Raycast(startPos, direction, out RaycastHit hit, desiredDistance))
+        if (_lastRaycastHit)
         {
-            _lastRaycastHit = true;
-            _lastRaycastEnd = hit.point;
-
-            float safeDistance = Mathf.Max(0.5f, hit.distance - 1.0f);
+            float safeDistance = Mathf.Max(0f, hit.distance - buffer);
+            _lastRaycastEnd = transform.position + transform.forward * safeDistance;
+            Log($"벽 감지! 대시 거리 조정: {requestedDistance:F2}m → {safeDistance:F2}m");
             return safeDistance;
         }
 
-        _lastRaycastHit = false;
-        return desiredDistance;
+        return requestedDistance;
     }
 
     private void CleanupDashTween()
     {
-        if (_currentDashTween != null && _currentDashTween.IsActive())
+        if (_currentDashTween != null)
         {
             _currentDashTween.Kill();
             _currentDashTween = null;
@@ -448,24 +454,35 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 애니메이션 제어
 
-    private void PlaySkillAnimation(string skillName)
+    /// <summary>
+    /// 스킬 애니메이션 재생
+    /// 
+    /// 변경사항:
+    /// - switch-case 제거
+    /// - SkillData의 AnimatorTriggerName을 직접 사용
+    /// - 애니메이터 해시 캐싱으로 성능 최적화
+    /// - 새 스킬 추가 시 코드 수정 불필요
+    /// </summary>
+    private void PlaySkillAnimation(SkillData skill)
     {
-        switch (skillName)
+        if (skill == null || string.IsNullOrWhiteSpace(skill.AnimatorTriggerName))
         {
-            case "Judgement":
-                _animator.SetTrigger(HASH_SKILL_JUDGEMENT);
-                break;
-            case "Swift Slash":
-            case "SwiftSlash":
-                _animator.SetTrigger(HASH_SKILL_SWIFT_SLASH);
-                break;
-            case "Conviction":
-                _animator.SetTrigger(HASH_SKILL_CONVICTION);
-                break;
-            default:
-                Debug.LogWarning($"알 수 없는 스킬: {skillName}");
-                break;
+            Debug.LogError($"[SkillAnimationController] 스킬 애니메이션 트리거 이름이 설정되지 않았습니다: {skill?.SkillName}");
+            return;
         }
+
+        // 애니메이터 해시 캐싱
+        int hash;
+        if (!_animatorHashCache.TryGetValue(skill.AnimatorTriggerName, out hash))
+        {
+            hash = Animator.StringToHash(skill.AnimatorTriggerName);
+            _animatorHashCache[skill.AnimatorTriggerName] = hash;
+            Log($"애니메이터 해시 캐싱: {skill.AnimatorTriggerName} → {hash}");
+        }
+
+        // 애니메이션 트리거 실행
+        _animator.SetTrigger(hash);
+        Log($"애니메이션 재생: {skill.SkillName} (트리거: {skill.AnimatorTriggerName})");
     }
 
     #endregion
