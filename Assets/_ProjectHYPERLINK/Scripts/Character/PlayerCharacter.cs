@@ -368,9 +368,6 @@ public class PlayerCharacter : MonoBehaviour
     /// 
     /// 공식: 최종 데미지 = IncomingDamage / (IncomingDamage + Armor × All Resistance)
     /// 
-    /// 예시:
-    /// - Armor 100, All Resistance 10, 받는 데미지 1000
-    /// - 최종 = 1000 / (1000 + 100 × 10) = 1000 / 2000 = 500 (50% 감소)
     /// </summary>
     /// <param name="incomingDamage">받는 데미지</param>
     /// <returns>감소 적용된 최종 데미지</returns>
@@ -389,7 +386,7 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         // 감소형 공식 적용
-        float reducedDamage = incomingDamage / (incomingDamage + defenseValue);
+        float reducedDamage = incomingDamage * (incomingDamage / (incomingDamage + defenseValue));
 
         return reducedDamage;
     }
