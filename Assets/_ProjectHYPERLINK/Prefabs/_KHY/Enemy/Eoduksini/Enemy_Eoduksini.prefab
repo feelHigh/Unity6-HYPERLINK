@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6372569067407792373}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: DEF_Spine03
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -42,7 +42,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5635422050521242899}
   - component: {fileID: 3913423476466102978}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: Eye_Plane
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -135,7 +135,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5628736955680491731}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: GhostArmature
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -167,7 +167,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4354731140389947234}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: DEF_Spine02
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -199,9 +199,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 17475458793817914}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: firePos
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -235,7 +235,7 @@ GameObject:
   - component: {fileID: 2508653445410821462}
   - component: {fileID: -7366752441098952199}
   - component: {fileID: 4849416787939462836}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: Enemy_Eoduksini
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -365,6 +365,9 @@ MonoBehaviour:
   _playerLayerMask:
     serializedVersion: 2
     m_Bits: 1024
+  _enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 2048
   _basicAttack: 1
   _specialAttack: {fileID: 0}
   _meleeDetector: {fileID: 0}
@@ -379,7 +382,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 225094944286250888}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: Root
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -412,7 +415,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7321079991594935734}
   - component: {fileID: 6911557172570926591}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: Base
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -505,7 +508,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1628093079155450891}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: DEF_Spine01
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -538,7 +541,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3769185120114625051}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: DEF_Face
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -569,7 +572,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5802564415686774530}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: DEF_Spine04
   m_TagString: Enemy
   m_Icon: {fileID: 0}
