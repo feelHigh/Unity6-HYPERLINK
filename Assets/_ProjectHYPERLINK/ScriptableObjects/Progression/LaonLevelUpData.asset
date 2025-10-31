@@ -14,45 +14,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelData:
   - _level: 2
-    _experienceRequired: 100
+    _experienceRequired: 50
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 3
-    _experienceRequired: 200
+    _experienceRequired: 100
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 4
-    _experienceRequired: 300
+    _experienceRequired: 150
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 5
-    _experienceRequired: 400
+    _experienceRequired: 200
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 6
-    _experienceRequired: 500
+    _experienceRequired: 250
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 7
-    _experienceRequired: 600
+    _experienceRequired: 300
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 8
-    _experienceRequired: 700
+    _experienceRequired: 350
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 9
-    _experienceRequired: 800
+    _experienceRequired: 400
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 10
-    _experienceRequired: 900
+    _experienceRequired: 450
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 11
-    _experienceRequired: 1000
+    _experienceRequired: 500
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 12
-    _experienceRequired: 1100
+    _experienceRequired: 550
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 13
-    _experienceRequired: 1200
+    _experienceRequired: 600
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 14
-    _experienceRequired: 1300
+    _experienceRequired: 650
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 15
-    _experienceRequired: 1400
+    _experienceRequired: 700
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   _maxLevel: 15

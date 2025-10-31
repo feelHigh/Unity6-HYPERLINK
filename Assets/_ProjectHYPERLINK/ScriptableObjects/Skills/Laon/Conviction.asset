@@ -16,11 +16,13 @@ MonoBehaviour:
   _description: 
   _skillIcon: {fileID: 21300000, guid: 1ccfd7a02b75a884b9b66f95bca87690, type: 3}
   _requiredLevel: 1
-  _manaCost: 0
+  _manaCost: 20
   _cooldown: 1
-  _damage: 100
   _range: 3
   _skillType: 2
+  _skillMultiplier: 2
+  _skillBaseDamage: 50
+  _mainStatDamageIncrease: 0.01
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 0

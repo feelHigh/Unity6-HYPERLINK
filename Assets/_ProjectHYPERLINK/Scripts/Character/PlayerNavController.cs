@@ -485,56 +485,40 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 데미지 계산
-    /// 클래스별 주요 스탯에 따라 고정 배율 적용
     /// 
-    /// 공식: 최종 데미지 = 기본 데미지 + (주요 스탯 × 클래스 배율)
-    /// - Laon (Strength): 1당 +5 데미지
-    /// - Sian (Intelligence): 1당 +2 데미지
-    /// - Yujin (Dexterity): 1당 +4 데미지
+    /// 새로운 공식: Physical Attack (또는 Magical Attack) + 크리티컬
+    /// - Laon, Yujin: Physical Attack 사용
+    /// - Sian: Magical Attack 사용
     /// </summary>
     private float CalculateDamage()
     {
         if (_playerCharacter == null)
-            return _attackDamage;
+            return _attackDamage; // 폴백: 기본값
 
-        // 주요 스탯 및 클래스 배율 가져오기
-        int mainStat = _playerCharacter.GetMainStat();
-        float statMultiplier = GetMainStatDamageMultiplier();
-
-        // 기본 데미지 + 스탯 보너스
-        float damage = _attackDamage + (mainStat * statMultiplier);
+        // 클래스에 따른 공격력 가져오기 (Physical/Magical Attack)
+        float damage = _playerCharacter.GetAttackPower();
 
         // 크리티컬 판정
         CharacterStats stats = _playerCharacter.CurrentStats;
         if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
             damage *= (1f + stats.CriticalDamage / 100f);
-            Debug.Log("[PlayerNavController] 크리티컬 히트!");
+
+            if (_enableDebugLogs)
+            {
+                Debug.Log("[PlayerNavController] 크리티컬 히트!");
+            }
+        }
+
+        if (_enableDebugLogs)
+        {
+            string attackType = _playerCharacter.IsPhysicalAttacker() ? "물리" : "마법";
+            Debug.Log($"[기본 공격] {attackType} 공격력: {_playerCharacter.GetAttackPower():F1}, 최종 데미지: {damage:F1}");
         }
 
         return damage;
     }
 
-    /// <summary>
-    /// 클래스별 주요 스탯 데미지 배율 반환
-    /// </summary>
-    private float GetMainStatDamageMultiplier()
-    {
-        if (_playerCharacter == null)
-            return 0f;
-
-        switch (_playerCharacter.CharacterClass)
-        {
-            case CharacterClass.Laon:
-                return 5f;  // Strength: 1당 +5 데미지
-            case CharacterClass.Sian:
-                return 2f;  // Intelligence: 1당 +2 데미지
-            case CharacterClass.Yujin:
-                return 4f;  // Dexterity: 1당 +4 데미지
-            default:
-                return 0f;
-        }
-    }
 
     /// <summary>
     /// 타겟 추적
@@ -755,24 +739,32 @@ public class PlayerNavController : MonoBehaviour
     private void DebugPrintDamageInfo()
     {
         Debug.Log("===== Attack Damage 정보 =====");
-        Debug.Log($"기본 데미지 (_attackDamage): {_attackDamage:F1}");
+        Debug.Log($"기본 데미지 (_attackDamage): {_attackDamage:F1} [폴백 용도]");
 
         if (_playerCharacter != null)
         {
             CharacterClass charClass = _playerCharacter.CharacterClass;
             int mainStat = _playerCharacter.GetMainStat();
-            float multiplier = GetMainStatDamageMultiplier();
+            float attackPower = _playerCharacter.GetAttackPower();
+            string attackType = _playerCharacter.IsPhysicalAttacker() ? "물리" : "마법";
 
             Debug.Log($"캐릭터 클래스: {charClass}");
             Debug.Log($"주요 스탯: {mainStat}");
-            Debug.Log($"스탯 배율: {multiplier:F1}");
-
-            float totalDamage = _attackDamage + (mainStat * multiplier);
-            Debug.Log($"최종 데미지 (크리 제외): {totalDamage:F1}");
+            Debug.Log($"공격 타입: {attackType}");
+            Debug.Log($"{attackType} 공격력: {attackPower:F1}");
 
             CharacterStats stats = _playerCharacter.CurrentStats;
+            Debug.Log($"Physical Attack: {stats.PhysicalAttack:F1}");
+            Debug.Log($"Magical Attack: {stats.MagicalAttack:F1}");
             Debug.Log($"크리티컬 확률: {stats.CriticalChance:F1}%");
             Debug.Log($"크리티컬 데미지: {stats.CriticalDamage:F1}%");
+
+            // 예상 데미지 계산 (크리티컬 제외)
+            Debug.Log($"예상 기본 공격 데미지: {attackPower:F1}");
+
+            // 크리티컬 적용 시
+            float critDamage = attackPower * (1f + stats.CriticalDamage / 100f);
+            Debug.Log($"크리티컬 히트 시 데미지: {critDamage:F1}");
         }
         else
         {

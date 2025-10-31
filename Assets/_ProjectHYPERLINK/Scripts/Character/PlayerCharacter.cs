@@ -14,10 +14,12 @@ using System.Collections.Generic;
 /// - SaveToData()에서 2차 스탯 저장 제거
 /// - Dexterity에 MovementSpeed 파생 스탯 추가
 /// - Dexterity → Attack Speed 비율 변경 (0.1 → 0.05)
+/// - [NEW] GetAttackPower(), IsPhysicalAttacker(), IsMagicalAttacker() 추가
+/// - [NEW] Dexterity → Physical Attack 파생 스탯 추가 (Yujin 지원)
 /// 
 /// 공식:
 /// - Strength (1당): Physical Attack +1, All Resistance +0.1
-/// - Dexterity (1당): Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
+/// - Dexterity (1당): Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
 /// - Intelligence (1당): Magical Attack +1, Max Mana +10, Mana Regen +0.1
 /// - Vitality (1당): Armor +1, Max Health +10
 /// </summary>
@@ -202,6 +204,7 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// 주요 스탯에서 파생 스탯 자동 계산
+    /// [수정] Dexterity도 Physical Attack에 기여하도록 변경 (Yujin 지원)
     /// </summary>
     private CharacterStats CalculateDerivedStats(CharacterStats baseStats)
     {
@@ -211,7 +214,8 @@ public class PlayerCharacter : MonoBehaviour
         builder.AddPhysicalAttack(baseStats.Strength * 1f);
         builder.AddAllResistance(baseStats.Strength * 0.1f);
 
-        // Dexterity: Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
+        // Dexterity: Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
+        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);  // ← Yujin 지원을 위해 추가
         builder.AddCriticalChance(baseStats.Dexterity * 1f);
         builder.AddAttackSpeed(baseStats.Dexterity * 0.05f);
         builder.AddMovementSpeed(baseStats.Dexterity * 0.1f);
@@ -241,6 +245,50 @@ public class PlayerCharacter : MonoBehaviour
             default:
                 return totalStats.Strength;
         }
+    }
+
+    /// <summary>
+    /// 클래스에 따른 공격력 반환
+    /// - Laon (전사), Yujin (궁수): Physical Attack
+    /// - Sian (마법사): Magical Attack
+    /// 
+    /// 새로운 데미지 시스템:
+    /// - 마우스 우클릭 공격 = Physical/Magical Attack
+    /// - 스킬 공격 = ((Physical/Magical Attack × 배율) + 기본 데미지) × (1 + (주 스탯 × 증가율))
+    /// </summary>
+    public float GetAttackPower()
+    {
+        CharacterStats totalStats = GetTotalStats();
+
+        switch (_characterClass)
+        {
+            case CharacterClass.Laon:   // 전사 - 물리 공격
+            case CharacterClass.Yujin:  // 궁수 - 물리 공격
+                return totalStats.PhysicalAttack;
+
+            case CharacterClass.Sian:   // 마법사 - 마법 공격
+                return totalStats.MagicalAttack;
+
+            default:
+                return totalStats.PhysicalAttack;
+        }
+    }
+
+    /// <summary>
+    /// 물리 공격 클래스 여부 (Laon, Yujin)
+    /// </summary>
+    public bool IsPhysicalAttacker()
+    {
+        return _characterClass == CharacterClass.Laon ||
+               _characterClass == CharacterClass.Yujin;
+    }
+
+    /// <summary>
+    /// 마법 공격 클래스 여부 (Sian)
+    /// </summary>
+    public bool IsMagicalAttacker()
+    {
+        return _characterClass == CharacterClass.Sian;
     }
 
     /// <summary>

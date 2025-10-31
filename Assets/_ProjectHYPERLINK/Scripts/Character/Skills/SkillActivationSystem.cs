@@ -393,15 +393,25 @@ public class SkillActivationSystem : MonoBehaviour
     /// PlayerNavController의 AttackDamage를 사용합니다.
     /// NavController가 없으면 기본값 25를 사용합니다.
     /// </summary>
+    /// <summary>
+    /// 캐릭터 공격력 가져오기
+    /// 
+    /// 새로운 방식: PlayerCharacter의 Physical/Magical Attack 사용
+    /// - Laon, Yujin: Physical Attack
+    /// - Sian: Magical Attack
+    /// 
+    /// 스킬 데미지 계산 공식:
+    /// ((Physical/Magical Attack × 스킬 배율) + 스킬 기본 데미지) × (1 + (주 스탯 × 증가율))
+    /// </summary>
     private float GetCharacterAttackDamage()
     {
-        if (_navController != null)
+        if (_playerCharacter != null)
         {
-            return _navController.AttackDamage;
+            return _playerCharacter.GetAttackPower();
         }
 
-        // 기본값 (NavController가 없을 때)
-        Debug.LogWarning("[SkillActivation] PlayerNavController가 없어 기본 공격력(25)을 사용합니다.");
+        // 폴백: PlayerCharacter가 없을 때
+        Debug.LogWarning("[SkillActivation] PlayerCharacter가 없어 기본 공격력(25)을 사용합니다.");
         return 25f;
     }
 
