@@ -20,9 +20,10 @@ MonoBehaviour:
   _magicalAttack: 0
   _armor: 0
   _allResistance: 0
-  _criticalChance: 5
-  _criticalDamage: 200
+  _criticalChance: 0
+  _criticalDamage: 0
   _attackSpeed: 1
+  _movementSpeed: 0
   _maxHealth: 0
   _maxMana: 0
   _healthRegeneration: 0

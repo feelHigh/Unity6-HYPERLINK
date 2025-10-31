@@ -12,10 +12,14 @@ using System.Collections.Generic;
 /// - GetTotalStats()에 파생 스탯 계산 로직 추가
 /// - LoadFromSaveData()에서 2차 스탯 로드 제거
 /// - SaveToData()에서 2차 스탯 저장 제거
+/// - Dexterity에 MovementSpeed 파생 스탯 추가
+/// - Dexterity → Attack Speed 비율 변경 (0.1 → 0.05)
+/// - [NEW] GetAttackPower(), IsPhysicalAttacker(), IsMagicalAttacker() 추가
+/// - [NEW] Dexterity → Physical Attack 파생 스탯 추가 (Yujin 지원)
 /// 
 /// 공식:
 /// - Strength (1당): Physical Attack +1, All Resistance +0.1
-/// - Dexterity (1당): Critical Chance +1, Attack Speed +0.1
+/// - Dexterity (1당): Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
 /// - Intelligence (1당): Magical Attack +1, Max Mana +10, Mana Regen +0.1
 /// - Vitality (1당): Armor +1, Max Health +10
 /// </summary>
@@ -96,7 +100,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         _currentStats = ScriptableObject.CreateInstance<CharacterStats>();
         _equipmentStats = ScriptableObject.CreateInstance<CharacterStats>();
-        
+
         RecalculateStats();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
@@ -200,20 +204,27 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// 주요 스탯에서 파생 스탯 자동 계산
+    /// [수정] Dexterity도 Physical Attack에 기여하도록 변경 (Yujin 지원)
     /// </summary>
     private CharacterStats CalculateDerivedStats(CharacterStats baseStats)
     {
         CharacterStatsBuilder builder = new CharacterStatsBuilder();
 
+        // Strength: Physical Attack +1, All Resistance +0.1
         builder.AddPhysicalAttack(baseStats.Strength * 1f);
         builder.AddAllResistance(baseStats.Strength * 0.1f);
 
+        // Dexterity: Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
+        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);  // ← Yujin 지원을 위해 추가
         builder.AddCriticalChance(baseStats.Dexterity * 1f);
-        builder.AddAttackSpeed(baseStats.Dexterity * 0.1f);
+        builder.AddAttackSpeed(baseStats.Dexterity * 0.05f);
+        builder.AddMovementSpeed(baseStats.Dexterity * 0.1f);
 
+        // Intelligence: Magical Attack +1, Mana Regen +0.1
         builder.AddMagicalAttack(baseStats.Intelligence * 1f);
         builder.AddManaRegeneration(baseStats.Intelligence * 0.1f);
 
+        // Vitality: Armor +1
         builder.AddArmor(baseStats.Vitality * 1f);
 
         return builder.Build();
@@ -234,6 +245,50 @@ public class PlayerCharacter : MonoBehaviour
             default:
                 return totalStats.Strength;
         }
+    }
+
+    /// <summary>
+    /// 클래스에 따른 공격력 반환
+    /// - Laon (전사), Yujin (궁수): Physical Attack
+    /// - Sian (마법사): Magical Attack
+    /// 
+    /// 새로운 데미지 시스템:
+    /// - 마우스 우클릭 공격 = Physical/Magical Attack
+    /// - 스킬 공격 = ((Physical/Magical Attack × 배율) + 기본 데미지) × (1 + (주 스탯 × 증가율))
+    /// </summary>
+    public float GetAttackPower()
+    {
+        CharacterStats totalStats = GetTotalStats();
+
+        switch (_characterClass)
+        {
+            case CharacterClass.Laon:   // 전사 - 물리 공격
+            case CharacterClass.Yujin:  // 궁수 - 물리 공격
+                return totalStats.PhysicalAttack;
+
+            case CharacterClass.Sian:   // 마법사 - 마법 공격
+                return totalStats.MagicalAttack;
+
+            default:
+                return totalStats.PhysicalAttack;
+        }
+    }
+
+    /// <summary>
+    /// 물리 공격 클래스 여부 (Laon, Yujin)
+    /// </summary>
+    public bool IsPhysicalAttacker()
+    {
+        return _characterClass == CharacterClass.Laon ||
+               _characterClass == CharacterClass.Yujin;
+    }
+
+    /// <summary>
+    /// 마법 공격 클래스 여부 (Sian)
+    /// </summary>
+    public bool IsMagicalAttacker()
+    {
+        return _characterClass == CharacterClass.Sian;
     }
 
     /// <summary>
@@ -308,21 +363,70 @@ public class PlayerCharacter : MonoBehaviour
 
     #region 전투 및 리소스 관리
 
+    /// <summary>
+    /// 데미지 감소 계산
+    /// 
+    /// 공식: 최종 데미지 = IncomingDamage / (IncomingDamage + Armor × All Resistance)
+    /// 
+    /// 예시:
+    /// - Armor 100, All Resistance 10, 받는 데미지 1000
+    /// - 최종 = 1000 / (1000 + 100 × 10) = 1000 / 2000 = 500 (50% 감소)
+    /// </summary>
+    /// <param name="incomingDamage">받는 데미지</param>
+    /// <returns>감소 적용된 최종 데미지</returns>
+    private float CalculateDamageReduction(float incomingDamage)
+    {
+        CharacterStats stats = GetTotalStats();
+
+        float armor = stats.Armor;
+        float allResistance = stats.AllResistance;
+
+        // 방어력이 0이면 데미지 그대로 받음
+        float defenseValue = armor * allResistance;
+        if (defenseValue <= 0f)
+        {
+            return incomingDamage;
+        }
+
+        // 감소형 공식 적용
+        float reducedDamage = incomingDamage / (incomingDamage + defenseValue);
+
+        return reducedDamage;
+    }
+
+    /// <summary>
+    /// 데미지 받기
+    /// 
+    /// 처리 순서:
+    /// 1. 방어력 감소 적용: Damage / (Damage + Armor × All Resistance)
+    /// 2. 약화 상태 적용: 방어력 감소 시
+    /// 3. 최종 데미지로 체력 차감
+    /// </summary>
     public void TakeDamage(float amount)
     {
         if (!IsAlive) return;
 
-        float actualDamage = amount;
+        // 1. 방어력 기반 데미지 감소 계산
+        float reducedDamage = CalculateDamageReduction(amount);
+
+        // 2. 약화 상태 체크 (방어력 감소)
+        float finalDamage = reducedDamage;
         if (_stateController != null && _stateController.IsWeakened)
         {
             float defenseMultiplier = _stateController.GetDefenseMultiplier();
-            actualDamage = amount / defenseMultiplier;
-            Debug.Log($"[약화] 데미지 증가: {amount:F1} → {actualDamage:F1}");
+            finalDamage = reducedDamage / defenseMultiplier;
+
+            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {reducedDamage:F1} → 약화 적용: {finalDamage:F1}");
+        }
+        else
+        {
+            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {finalDamage:F1}");
         }
 
-        _currentHealth = Mathf.Max(0, _currentHealth - actualDamage);
+        // 3. 체력 차감
+        _currentHealth = Mathf.Max(0, _currentHealth - finalDamage);
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
-        OnPlayerHit?.Invoke(actualDamage);
+        OnPlayerHit?.Invoke(finalDamage);
 
         if (_currentHealth <= 0)
         {
@@ -517,6 +621,7 @@ public class PlayerCharacter : MonoBehaviour
         Debug.Log($"  모든 저항: {totalStats.AllResistance:F1}");
         Debug.Log($"  크리티컬 확률: {totalStats.CriticalChance:F1}");
         Debug.Log($"  공격 속도: {totalStats.AttackSpeed:F1}");
+        Debug.Log($"  이동 속도: {totalStats.MovementSpeed:F1}");
         Debug.Log($"  마나 재생: {totalStats.ManaRegeneration:F1}");
     }
 

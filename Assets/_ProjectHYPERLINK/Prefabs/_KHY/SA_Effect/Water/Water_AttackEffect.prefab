@@ -29150,6 +29150,9 @@ MonoBehaviour:
   _maxDistance: 16
   _expandSpeed: 8
   _boxHalfExtents: {x: 0.5, y: 1, z: 0.5}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!1 &8748454314422593084
 GameObject:
   m_ObjectHideFlags: 0
