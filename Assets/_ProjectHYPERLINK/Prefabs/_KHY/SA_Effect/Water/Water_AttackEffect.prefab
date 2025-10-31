@@ -29153,6 +29153,10 @@ MonoBehaviour:
   _playerLayerMask:
     serializedVersion: 2
     m_Bits: 1024
+  _obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 12289
+  _visualEffect: {fileID: 393451286498574306}
 --- !u!1 &8748454314422593084
 GameObject:
   m_ObjectHideFlags: 0

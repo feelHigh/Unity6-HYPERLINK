@@ -65,7 +65,7 @@ public class SA_Metal : SpecialAttackBase
         }
 
         //원거리 공격 이펙트 생성 및 컨트롤러 초기화
-        GameObject hammerGO = Instantiate(_rangedAttackEffect, target.position, target.rotation);
+        GameObject hammerGO = Instantiate(_rangedAttackEffect, target.position + Vector3.up, target.rotation);
         HammerController hammer = hammerGO.GetComponent<HammerController>();
         if (hammer != null)
         {
