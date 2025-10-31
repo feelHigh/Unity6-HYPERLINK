@@ -4,6 +4,10 @@ using DG.Tweening;
 /// <summary>
 /// 스킬 데이터 ScriptableObject
 /// 
+/// 리팩토링 변경사항:
+/// - _animatorTriggerName 필드 추가: 각 스킬의 Animator 트리거 이름을 ScriptableObject에서 관리
+/// - 이제 새 스킬 추가 시 코드 수정 없이 Inspector에서 설정 가능
+/// 
 /// 새로운 데미지 시스템:
 /// 최종 데미지 = ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
 /// 
@@ -20,6 +24,14 @@ public class SkillData : ScriptableObject
     [SerializeField] private string _description;
     [SerializeField] private Sprite _skillIcon;
     [SerializeField] private int _requiredLevel;
+
+    #endregion
+
+    #region 애니메이션 설정 (리팩토링 추가)
+
+    [Header("애니메이션 트리거")]
+    [Tooltip("Animator Controller의 트리거 파라미터 이름 (예: SkillJudgement, SkillSwiftSlash)")]
+    [SerializeField] private string _animatorTriggerName;
 
     #endregion
 
@@ -137,6 +149,10 @@ public class SkillData : ScriptableObject
     public string Description => _description;
     public Sprite SkillIcon => _skillIcon;
     public int RequiredLevel => _requiredLevel;
+
+    // 리팩토링: AnimatorTriggerName 프로퍼티 추가
+    public string AnimatorTriggerName => _animatorTriggerName;
+
     public float ManaCost => _manaCost;
     public float Cooldown => _cooldown;
     public float Range => _range;
@@ -185,6 +201,12 @@ public class SkillData : ScriptableObject
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        // 리팩토링: AnimatorTriggerName 검증 추가
+        if (string.IsNullOrWhiteSpace(_animatorTriggerName))
+        {
+            Debug.LogWarning($"[{_skillName}] AnimatorTriggerName이 설정되지 않았습니다! Animator Controller의 트리거 이름을 입력하세요.", this);
+        }
+
         // 기본 검증
         _manaCost = Mathf.Max(0f, _manaCost);
         _cooldown = Mathf.Max(0f, _cooldown);

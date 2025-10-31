@@ -320,7 +320,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     }
 
     /// <summary>
-    /// ⚔넉백 효과
+    /// 넉백 효과
     /// - 즉시 15% 피해
     /// - 4미터 밀려남
     /// - 1초 넉다운 (이동/공격/스킬 불가)
