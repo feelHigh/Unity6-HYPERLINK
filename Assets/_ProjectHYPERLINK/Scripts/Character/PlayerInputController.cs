@@ -9,6 +9,9 @@ using UnityEngine;
 /// 
 /// 키 바인딩:
 /// - Number 1: 레드 소다 사용
+/// 
+/// 최근 변경사항:
+/// - [FIX] 사망 상태 체크 추가 (HandleConsumableInput)
 /// </summary>
 public class PlayerInputController : MonoBehaviour
 {
@@ -35,6 +38,12 @@ public class PlayerInputController : MonoBehaviour
     /// </summary>
     private void HandleConsumableInput()
     {
+        // 사망 상태 체크
+        if (_playerCharacter == null || !_playerCharacter.IsAlive)
+        {
+            return;
+        }
+
         // Number 1: 레드 소다 사용
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {

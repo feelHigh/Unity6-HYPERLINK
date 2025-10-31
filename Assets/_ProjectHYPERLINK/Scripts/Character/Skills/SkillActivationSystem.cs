@@ -10,6 +10,7 @@ using UnityEngine;
 /// - SkillData.cs 실제 구조에 맞춤
 /// - UpdateCooldowns() 딕셔너리 수정 버그 수정
 /// - 새로운 데미지 공식 적용: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+/// - [FIX] 사망 상태 체크 추가 (HandleSkillInput, ActivateSkill)
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
@@ -99,6 +100,12 @@ public class SkillActivationSystem : MonoBehaviour
     /// </summary>
     private void HandleSkillInput()
     {
+        // 사망 상태 체크 (최우선)
+        if (_playerCharacter == null || !_playerCharacter.IsAlive)
+        {
+            return;
+        }
+
         // 스킬 사용 불가 상태 체크 (침묵, 빙결, 넉다운)
         if (_stateController != null && !_stateController.CanUseSkill)
         {
@@ -158,16 +165,24 @@ public class SkillActivationSystem : MonoBehaviour
     /// 스킬 활성화 메인 메서드
     /// 
     /// 처리 순서:
-    /// 1. 상태이상 체크
-    /// 2. 유효성 검사 (쿨다운, 마나)
-    /// 3. 마나 소비
-    /// 4. 스킬 실행 (타입별 분기)
-    /// 5. 쿨다운 시작
+    /// 1. 사망 상태 체크
+    /// 2. 상태이상 체크
+    /// 3. 유효성 검사 (쿨다운, 마나)
+    /// 4. 마나 소비
+    /// 5. 스킬 실행 (타입별 분기)
+    /// 6. 쿨다운 시작
     /// </summary>
     public void ActivateSkill(SkillData skill)
     {
         if (skill == null || _playerCharacter == null)
             return;
+
+        // 이중 보안: 사망 상태 최종 확인
+        if (!_playerCharacter.IsAlive)
+        {
+            Debug.Log($"[SkillActivation] 플레이어가 사망 상태입니다!");
+            return;
+        }
 
         // 스킬 사용 불가 상태 체크
         if (_stateController != null && !_stateController.CanUseSkill)
@@ -476,6 +491,12 @@ public class SkillActivationSystem : MonoBehaviour
                     Debug.Log($"  - {cooldown.Key.SkillName}: {cooldown.Value:F1}초 남음");
                 }
             }
+        }
+
+        // 사망 상태 체크 추가
+        if (_playerCharacter != null)
+        {
+            Debug.Log($"플레이어 생존 여부: {_playerCharacter.IsAlive}");
         }
 
         // 상태이상 체크
