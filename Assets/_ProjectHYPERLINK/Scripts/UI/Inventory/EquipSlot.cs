@@ -9,7 +9,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     [SerializeField] EquipmentType _equipType;
     [SerializeField] InventoryItemPrefab _itemPrefab;
 
-    EquipInevnetory _equipInevnetory;
+    EquipInventory _equipInevnetory;
 
     public EquipmentType EquipmentType => _equipType;
     public InventoryItemPrefab ItemPrefab => _itemPrefab;
@@ -18,7 +18,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     /// 생성 될 때, 인벤토리를 알려주는 함수
     /// </summary>
     /// <param name="equipInventory"></param>
-    public void Initialize(EquipInevnetory equipInventory)
+    public void Initialize(EquipInventory equipInventory)
     {
         _equipInevnetory = equipInventory;
 

@@ -16,22 +16,30 @@ MonoBehaviour:
   _description: 
   _skillIcon: {fileID: 21300000, guid: 7b57c1588bc54f44ba5b67dac7a90065, type: 3}
   _requiredLevel: 1
-  _manaCost: 0
+  _manaCost: 20
   _cooldown: 1
-  _damage: 20
   _range: 4
   _skillType: 2
+  _skillMultiplier: 0.5
+  _skillBaseDamage: 50
+  _mainStatDamageIncrease: 0.01
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 0
   _aoeShape: 1
   _damagePointTiming: 0.7
-  _aoeOffset: {x: 0, y: 0, z: 0}
-  _boxSize: {x: 2, y: 1, z: 2}
+  _aoeOffset: {x: 0, y: 0, z: 2}
+  _sphereRadius: 5
+  _boxSize: {x: 2, y: 1, z: 4}
+  _vfxPrefab: {fileID: 1840690549904964, guid: a8a6ba91edbeef2439175ecf0e08e6fb, type: 3}
+  _vfxSpawnTiming: 0.82
+  _vfxOffset: {x: 0, y: 1, z: 1}
+  _vfxRotationOffset: {x: 0, y: 0, z: 0}
+  _vfxLifetime: 0.4
   _animationDuration: 1
   _useRootMotion: 0
   _dashDistanceMode: 0
-  _dashDistance: 5
+  _dashDistance: 4
   _minDashDistance: 2
   _maxDashDistance: 8
   _dashDuration: 0.3

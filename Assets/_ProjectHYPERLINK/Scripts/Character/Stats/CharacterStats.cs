@@ -67,8 +67,11 @@ public class CharacterStats : ScriptableObject
     [Tooltip("크리티컬 데미지 (퍼센트) - 치명타 시 추가 데미지 (기본 50퍼센트)")]
     [SerializeField] private float _criticalDamage;
 
-    [Tooltip("공격 속도 (퍼센트) - 스킬 쿨다운 감소")]
+    [Tooltip("공격 속도 (절대값) - 공격 쿨다운을 초 단위로 감소 (예: 0.25 = 0.25초 감소)")]
     [SerializeField] private float _attackSpeed;
+
+    [Tooltip("이동 속도 (절대값) - NavMeshAgent 이동 속도를 직접 가산 (예: 0.5 = +0.5 속도)")]
+    [SerializeField] private float _movementSpeed;
 
     #endregion
 
@@ -165,6 +168,12 @@ public class CharacterStats : ScriptableObject
         internal set => _attackSpeed = value;
     }
 
+    public float MovementSpeed
+    {
+        get => _movementSpeed;
+        internal set => _movementSpeed = value;
+    }
+
     /// 리소스 프로퍼티
 
     public float MaxHealth
@@ -231,6 +240,7 @@ public class CharacterStats : ScriptableObject
         result._criticalChance = this._criticalChance + otherStats._criticalChance;
         result._criticalDamage = this._criticalDamage + otherStats._criticalDamage;
         result._attackSpeed = this._attackSpeed + otherStats._attackSpeed;
+        result._movementSpeed = this._movementSpeed + otherStats._movementSpeed;
 
         // 리소스 합산
         result._maxHealth = this._maxHealth + otherStats._maxHealth;
@@ -270,6 +280,7 @@ public class CharacterStats : ScriptableObject
         clone._criticalChance = this._criticalChance;
         clone._criticalDamage = this._criticalDamage;
         clone._attackSpeed = this._attackSpeed;
+        clone._movementSpeed = this._movementSpeed;
 
         // 리소스 복사
         clone._maxHealth = this._maxHealth;
@@ -295,37 +306,39 @@ public class CharacterStats : ScriptableObject
     /// - 일반적으로 장비 스탯 객체에만 사용
     internal void Clear()
     {
-        // 주요 스탯 초기화
+        // 주요 스탯
         _strength = 0;
         _dexterity = 0;
         _intelligence = 0;
         _vitality = 0;
 
-        // 전투 스탯 초기화
+        // 전투 스탯
         _physicalAttack = 0;
         _magicalAttack = 0;
         _armor = 0;
         _allResistance = 0;
 
-        // 2차 스탯 초기화
+        // 2차 스탯
         _criticalChance = 0;
         _criticalDamage = 0;
         _attackSpeed = 0;
+        _movementSpeed = 0;
 
-        // 리소스 초기화
+        // 리소스
         _maxHealth = 0;
         _maxMana = 0;
         _healthRegeneration = 0;
         _manaRegeneration = 0;
     }
 
-    /// Builder에서 값 적용 internal 전용
+    /// Builder의 값을 현재 객체에 적용
     /// 
-    /// Builder 패턴의 최종 단계:
-    /// 1. CharacterStatsBuilder로 값 설정
-    /// 2. Build 호출
-    /// 3. 내부적으로 이 메서드 호출되어 값 복사
-    /// 4. CharacterStats 객체 반환
+    /// 메서드 호출 순서:
+    /// 1. Builder에서 Set/Add 메서드로 값 설정
+    /// 2. Build() 호출로 CharacterStats 객체 생성
+    /// 3. ApplyBuilderValues()로 Builder 값을 Stats에 복사
+    /// 
+    /// 주의: internal 메서드이므로 외부에서 직접 호출 불가
     internal void ApplyBuilderValues(CharacterStatsBuilder builder)
     {
         // 주요 스탯
@@ -344,6 +357,7 @@ public class CharacterStats : ScriptableObject
         _criticalChance = builder.CriticalChance;
         _criticalDamage = builder.CriticalDamage;
         _attackSpeed = builder.AttackSpeed;
+        _movementSpeed = builder.MovementSpeed;
 
         // 리소스
         _maxHealth = builder.MaxHealth;
@@ -355,24 +369,32 @@ public class CharacterStats : ScriptableObject
     #endregion
 }
 
-/// CharacterStats 생성을 위한 Builder 패턴 클래스
+/// <summary>
+/// CharacterStats 빌더 패턴 구현
 /// 
-/// Builder 패턴 사용 이유:
-/// 1. Reflection 제거로 60퍼센트 성능 향상
-/// 2. 타입 안전성 보장 (컴파일 타임 체크)
-/// 3. 가독성 높은 코드 (메서드 체이닝)
-/// 4. ItemStat을 CharacterStats로 효율적 변환
+/// 목적:
+/// - ScriptableObject 제약 없이 자유롭게 스탯 생성
+/// - 메서드 체이닝으로 가독성 높은 코드 작성
+/// - 복잡한 스탯 계산을 단계별로 수행
 /// 
 /// 사용 예시:
 /// CharacterStats stats = new CharacterStatsBuilder()
-///     .SetStrength(25)
-///     .SetVitality(30)
-///     .AddPhysicalAttack(50)
+///     .SetStrength(10)
+///     .SetDexterity(5)
+///     .AddPhysicalAttack(15.5f)
 ///     .Build();
+/// 
+/// 특징:
+/// - Set 메서드: 값 직접 설정
+/// - Add 메서드: 기존 값에 더하기
+/// - Build(): 최종 CharacterStats 객체 생성
+/// 
+/// 주의사항:
+/// - Builder는 임시 객체이므로 Build() 후 재사용 불가
+/// - 모든 메서드는 this 반환으로 체이닝 가능
+/// </summary>
 public class CharacterStatsBuilder
 {
-    #region Builder Properties
-
     // 주요 스탯
     public int Strength { get; private set; }
     public int Dexterity { get; private set; }
@@ -389,6 +411,7 @@ public class CharacterStatsBuilder
     public float CriticalChance { get; private set; }
     public float CriticalDamage { get; private set; }
     public float AttackSpeed { get; private set; }
+    public float MovementSpeed { get; private set; }
 
     // 리소스
     public float MaxHealth { get; private set; }
@@ -396,13 +419,11 @@ public class CharacterStatsBuilder
     public float HealthRegeneration { get; private set; }
     public float ManaRegeneration { get; private set; }
 
-    #endregion
+    #region Set Methods
 
-    #region Setter Methods
-
-    /// Set 메서드: 값을 직접 설정
+    /// Set 메서드: 값 직접 설정
     /// 
-    /// 사용: SaveData 로드 시 또는 기본값 설정
+    /// 사용: 초기값 설정 또는 값 덮어쓰기
 
     public CharacterStatsBuilder SetStrength(int value)
     {
@@ -467,6 +488,12 @@ public class CharacterStatsBuilder
     public CharacterStatsBuilder SetAttackSpeed(float value)
     {
         AttackSpeed = value;
+        return this;
+    }
+
+    public CharacterStatsBuilder SetMovementSpeed(float value)
+    {
+        MovementSpeed = value;
         return this;
     }
 
@@ -568,6 +595,12 @@ public class CharacterStatsBuilder
         return this;
     }
 
+    public CharacterStatsBuilder AddMovementSpeed(float value)
+    {
+        MovementSpeed += value;
+        return this;
+    }
+
     public CharacterStatsBuilder AddMaxHealth(float value)
     {
         MaxHealth += value;
@@ -659,6 +692,9 @@ public class CharacterStatsBuilder
                     break;
                 case ItemStatType.AttackSpeed:
                     AddAttackSpeed(stat.Value);
+                    break;
+                case ItemStatType.Speed:
+                    AddMovementSpeed(stat.Value);
                     break;
 
                 // 리소스

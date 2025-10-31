@@ -17,6 +17,9 @@ public class AoEController : MonoBehaviour
         _specialAttack = specialAttack;
         _playerLayerMask = playerLayerMask;
         StartCoroutine(AttackCoroutine());
+
+        //4초 후 오브젝트 파괴
+        Destroy(gameObject, 4f);
     }
 
     IEnumerator AttackCoroutine()
@@ -28,16 +31,17 @@ public class AoEController : MonoBehaviour
         Collider[] colliders = Physics.OverlapSphere(transform.position, _radius, _playerLayerMask);
         foreach (var col in colliders)
         {
-            IMonsterDamageable player = col.GetComponent<IMonsterDamageable>();
+            PlayerCombat player = col.GetComponent<PlayerCombat>();
             if (player != null)
             {
                 //플레이어에게 효과 적용
                 player.ApplySpecialEffect(_specialAttack);
             }
+            else
+            {
+                Debug.Log("[AoEController] 플레이어를 찾을 수 없습니다.");
+            }
         }
-
-        //잠시 후 오브젝트 파괴
-        Destroy(gameObject, 4f);
     }
 
     private void OnDrawGizmos()

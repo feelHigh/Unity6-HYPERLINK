@@ -4,9 +4,11 @@ using DG.Tweening;
 /// <summary>
 /// 스킬 데이터 ScriptableObject
 /// 
-/// 대시 거리 모드:
-/// - Fixed: 고정 거리 (_dashDistance 사용)
-/// - MouseDistance: 마우스까지 거리 기반 (_minDashDistance ~ _maxDashDistance)
+/// 새로운 데미지 시스템:
+/// 최종 데미지 = ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+/// 
+/// 예시: Sian, Intelligence 10, 캐릭터 공격력 25
+/// ((25 × 10) + 15) × (1 + (10 × 0.01)) = 291.5
 /// </summary>
 [CreateAssetMenu(fileName = "SkillData", menuName = "Character/Skill Data")]
 public class SkillData : ScriptableObject
@@ -26,9 +28,18 @@ public class SkillData : ScriptableObject
     [Header("스킬 속성")]
     [SerializeField] private float _manaCost;
     [SerializeField] private float _cooldown;
-    [SerializeField] private float _damage;
     [SerializeField] private float _range;
     [SerializeField] private SkillType _skillType;
+
+    [Header("데미지 계산 파라미터")]
+    [Tooltip("스킬 배율 - 캐릭터 공격력에 곱해지는 값 (예: 10)")]
+    [SerializeField] private float _skillMultiplier = 1f;
+
+    [Tooltip("스킬 기본 데미지 - 계산 후 더해지는 고정 데미지 (예: 15)")]
+    [SerializeField] private float _skillBaseDamage = 0f;
+
+    [Tooltip("주요 스탯당 데미지 증가% - 주요 스탯 1당 증가하는 데미지 비율 (예: 0.01 = 1%)")]
+    [SerializeField] private float _mainStatDamageIncrease = 0.01f;
 
     [Header("원거리 스킬 설정 (Ranged 타입 전용)")]
     [Tooltip("투사체 프리팹 (Projectile 스크립트 포함 필수)")]
@@ -52,7 +63,10 @@ public class SkillData : ScriptableObject
     [Tooltip("AOE 생성 위치 오프셋 (플레이어 로컬 좌표)")]
     [SerializeField] private Vector3 _aoeOffset = Vector3.zero;
 
-    [Tooltip("Box 형태일 때만 사용 - 박스 크기")]
+    [Tooltip("Sphere 형태일 때 반지름")]
+    [SerializeField] private float _sphereRadius = 5f;
+
+    [Tooltip("Box 형태일 때 박스 크기")]
     [SerializeField] private Vector3 _boxSize = new Vector3(3f, 2f, 4f);
 
     [Header("VFX 설정")]
@@ -125,9 +139,14 @@ public class SkillData : ScriptableObject
     public int RequiredLevel => _requiredLevel;
     public float ManaCost => _manaCost;
     public float Cooldown => _cooldown;
-    public float Damage => _damage;
     public float Range => _range;
     public SkillType SkillType => _skillType;
+
+    // 새로운 데미지 계산 파라미터
+    public float SkillMultiplier => _skillMultiplier;
+    public float SkillBaseDamage => _skillBaseDamage;
+    public float MainStatDamageIncrease => _mainStatDamageIncrease;
+
     public GameObject ProjectilePrefab => _projectilePrefab;
     public float BuffAmount => _buffAmount;
     public float BuffDuration => _buffDuration;
@@ -135,6 +154,7 @@ public class SkillData : ScriptableObject
     public AOEShape AoeShape => _aoeShape;
     public float DamagePointTiming => _damagePointTiming;
     public Vector3 AoeOffset => _aoeOffset;
+    public float SphereRadius => _sphereRadius;
     public Vector3 BoxSize => _boxSize;
     public float AnimationDuration => _animationDuration;
     public bool UseRootMotion => _useRootMotion;
@@ -153,7 +173,6 @@ public class SkillData : ScriptableObject
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
 
-
     // VFX 프로퍼티
     public GameObject VfxPrefab => _vfxPrefab;
     public float VfxSpawnTiming => _vfxSpawnTiming;
@@ -169,11 +188,15 @@ public class SkillData : ScriptableObject
         // 기본 검증
         _manaCost = Mathf.Max(0f, _manaCost);
         _cooldown = Mathf.Max(0f, _cooldown);
-        _damage = Mathf.Max(0f, _damage);
         _range = Mathf.Max(0f, _range);
         _buffAmount = Mathf.Max(0f, _buffAmount);
         _buffDuration = Mathf.Max(0f, _buffDuration);
         _animationDuration = Mathf.Max(0.1f, _animationDuration);
+
+        // 새로운 데미지 파라미터 검증
+        _skillMultiplier = Mathf.Max(0f, _skillMultiplier);
+        _skillBaseDamage = Mathf.Max(0f, _skillBaseDamage);
+        _mainStatDamageIncrease = Mathf.Max(0f, _mainStatDamageIncrease);
 
         // DOTween 대시 검증
         _dashDistance = Mathf.Max(0f, _dashDistance);
@@ -203,7 +226,13 @@ public class SkillData : ScriptableObject
             if (_range <= 0)
                 Debug.LogWarning($"[{_skillName}] Range > 0이어야 합니다!", this);
 
-            if (_aoeShape == AOEShape.Box)
+            // Sphere AOE 검증
+            if (_aoeShape == AOEShape.Sphere)
+            {
+                _sphereRadius = Mathf.Max(0.1f, _sphereRadius);
+            }
+            // Box AOE 검증
+            else if (_aoeShape == AOEShape.Box)
             {
                 _boxSize.x = Mathf.Max(0.1f, _boxSize.x);
                 _boxSize.y = Mathf.Max(0.1f, _boxSize.y);

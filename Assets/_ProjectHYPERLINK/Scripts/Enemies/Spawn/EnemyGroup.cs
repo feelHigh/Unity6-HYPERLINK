@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 public class EnemyGroup : MonoBehaviour
 {
-    [SerializeField] List<EnemyController> _enemies = new List<EnemyController>();
+    [SerializeField] List<EnemyAI> _enemies = new List<EnemyAI>();
     [SerializeField] bool _hasAggro = false;
     public bool HasAggro => _hasAggro;
 
     private void Start()
     {
         //자식으로 있는 모든 EnemyController를 찾아 리스트에 등록
-        GetComponentsInChildren<EnemyController>(_enemies);
+        GetComponentsInChildren<EnemyAI>(_enemies);
     }
 
     private void Update()
@@ -22,9 +22,9 @@ public class EnemyGroup : MonoBehaviour
         //모든 멤버들이 순찰 상태인지,아닌지 확인
         foreach (var enemy in _enemies)
         {
-            if (enemy != null && enemy.CurState != EnemyController.EnemyState.Dead)
+            if (enemy != null && enemy.CurState != EnemyAI.EnemyState.Dead)
             {
-                if (enemy.CurState != EnemyController.EnemyState.Idle)
+                if (enemy.CurState != EnemyAI.EnemyState.Idle)
                 {
                     allMembersPatrolling = false;
                     break;
@@ -50,7 +50,7 @@ public class EnemyGroup : MonoBehaviour
         //그룹 네 모든 멤버에게 타겟을 알리고 추격 명령을 내림
         foreach (var enemy in _enemies)
         {
-            if (enemy != null && enemy.CurState != EnemyController.EnemyState.Dead)
+            if (enemy != null && enemy.CurState != EnemyAI.EnemyState.Dead)
             {
                 enemy.ActivateChase(target);
             }

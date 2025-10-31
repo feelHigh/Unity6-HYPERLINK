@@ -16,7 +16,7 @@ public class SpawnerManager : MonoBehaviour
     [SerializeField] private Transform _player;
     [SerializeField] float _activationDistance = 50f;  //스포너가 활성화될 범위
 
-    List<EnemySpawner> _allSpawners = new List<EnemySpawner>();
+    List<EnemySpawner> _allSpawners = new List<EnemySpawner>();     //모든 스포너 리스트
     float _checkInterval = 1f;  //체크 시간 간격
 
     private void Awake()

@@ -1,29 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 스킬 활성화 시스템 (리팩토링 버전)
+/// 스킬 활성화 시스템
 /// 
-/// 주요 변경사항:
-/// - [CHANGED] AOE/Melee 스킬 데미지 로직 제거 → SkillAnimationController로 이관
-/// - [REASON] 애니메이션 타이밍에 맞춘 데미지 적용 위해
-/// - 기존 기능 모두 유지 (Ranged, Buff, Heal)
-/// 
-/// 역할 분담:
-/// - SkillActivationSystem: 유효성 검사, 마나 소비, 쿨다운 관리, 이벤트 발생
-/// - SkillAnimationController: 애니메이션 재생, 타이밍 제어, 데미지 적용
-/// 
-/// 핵심 기능:
-/// - 키 바인드 기반 스킬 활성화 (Q/W/E)
-/// - 스킬 타입별 실행 분기
-/// - 쿨다운 및 마나 관리
+/// 최근 변경사항:
+/// - PlayerStateController 연동 (침묵 상태 체크)
+/// - SkillData.cs 실제 구조에 맞춤
+/// - UpdateCooldowns() 딕셔너리 수정 버그 수정
+/// - 새로운 데미지 공식 적용: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+/// - [FIX] 사망 상태 체크 추가 (HandleSkillInput, ActivateSkill)
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
     [Header("캐릭터 참조")]
     [SerializeField] private PlayerCharacter _playerCharacter;
+    [SerializeField] private PlayerStateController _stateController;
+    [SerializeField] private PlayerNavController _navController;
 
     [Header("스킬 슬롯")]
     [SerializeField] private List<SkillSlotUI> _skillSlots = new List<SkillSlotUI>();
@@ -44,17 +38,18 @@ public class SkillActivationSystem : MonoBehaviour
     // 스킬 쿨다운 추적
     private Dictionary<SkillData, float> _skillCooldowns = new Dictionary<SkillData, float>();
 
-    // 현재 활성화된 버프 목록
-    private Dictionary<SkillData, Coroutine> _activeBuffs = new Dictionary<SkillData, Coroutine>();
-
     // 키 바인드 목록
     private KeyCode[] _skillKeys;
 
     /// <summary>
     /// 스킬 실행 이벤트
-    /// SkillAnimationController에서 구독하여 애니메이션 재생
     /// </summary>
     public static event System.Action<SkillData> OnSkillExecuted;
+
+    /// <summary>
+    /// 스킬 실행 이벤트 (데미지 포함)
+    /// </summary>
+    public static event System.Action<SkillData, float> OnSkillExecutedWithDamage;
 
     #region 초기화
 
@@ -66,6 +61,24 @@ public class SkillActivationSystem : MonoBehaviour
             if (_playerCharacter == null)
             {
                 Debug.LogError("[SkillActivationSystem] PlayerCharacter를 찾을 수 없습니다!");
+            }
+        }
+
+        if (_stateController == null)
+        {
+            _stateController = GetComponent<PlayerStateController>();
+            if (_stateController == null)
+            {
+                Debug.LogError("[SkillActivationSystem] PlayerStateController를 찾을 수 없습니다!");
+            }
+        }
+
+        if (_navController == null)
+        {
+            _navController = GetComponent<PlayerNavController>();
+            if (_navController == null)
+            {
+                Debug.LogWarning("[SkillActivationSystem] PlayerNavController를 찾을 수 없습니다! 기본 공격력 값을 사용합니다.");
             }
         }
 
@@ -87,6 +100,18 @@ public class SkillActivationSystem : MonoBehaviour
     /// </summary>
     private void HandleSkillInput()
     {
+        // 사망 상태 체크 (최우선)
+        if (_playerCharacter == null || !_playerCharacter.IsAlive)
+        {
+            return;
+        }
+
+        // 스킬 사용 불가 상태 체크 (침묵, 빙결, 넉다운)
+        if (_stateController != null && !_stateController.CanUseSkill)
+        {
+            return;
+        }
+
         for (int i = 0; i < _skillSlots.Count && i < _skillKeys.Length; i++)
         {
             if (Input.GetKeyDown(_skillKeys[i]))
@@ -140,15 +165,31 @@ public class SkillActivationSystem : MonoBehaviour
     /// 스킬 활성화 메인 메서드
     /// 
     /// 처리 순서:
-    /// 1. 유효성 검사 (쿨다운, 마나)
-    /// 2. 마나 소비
-    /// 3. 스킬 실행 (타입별 분기)
-    /// 4. 쿨다운 시작
+    /// 1. 사망 상태 체크
+    /// 2. 상태이상 체크
+    /// 3. 유효성 검사 (쿨다운, 마나)
+    /// 4. 마나 소비
+    /// 5. 스킬 실행 (타입별 분기)
+    /// 6. 쿨다운 시작
     /// </summary>
     public void ActivateSkill(SkillData skill)
     {
         if (skill == null || _playerCharacter == null)
             return;
+
+        // 이중 보안: 사망 상태 최종 확인
+        if (!_playerCharacter.IsAlive)
+        {
+            Debug.Log($"[SkillActivation] 플레이어가 사망 상태입니다!");
+            return;
+        }
+
+        // 스킬 사용 불가 상태 체크
+        if (_stateController != null && !_stateController.CanUseSkill)
+        {
+            Debug.Log($"[침묵] 스킬 사용 불가 상태입니다!");
+            return;
+        }
 
         // 쿨다운 체크
         if (IsSkillOnCooldown(skill))
@@ -176,35 +217,31 @@ public class SkillActivationSystem : MonoBehaviour
 
     /// <summary>
     /// 스킬 타입별 실행 분기
-    /// 
-    /// 주의:
-    /// - Melee/AOE: 이벤트만 발생 (데미지는 SkillAnimationController에서 처리)
-    /// - Ranged/Buff/Heal: 직접 처리
     /// </summary>
     private void ExecuteSkill(SkillData skill)
     {
+        // 데미지 계산 (모든 스킬 타입에서 공통으로 사용)
+        float damage = CalculateSkillDamage(skill);
+
         switch (skill.SkillType)
         {
             case SkillType.Melee:
             case SkillType.AreaOfEffect:
-                // 애니메이션 컨트롤러에 알림만 전송
-                // 실제 데미지는 SkillAnimationController에서 타이밍에 맞춰 적용
+                // SkillAnimationController에서 데미지 처리
                 OnSkillExecuted?.Invoke(skill);
-                Debug.Log($"[{skill.SkillName}] 애니메이션 시작 → 데미지는 타이밍에 적용됨");
+                OnSkillExecutedWithDamage?.Invoke(skill, damage);
+                Debug.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
                 break;
 
             case SkillType.Ranged:
-                ExecuteRangedSkill(skill);
+                ExecuteRangedSkill(skill, damage);
                 OnSkillExecuted?.Invoke(skill);
                 break;
 
             case SkillType.Buff:
-                ExecuteBuffSkill(skill);
-                OnSkillExecuted?.Invoke(skill);
-                break;
-
             case SkillType.Heal:
-                ExecuteHealSkill(skill);
+                // TODO: Buff/Heal 구현을 위해 SkillData.cs에 필요한 프로퍼티 추가 필요
+                Debug.LogWarning($"[{skill.SkillName}] {skill.SkillType} 타입은 아직 구현되지 않았습니다!");
                 OnSkillExecuted?.Invoke(skill);
                 break;
         }
@@ -216,10 +253,8 @@ public class SkillActivationSystem : MonoBehaviour
 
     /// <summary>
     /// 원거리 스킬 실행
-    /// 
-    /// 투사체 생성 및 발사
     /// </summary>
-    private void ExecuteRangedSkill(SkillData skill)
+    private void ExecuteRangedSkill(SkillData skill, float damage)
     {
         if (skill.ProjectilePrefab == null)
         {
@@ -227,134 +262,90 @@ public class SkillActivationSystem : MonoBehaviour
             return;
         }
 
-        // 발사 위치 계산
         Vector3 spawnOffset = transform.forward * 1f + Vector3.up * 1.5f;
         Vector3 spawnPosition = transform.position + spawnOffset;
 
-        // 투사체 생성
         GameObject projectileObj = Instantiate(
             skill.ProjectilePrefab,
             spawnPosition,
             transform.rotation
         );
 
-        // Projectile 초기화
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
-            float damage = CalculateSkillDamage(skill);
             projectile.Initialize(damage, skill.Range, _playerCharacter);
-            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F0}");
+            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F1}");
         }
         else
         {
-            Debug.LogError($"[{skill.SkillName}] 투사체 프리팹에 Projectile 스크립트가 없습니다!");
-            Destroy(projectileObj);
+            Debug.LogError($"[{skill.SkillName}] 투사체에 Projectile 컴포넌트가 없습니다!");
         }
     }
 
+    #endregion
+
+    #region 쿨다운 관리
+
     /// <summary>
-    /// 버프 스킬 실행
-    /// 
-    /// 임시 스탯 증가
+    /// 쿨다운 업데이트
     /// </summary>
-    private void ExecuteBuffSkill(SkillData skill)
+    private void UpdateCooldowns()
     {
-        // 이미 같은 버프가 활성화되어 있으면 중복 적용 방지
-        if (_activeBuffs.ContainsKey(skill))
+        // 수정 사항을 임시 저장
+        List<SkillData> cooldownsToRemove = new List<SkillData>();
+        Dictionary<SkillData, float> cooldownsToUpdate = new Dictionary<SkillData, float>();
+
+        // 읽기 전용으로 순회
+        foreach (var kvp in _skillCooldowns)
         {
-            Debug.LogWarning($"[{skill.SkillName}] 이미 버프가 활성화되어 있습니다!");
-            return;
-        }
+            SkillData skill = kvp.Key;
+            float remainingTime = kvp.Value - Time.deltaTime;
 
-        // 버프 적용
-        Coroutine buffCoroutine = StartCoroutine(ApplyTemporaryBuff(skill));
-        _activeBuffs.Add(skill, buffCoroutine);
-    }
-
-    /// <summary>
-    /// 회복 스킬 실행
-    /// </summary>
-    private void ExecuteHealSkill(SkillData skill)
-    {
-        float healAmount = skill.Damage;
-        _playerCharacter.Heal(healAmount);
-        Debug.Log($"[{skill.SkillName}] 체력 회복: {healAmount}");
-    }
-
-    /// <summary>
-    /// 임시 버프 적용 코루틴
-    /// </summary>
-    private IEnumerator ApplyTemporaryBuff(SkillData skill)
-    {
-        // 1. 버프 스탯 생성
-        CharacterStats buffStats = CreateBuffStats(skill.BuffAmount);
-
-        // 2. PlayerCharacter에 스탯 추가
-        _playerCharacter.AddTemporaryStats(buffStats);
-        Debug.Log($"[{skill.SkillName}] 버프 적용: +{skill.BuffAmount} 스탯, {skill.BuffDuration}초");
-
-        // 3. 지속시간 대기
-        yield return new WaitForSeconds(skill.BuffDuration);
-
-        // 4. 스탯 제거
-        _playerCharacter.RemoveTemporaryStats(buffStats);
-        Debug.Log($"[{skill.SkillName}] 버프 종료");
-
-        // 5. 활성 버프 목록에서 제거
-        if (_activeBuffs.ContainsKey(skill))
-        {
-            _activeBuffs.Remove(skill);
-        }
-    }
-
-    /// <summary>
-    /// 버프용 CharacterStats 생성
-    /// 
-    /// 직업별 주요 스탯 증가
-    /// </summary>
-    private CharacterStats CreateBuffStats(float buffAmount)
-    {
-        CharacterClass playerClass = _playerCharacter.CharacterClass;
-
-        switch (playerClass)
-        {
-            case CharacterClass.Laon:
-                return new CharacterStatsBuilder()
-                    .SetStrength((int)buffAmount)
-                    .Build();
-
-            case CharacterClass.Sian:
-                return new CharacterStatsBuilder()
-                    .SetIntelligence((int)buffAmount)
-                    .Build();
-
-            case CharacterClass.Yujin:
-                return new CharacterStatsBuilder()
-                    .SetDexterity((int)buffAmount)
-                    .Build();
-
-            default:
-                return new CharacterStatsBuilder()
-                    .SetStrength((int)buffAmount)
-                    .Build();
-        }
-    }
-
-    /// <summary>
-    /// 모든 버프 강제 종료
-    /// </summary>
-    public void ClearAllBuffs()
-    {
-        foreach (var buff in _activeBuffs)
-        {
-            if (buff.Value != null)
+            if (remainingTime <= 0f)
             {
-                StopCoroutine(buff.Value);
+                cooldownsToRemove.Add(skill);
+            }
+            else
+            {
+                cooldownsToUpdate[skill] = remainingTime;
             }
         }
-        _activeBuffs.Clear();
-        Debug.Log("모든 버프 제거 완료");
+
+        // 순회 완료 후 딕셔너리 수정
+        foreach (var kvp in cooldownsToUpdate)
+        {
+            _skillCooldowns[kvp.Key] = kvp.Value;
+            UpdateCooldownUI(kvp.Key, kvp.Value);
+        }
+
+        foreach (SkillData skill in cooldownsToRemove)
+        {
+            _skillCooldowns.Remove(skill);
+            UpdateCooldownUI(skill, 0f);
+        }
+    }
+
+    private void StartCooldown(SkillData skill)
+    {
+        _skillCooldowns[skill] = skill.Cooldown;
+        UpdateCooldownUI(skill, skill.Cooldown);
+    }
+
+    private void UpdateCooldownUI(SkillData skill, float remainingTime)
+    {
+        foreach (SkillSlotUI slot in _skillSlots)
+        {
+            if (slot.SkillData == skill)
+            {
+                slot.UpdateCooldown(remainingTime, skill.Cooldown);
+            }
+        }
+    }
+
+    private bool IsSkillOnCooldown(SkillData skill)
+    {
+        return _skillCooldowns.ContainsKey(skill) && _skillCooldowns[skill] > 0;
     }
 
     #endregion
@@ -362,73 +353,81 @@ public class SkillActivationSystem : MonoBehaviour
     #region 데미지 계산
 
     /// <summary>
-    /// 스킬 데미지 계산 (크리티컬 포함)
+    /// 스킬 데미지 계산
     /// 
-    /// 공식: 기본 데미지 × (1 + 주요스탯/100) × 크리티컬배율
+    /// 공식: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+    /// 
+    /// 예시: Sian, Intelligence 10
+    /// - 캐릭터 공격력 = 25
+    /// - 스킬 배율 = 10
+    /// - 스킬 기본 데미지 = 15
+    /// - 주요 스탯 (Intelligence) = 10
+    /// - 스탯당 데미지 증가% = 0.01
+    /// 
+    /// 계산: ((25 × 10) + 15) × (1 + (10 × 0.01))
+    ///      = (250 + 15) × 1.1
+    ///      = 265 × 1.1
+    ///      = 291.5
     /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
-        // 기본 데미지 + 주요 스탯 보너스
+        // 1. 캐릭터 공격력 가져오기
+        float characterAttackDamage = GetCharacterAttackDamage();
+
+        // 2. 주요 스탯 가져오기
         int mainStat = _playerCharacter.GetMainStat();
-        float baseDamage = skill.Damage;
-        float damageWithStat = baseDamage * (1f + mainStat / 100f);
 
-        // 크리티컬 체크
+        // 3. 스킬 파라미터 가져오기
+        float skillMultiplier = skill.SkillMultiplier;
+        float skillBaseDamage = skill.SkillBaseDamage;
+        float mainStatDamageIncrease = skill.MainStatDamageIncrease;
+
+        // 4. 최종 데미지 계산
+        // ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
+        float damage = ((characterAttackDamage * skillMultiplier) + skillBaseDamage)
+                       * (1f + (mainStat * mainStatDamageIncrease));
+
+        // 5. 크리티컬 판정
         CharacterStats stats = _playerCharacter.CurrentStats;
-        float critChance = stats.CriticalChance;
-        float critDamage = stats.CriticalDamage;
-
-        if (Random.Range(0f, 100f) < critChance)
+        if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
-            damageWithStat *= (1f + critDamage / 100f);
-            Debug.Log($"크리티컬 히트! 데미지: {damageWithStat:F0}");
+            damage *= (1f + stats.CriticalDamage / 100f);
+            Debug.Log($"[{skill.SkillName}] 크리티컬 히트!");
         }
 
-        return damageWithStat;
+        Debug.Log($"[{skill.SkillName}] 데미지 계산: " +
+                  $"(({characterAttackDamage:F1} × {skillMultiplier:F1}) + {skillBaseDamage:F1}) × " +
+                  $"(1 + ({mainStat} × {mainStatDamageIncrease:F2})) = {damage:F1}");
+
+        return damage;
     }
 
-    #endregion
-
-    #region 쿨다운 관리
-
-    private void StartCooldown(SkillData skill)
+    /// <summary>
+    /// 캐릭터 공격력 가져오기
+    /// 
+    /// PlayerNavController의 AttackDamage를 사용합니다.
+    /// NavController가 없으면 기본값 25를 사용합니다.
+    /// </summary>
+    /// <summary>
+    /// 캐릭터 공격력 가져오기
+    /// 
+    /// 새로운 방식: PlayerCharacter의 Physical/Magical Attack 사용
+    /// - Laon, Yujin: Physical Attack
+    /// - Sian: Magical Attack
+    /// 
+    /// 스킬 데미지 계산 공식:
+    /// ((Physical/Magical Attack × 스킬 배율) + 스킬 기본 데미지) × (1 + (주 스탯 × 증가율))
+    /// </summary>
+    private float GetCharacterAttackDamage()
     {
-        _skillCooldowns[skill] = skill.Cooldown;
-
-        foreach (SkillSlotUI slot in _skillSlots)
+        if (_playerCharacter != null)
         {
-            if (slot.SkillData == skill)
-            {
-                slot.StartCooldown();
-            }
+            return _playerCharacter.GetAttackPower();
         }
-    }
 
-    private bool IsSkillOnCooldown(SkillData skill)
-    {
-        if (_skillCooldowns.ContainsKey(skill))
-        {
-            return _skillCooldowns[skill] > 0f;
-        }
-        return false;
-    }
-
-    private void UpdateCooldowns()
-    {
-        List<SkillData> skillsToUpdate = new List<SkillData>(_skillCooldowns.Keys);
-
-        foreach (SkillData skill in skillsToUpdate)
-        {
-            if (_skillCooldowns[skill] > 0f)
-            {
-                _skillCooldowns[skill] -= Time.deltaTime;
-
-                if (_skillCooldowns[skill] <= 0f)
-                {
-                    _skillCooldowns[skill] = 0f;
-                }
-            }
-        }
+        // 폴백: PlayerCharacter가 없을 때
+        Debug.LogWarning("[SkillActivation] PlayerCharacter가 없어 기본 공격력(25)을 사용합니다.");
+        return 25f;
     }
 
     #endregion
@@ -437,13 +436,13 @@ public class SkillActivationSystem : MonoBehaviour
 
     private void ShowManaCostWarning(SkillData skill)
     {
-        Debug.Log($"마나 부족! 현재: {_playerCharacter.CurrentMana:F0} / 필요: {skill.ManaCost}");
+        Debug.Log($"[마나 부족] 현재: {_playerCharacter.CurrentMana:F0} / 필요: {skill.ManaCost}");
 
         foreach (SkillSlotUI slot in _skillSlots)
         {
             if (slot.SkillData == skill)
             {
-                // slot.FlashRed(); // 향후 구현
+                // TODO: UI 플래시 효과
             }
         }
     }
@@ -475,21 +474,11 @@ public class SkillActivationSystem : MonoBehaviour
         Debug.Log("===== SkillActivationSystem 상태 =====");
         Debug.Log($"등록된 스킬 슬롯: {_skillSlots.Count}개");
         Debug.Log($"쿨다운 추적 중: {_skillCooldowns.Count}개");
-        Debug.Log($"활성 버프: {_activeBuffs.Count}개");
 
         Debug.Log("--- 키 바인드 ---");
         for (int i = 0; i < _skillKeys.Length; i++)
         {
             Debug.Log($"  슬롯 {i + 1}: {_skillKeys[i]}");
-        }
-
-        if (_activeBuffs.Count > 0)
-        {
-            Debug.Log("--- 활성 버프 목록 ---");
-            foreach (var buff in _activeBuffs)
-            {
-                Debug.Log($"  - {buff.Key.SkillName}");
-            }
         }
 
         if (_skillCooldowns.Count > 0)
@@ -502,6 +491,33 @@ public class SkillActivationSystem : MonoBehaviour
                     Debug.Log($"  - {cooldown.Key.SkillName}: {cooldown.Value:F1}초 남음");
                 }
             }
+        }
+
+        // 사망 상태 체크 추가
+        if (_playerCharacter != null)
+        {
+            Debug.Log($"플레이어 생존 여부: {_playerCharacter.IsAlive}");
+        }
+
+        // 상태이상 체크
+        if (_stateController != null)
+        {
+            Debug.Log($"스킬 사용 가능: {_stateController.CanUseSkill}");
+            if (!_stateController.CanUseSkill)
+            {
+                Debug.Log($"  - 침묵: {_stateController.IsSilenced}");
+                Debug.Log($"  - 빙결: {_stateController.IsFrozen}");
+                Debug.Log($"  - 넉다운: {_stateController.IsStunned}");
+            }
+        }
+
+        // 데미지 계산 정보
+        if (_playerCharacter != null)
+        {
+            Debug.Log("--- 데미지 계산 정보 ---");
+            Debug.Log($"  캐릭터 공격력: {GetCharacterAttackDamage():F1}");
+            Debug.Log($"  주요 스탯: {_playerCharacter.GetMainStat()}");
+            Debug.Log($"  클래스: {_playerCharacter.CharacterClass}");
         }
     }
 
