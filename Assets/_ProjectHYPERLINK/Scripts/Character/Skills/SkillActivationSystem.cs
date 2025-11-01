@@ -191,6 +191,13 @@ public class SkillActivationSystem : MonoBehaviour
             return;
         }
 
+
+        // 속박 상태에서 대시 스킬(UseRootMotion=false) 차단
+        if (_stateController != null && _stateController.IsRoot && !skill.UseRootMotion)
+        {
+            Debug.Log($"[속박] {skill.SkillName}은(는) 이동을 수반하므로 사용할 수 없습니다!");
+            return;
+        }
         // 쿨다운 체크
         if (IsSkillOnCooldown(skill))
         {

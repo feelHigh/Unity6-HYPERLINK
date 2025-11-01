@@ -14,6 +14,7 @@ using UnityEngine;
 /// - IMonsterDamageable 인터페이스 완전 구현
 /// - 5가지 속성 상태이상 코루틴 완성
 /// - PlayerStateController, PlayerNavController 연동
+/// - [FIX] RootCoroutine() 주석 개선: 공격/스킬 가능 명시
 /// </summary>
 public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 {
@@ -259,10 +260,22 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     }
 
     /// <summary>
-    /// 속박 효과
+    /// 속박 효과 (Wood 속성 특수 공격)
+    /// 
+    /// [Phase 1] 속박 (3초):
     /// - 즉시 10% 피해
-    /// - 3초 속박 (이동 불가, 공격/스킬 가능)
-    /// - 5초 방어력 30% 감소
+    /// - 이동 불가 (좌클릭 이동 차단, NavMeshAgent 정지)
+    /// - 공격 가능 (우클릭 기본 공격 허용) ← 중요!
+    /// - 스킬 가능 (Q/W/E 스킬 사용 허용) ← 중요!
+    /// 
+    /// [Phase 2] 방어력 약화 (5초):
+    /// - 방어력 30% 감소
+    /// - 이동 및 전투 정상화
+    /// 
+    /// 게임플레이:
+    /// - 적의 우드 공격에 맞으면 제자리에 고정됨
+    /// - 이동은 못하지만 우클릭 공격과 스킬로 반격 가능
+    /// - 속박 해제 후 약화 상태로 전환 (방어력 감소)
     /// </summary>
     private IEnumerator RootCoroutine(SpecialAttackBase attack)
     {
@@ -271,24 +284,24 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 속박 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 속박 상태 적용
+        // 속박 상태 적용 (이동만 차단, 공격/스킬 허용)
         if (_stateController != null)
         {
             _stateController.SetRoot(true);
         }
 
-        // NavMeshAgent 정지
+        // NavMeshAgent 정지 (이동 중이었다면 멈춤)
         if (_navController != null)
         {
             _navController.ForceStop();
         }
 
-        Debug.Log($"[속박] 이동 불가 ({attack.RootDuration}초)");
+        Debug.Log($"[속박] 이동 불가 ({attack.RootDuration}초) - 공격/스킬 가능");
 
         // 속박 대기
         yield return new WaitForSeconds(attack.RootDuration);
 
-        // 속박 해제
+        // 속박 해제 (이제 이동 가능)
         if (_stateController != null)
         {
             _stateController.SetRoot(false);
@@ -296,7 +309,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         CleanupDebuffEffect();
 
-        // 방어력 약화로 전환
+        // Phase 2: 방어력 약화로 전환
         _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
 
         if (_stateController != null)
