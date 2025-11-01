@@ -57,7 +57,7 @@ public class SA_Earth : SpecialAttackBase
                 IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
                 if (player != null)
                 {
-                    player.ApplySpecialEffect(this);
+                    player.ApplySpecialEffect(this, attacker.position);
                 }
             }
         }

@@ -60,7 +60,7 @@ public class TargetDetector : MonoBehaviour
             Debug.Log("[TergetDetector] 콜라이더가 없습니다.");
         }
     }
-    
+
     /// <summary>
     /// 감지 콜라이더 비활성화 하는 함수
     /// </summary>
@@ -87,7 +87,7 @@ public class TargetDetector : MonoBehaviour
                 //특수 공격 데이터가 있으면 특수 공격
                 if (_specialAttack != null)
                 {
-                    player.ApplySpecialEffect(_specialAttack);
+                    player.ApplySpecialEffect(_specialAttack, transform.position);
 
                     Debug.Log("[TergetDetector] 특수 공격!");
                 }

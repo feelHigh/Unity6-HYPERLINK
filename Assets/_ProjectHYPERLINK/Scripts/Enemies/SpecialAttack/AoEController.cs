@@ -34,8 +34,8 @@ public class AoEController : MonoBehaviour
             PlayerCombat player = col.GetComponent<PlayerCombat>();
             if (player != null)
             {
-                //플레이어에게 효과 적용
-                player.ApplySpecialEffect(_specialAttack);
+                //플레이어에게 효과 적용 (AoE 중심점을 공격자 위치로 전달)
+                player.ApplySpecialEffect(_specialAttack, transform.position);
             }
             else
             {

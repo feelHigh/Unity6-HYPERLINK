@@ -45,7 +45,7 @@ public class SA_Fire : SpecialAttackBase
             IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
             if (player != null)
             {
-                player.ApplySpecialEffect(this);
+                player.ApplySpecialEffect(this, attacker.position);
             }
         }
 

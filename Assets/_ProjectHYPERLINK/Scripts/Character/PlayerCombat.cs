@@ -26,6 +26,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     private Coroutine _currentDebuffCoroutine;
     private GameObject _currentDebuffEffect;
     private GameObject _currentAdditionalEffect;
+    private Vector3 _lastAttackerPosition;
 
     private void Awake()
     {
@@ -88,9 +89,12 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     /// <summary>
     /// 에픽 몬스터의 특수 공격 효과 적용
     /// </summary>
-    public void ApplySpecialEffect(SpecialAttackBase attack)
+    public void ApplySpecialEffect(SpecialAttackBase attack, Vector3 attackerPosition)
     {
         if (_playerCharacter == null || !IsAlive()) return;
+
+        // 공격자 위치 저장 (넉백 방향 계산용)
+        _lastAttackerPosition = attackerPosition;
 
         Debug.Log($"[PlayerCombat] 특수 공격 받음: {attack.Type}");
 
@@ -332,10 +336,13 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 넉다운 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 넉백 적용
+        // 넉백 적용 (공격자 방향으로)
         if (_navController != null)
         {
-            _navController.ApplyKnockback(attack.KnockbackPower);
+            // 넉백 방향 계산: 공격자 → 플레이어
+            Vector3 knockbackDir = (transform.position - _lastAttackerPosition).normalized;
+            knockbackDir.y = 0; // 수평 방향만
+            _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
         }
 
         // 넉다운 상태 적용

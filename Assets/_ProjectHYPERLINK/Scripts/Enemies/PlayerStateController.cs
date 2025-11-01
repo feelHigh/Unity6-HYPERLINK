@@ -8,6 +8,7 @@ using UnityEngine;
 /// - SetWeaken() 메소드 추가 (방어력 감소)
 /// - ResetAllStates() 메소드 추가
 /// - 상태 프로퍼티 추가
+/// - SetRoot() 주석 개선: 속박 상태에서 공격/스킬 가능 명시
 /// </summary>
 public class PlayerStateController : MonoBehaviour
 {
@@ -44,13 +45,18 @@ public class PlayerStateController : MonoBehaviour
     }
 
     /// <summary>
-    /// 속박 상태
-    /// - 이동만 불가
+    /// 속박 상태 (Wood 속성 특수 공격)
+    /// - 이동만 불가 (CanMove = false)
+    /// - 공격 가능 (CanAttack = true) ← 우클릭 기본 공격 허용
+    /// - 스킬 가능 (CanUseSkill = true) ← Q/W/E 스킬 사용 허용
+    /// 
+    /// 게임플레이: 제자리에서 전투는 가능하지만 위치 이동은 불가
     /// </summary>
     public void SetRoot(bool active)
     {
         IsRoot = active;
         CanMove = !active;
+        // CanAttack와 CanUseSkill은 변경하지 않음 (기본값 true 유지)
 
         Debug.Log($"[상태] 속박: {active}");
     }
@@ -129,7 +135,7 @@ public class PlayerStateController : MonoBehaviour
 
     /// <summary>
     /// 현재 이동속도 배율 계산
-    /// 1.0 = 100% (정상), 0.5 = 50% (둔화)
+    /// 1.0 = 100% (정상), 0.5 = 50% (둔화), 0.0 = 이동 불가
     /// </summary>
     public float GetMovementSpeedMultiplier()
     {
