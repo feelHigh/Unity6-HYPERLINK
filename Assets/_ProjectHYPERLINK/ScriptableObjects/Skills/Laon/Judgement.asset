@@ -16,6 +16,7 @@ MonoBehaviour:
   _description: 
   _skillIcon: {fileID: 21300000, guid: 66292270a019e8f45b57d356b70d88c5, type: 3}
   _requiredLevel: 1
+  _animatorTriggerName: SkillJudgement
   _manaCost: 10
   _cooldown: 1
   _range: 2
