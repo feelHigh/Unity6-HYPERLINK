@@ -14,7 +14,6 @@ using UnityEngine;
 /// - IMonsterDamageable 인터페이스 완전 구현
 /// - 5가지 속성 상태이상 코루틴 완성
 /// - PlayerStateController, PlayerNavController 연동
-/// - [FIX] RootCoroutine() 주석 개선: 공격/스킬 가능 명시
 /// </summary>
 public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 {
@@ -27,6 +26,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     private Coroutine _currentDebuffCoroutine;
     private GameObject _currentDebuffEffect;
     private GameObject _currentAdditionalEffect;
+    private Vector3 _lastAttackerPosition;
 
     private void Awake()
     {
@@ -89,9 +89,12 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     /// <summary>
     /// 에픽 몬스터의 특수 공격 효과 적용
     /// </summary>
-    public void ApplySpecialEffect(SpecialAttackBase attack)
+    public void ApplySpecialEffect(SpecialAttackBase attack, Vector3 attackerPosition)
     {
         if (_playerCharacter == null || !IsAlive()) return;
+
+        // 공격자 위치 저장 (넉백 방향 계산용)
+        _lastAttackerPosition = attackerPosition;
 
         Debug.Log($"[PlayerCombat] 특수 공격 받음: {attack.Type}");
 
@@ -260,22 +263,10 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     }
 
     /// <summary>
-    /// 속박 효과 (Wood 속성 특수 공격)
-    /// 
-    /// [Phase 1] 속박 (3초):
+    /// 속박 효과
     /// - 즉시 10% 피해
-    /// - 이동 불가 (좌클릭 이동 차단, NavMeshAgent 정지)
-    /// - 공격 가능 (우클릭 기본 공격 허용) ← 중요!
-    /// - 스킬 가능 (Q/W/E 스킬 사용 허용) ← 중요!
-    /// 
-    /// [Phase 2] 방어력 약화 (5초):
-    /// - 방어력 30% 감소
-    /// - 이동 및 전투 정상화
-    /// 
-    /// 게임플레이:
-    /// - 적의 우드 공격에 맞으면 제자리에 고정됨
-    /// - 이동은 못하지만 우클릭 공격과 스킬로 반격 가능
-    /// - 속박 해제 후 약화 상태로 전환 (방어력 감소)
+    /// - 3초 속박 (이동 불가, 공격/스킬 가능)
+    /// - 5초 방어력 30% 감소
     /// </summary>
     private IEnumerator RootCoroutine(SpecialAttackBase attack)
     {
@@ -284,24 +275,24 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 속박 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 속박 상태 적용 (이동만 차단, 공격/스킬 허용)
+        // 속박 상태 적용
         if (_stateController != null)
         {
             _stateController.SetRoot(true);
         }
 
-        // NavMeshAgent 정지 (이동 중이었다면 멈춤)
+        // NavMeshAgent 정지
         if (_navController != null)
         {
             _navController.ForceStop();
         }
 
-        Debug.Log($"[속박] 이동 불가 ({attack.RootDuration}초) - 공격/스킬 가능");
+        Debug.Log($"[속박] 이동 불가 ({attack.RootDuration}초)");
 
         // 속박 대기
         yield return new WaitForSeconds(attack.RootDuration);
 
-        // 속박 해제 (이제 이동 가능)
+        // 속박 해제
         if (_stateController != null)
         {
             _stateController.SetRoot(false);
@@ -309,7 +300,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         CleanupDebuffEffect();
 
-        // Phase 2: 방어력 약화로 전환
+        // 방어력 약화로 전환
         _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
 
         if (_stateController != null)
@@ -345,10 +336,13 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 넉다운 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 넉백 적용
+        // 넉백 적용 (공격자 방향으로)
         if (_navController != null)
         {
-            _navController.ApplyKnockback(attack.KnockbackPower);
+            // 넉백 방향 계산: 공격자 → 플레이어
+            Vector3 knockbackDir = (transform.position - _lastAttackerPosition).normalized;
+            knockbackDir.y = 0; // 수평 방향만
+            _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
         }
 
         // 넉다운 상태 적용

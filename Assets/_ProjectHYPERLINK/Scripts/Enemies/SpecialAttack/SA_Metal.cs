@@ -1,5 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// 금속(Metal) 속성 특수 공격
+/// 
+/// 최근 변경사항:
+/// - ExecuteMelee에서 attacker.position 전달하도록 수정
+/// - 넉백 방향이 공격자 기준으로 올바르게 계산되도록 개선
+/// </summary>
 [CreateAssetMenu(fileName = "SA_Metal", menuName = "Enemy/Special Attacks/Metal")]
 public class SA_Metal : SpecialAttackBase
 {
@@ -27,6 +34,9 @@ public class SA_Metal : SpecialAttackBase
 
     /// <summary>
     /// 금 속성 근거리 공격 : 강하게 휘두르기
+    /// 
+    /// attacker.position을 ApplySpecialEffect에 전달
+    /// - 넉백 방향을 올바르게 계산하기 위해 공격자 위치 전달
     /// </summary>
     public override void ExecuteMelee(Transform attacker, Transform target)
     {
@@ -46,7 +56,8 @@ public class SA_Metal : SpecialAttackBase
             IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
             if (player != null)
             {
-                player.ApplySpecialEffect(this);
+                // 공격자 위치 전달
+                player.ApplySpecialEffect(this, attacker.position);
             }
         }
 

@@ -26,6 +26,7 @@ using DG.Tweening;
 /// - [FIX] 속박(Root) 상태 버그 수정: 좌클릭/우클릭 입력 처리 분리
 ///   * 속박 상태에서 우클릭 공격 가능하도록 수정
 ///   * 좌클릭 이동만 차단, 우클릭 공격은 CanAttack 상태만 체크
+/// - [FIX] 넉백 방향: 플레이어 방향 기준 → 공격자 위치 기준으로 변경
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -508,7 +509,7 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 공격 쿨다운 업데이트 (Attack Speed 스탯 기반)
-    /// AttackSpeed를 absolute 감소값으로 처리
+    /// [FIX] AttackSpeed를 absolute 감소값으로 처리
     /// 
     /// 공식: 최종 쿨다운 = 기본 쿨다운 - AttackSpeed (최소 0.1초)
     /// 예시: Dex 5 → Attack Speed 0.25 → Cooldown = 1.0 - 0.25 = 0.75초
@@ -603,17 +604,17 @@ public class PlayerNavController : MonoBehaviour
     /// <summary>
     /// 넉백 적용
     /// </summary>
-    public void ApplyKnockback(float knockbackPower)
+    public void ApplyKnockback(float knockbackPower, Vector3 direction)
     {
         if (_isDead || _agent == null) return;
 
-        StartCoroutine(KnockbackCoroutine(knockbackPower));
+        StartCoroutine(KnockbackCoroutine(knockbackPower, direction));
     }
 
     /// <summary>
     /// 넉백 코루틴
     /// </summary>
-    private IEnumerator KnockbackCoroutine(float power)
+    private IEnumerator KnockbackCoroutine(float power, Vector3 direction)
     {
         // NavMeshAgent 일시 정지
         bool wasEnabled = _agent.enabled;
@@ -622,8 +623,9 @@ public class PlayerNavController : MonoBehaviour
             _agent.enabled = false;
         }
 
-        // 뒤로 밀려나는 방향 계산
-        Vector3 knockbackDirection = -transform.forward;
+        // 공격자 방향에서 밀려나는 방향 계산
+        Vector3 knockbackDirection = direction.normalized;
+        knockbackDirection.y = 0; // 수평 방향만
         Vector3 startPosition = transform.position;
         Vector3 targetPosition = startPosition + (knockbackDirection * power);
 
