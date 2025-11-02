@@ -65,7 +65,7 @@ public class WaveAttackController : MonoBehaviour
                 PlayerCombat player = coll.GetComponent<PlayerCombat>();
                 if (player != null)
                 {
-                    player.ApplySpecialEffect(_specialAttack);
+                    player.ApplySpecialEffect(_specialAttack, transform.position);
 
                     _hasHitPlayer = true;
                     break;
