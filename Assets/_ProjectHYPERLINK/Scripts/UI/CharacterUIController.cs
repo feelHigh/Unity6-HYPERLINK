@@ -423,16 +423,10 @@ public class CharacterUIController : MonoBehaviour
 
     private void HandleInput()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-            ToggleCharacterPanel();
-
-        if (Input.GetKeyDown(KeyCode.K))
-            ToggleSkillPanel();
-
         if (Input.GetKeyDown(KeyCode.I))
             ToggleInventoryPanel();
 
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(KeyCode.K))
             ToggleSkillTreePanel();
 
         if (Input.GetKeyDown(KeyCode.Tab))
@@ -443,54 +437,6 @@ public class CharacterUIController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
             HandleEscape();
-    }
-
-    public void ToggleCharacterPanel()
-    {
-        if (_characterCanvasGroup != null)
-        {
-            bool isVisible = IsPanelVisible(_characterCanvasGroup);
-            SetPanelVisible(_characterCanvasGroup, !isVisible);
-
-            if (!isVisible)
-                ForceUpdateAll();
-
-            Log($"캐릭터 패널 {(!isVisible ? "열림" : "닫힘")}");
-        }
-        else if (_characterPanel != null)
-        {
-            bool newState = !_characterPanel.activeSelf;
-            _characterPanel.SetActive(newState);
-
-            if (newState)
-                ForceUpdateAll();
-
-            Log($"캐릭터 패널 {(newState ? "열림" : "닫힘")}");
-        }
-    }
-
-    public void ToggleSkillPanel()
-    {
-        if (_skillCanvasGroup != null)
-        {
-            bool isVisible = IsPanelVisible(_skillCanvasGroup);
-            SetPanelVisible(_skillCanvasGroup, !isVisible);
-
-            if (!isVisible)
-                RefreshSkillSlots();
-
-            Log($"스킬 패널 {(!isVisible ? "열림" : "닫힘")}");
-        }
-        else if (_skillPanel != null)
-        {
-            bool newState = !_skillPanel.activeSelf;
-            _skillPanel.SetActive(newState);
-
-            if (newState)
-                RefreshSkillSlots();
-
-            Log($"스킬 패널 {(newState ? "열림" : "닫힘")}");
-        }
     }
 
     public void ToggleInventoryPanel()

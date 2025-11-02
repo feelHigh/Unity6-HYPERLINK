@@ -467,7 +467,8 @@ public class SkillTreeWindow : MonoBehaviour
         {
             // 노드 오른쪽에 툴팁 표시
             Vector2 position = nodeRect.anchoredPosition;
-            position.x += 250f; // 노드 너비 + 여백
+            position.x += 700f; // 노드 너비 + 여백
+            position.y -= 350f; // 노드 너비 + 여백
             tooltipRect.anchoredPosition = position;
         }
     }
