@@ -10,6 +10,8 @@ using UnityEngine;
 /// - CreateInitialStatsFromScriptableObject() → Intelligence * 10 공식 적용
 /// - Unity 에디터 스탯을 초기 스탯으로 사용
 /// - currentMana와 maxMana 계산에 Intelligence * 10 추가 (마나 초기화 수정)
+/// - [SKILL TREE] SkillTreeSaveData 클래스 추가
+/// - [SKILL TREE] ProgressionData에 skillTree 필드 추가
 /// </summary>
 [Serializable]
 public class CharacterSaveData
@@ -70,11 +72,20 @@ public class CharacterSaveData
         }
     }
 
+    /// <summary>
+    /// ========== [MODIFIED: SKILL TREE] ==========
+    /// 진행 데이터 (스킬 트리 포함)
+    /// </summary>
     [Serializable]
     public class ProgressionData
     {
         public List<string> unlockedSkills = new List<string>();
         public Dictionary<string, int> skillLevels = new Dictionary<string, int>();
+
+        /// <summary>
+        /// [NEW] 스킬 트리 저장 데이터
+        /// </summary>
+        public SkillTreeSaveData skillTree = new SkillTreeSaveData();
     }
 
     [Serializable]
@@ -243,4 +254,26 @@ public class CharacterSaveData
 
         return stats;
     }
+}
+
+/// <summary>
+/// 스킬 트리 저장 데이터
+/// 
+/// 역할:
+/// - 현재 스킬 포인트 저장
+/// - 언락된 노드 ID 목록 저장
+/// 
+/// 사용:
+/// - CharacterSaveData.ProgressionData.skillTree에 포함
+/// - SkillTreeManager.SaveSkillTree()에서 생성
+/// - SkillTreeManager.LoadSkillTree()에서 로드
+/// </summary>
+[Serializable]
+public class SkillTreeSaveData
+{
+    [Tooltip("현재 보유 스킬 포인트")]
+    public int currentSkillPoints;
+
+    [Tooltip("언락된 노드 ID 목록")]
+    public List<string> unlockedNodeIDs = new List<string>();
 }

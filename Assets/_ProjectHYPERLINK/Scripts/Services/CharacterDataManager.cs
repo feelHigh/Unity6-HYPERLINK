@@ -10,6 +10,12 @@ using System.Collections.Generic;
 /// - Experience, Character, Equipment, Inventory 데이터 관리
 /// - 자동 저장 (5분마다)
 /// - 플레이 시간 추적
+/// - 스킬 트리 저장/로드
+/// 
+/// 변경사항:
+/// - SkillTreeManager 참조 추가
+/// - ApplyDataToSystems()에 스킬 트리 로드 추가
+/// - CollectDataFromSystems()에 스킬 트리 저장 추가
 /// </summary>
 public class CharacterDataManager : MonoBehaviour
 {
@@ -28,6 +34,7 @@ public class CharacterDataManager : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private ExperienceManager _experienceManager;
     private EquipmentManager _equipmentManager;
+    private SkillTreeManager _skillTreeManager;  // [NEW: SKILL TREE]
 
     public CharacterSaveData CurrentCharacterData => _currentCharacterData;
     public bool IsDataLoaded => _currentCharacterData != null;
@@ -63,11 +70,16 @@ public class CharacterDataManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 시스템 참조 초기화
+    /// SkillTreeManager 추가
+    /// </summary>
     public void InitializeSystemReferences()
     {
         _playerCharacter = FindFirstObjectByType<PlayerCharacter>();
         _experienceManager = FindFirstObjectByType<ExperienceManager>();
         _equipmentManager = FindFirstObjectByType<EquipmentManager>();
+        _skillTreeManager = FindFirstObjectByType<SkillTreeManager>();  // [NEW]
 
         if (_playerCharacter == null)
             Debug.LogError("[CharacterDataManager] PlayerCharacter를 찾을 수 없습니다");
@@ -77,6 +89,10 @@ public class CharacterDataManager : MonoBehaviour
 
         if (_equipmentManager == null)
             Debug.LogError("[CharacterDataManager] EquipmentManager를 찾을 수 없습니다");
+
+        // [NEW: SKILL TREE] - Warning only (optional system)
+        if (_skillTreeManager == null)
+            Debug.LogWarning("[CharacterDataManager] SkillTreeManager를 찾을 수 없습니다 (스킬 트리 비활성화)");
     }
 
     /// <summary>
@@ -110,7 +126,11 @@ public class CharacterDataManager : MonoBehaviour
 
     /// <summary>
     /// 로드된 데이터를 각 시스템에 적용
-    /// 순서: Experience → Character → Equipment → Inventory
+    /// 
+    /// 순서: Experience → Character → Equipment → Inventory → SkillTree
+    /// 
+    /// 중요: 스킬 트리는 마지막에 로드
+    /// - PlayerCharacter가 초기화된 후 패시브 스탯 적용 가능
     /// </summary>
     private void ApplyDataToSystems(CharacterSaveData data)
     {
@@ -131,6 +151,17 @@ public class CharacterDataManager : MonoBehaviour
 
         // 인벤토리 로드
         LoadInventoryData(data);
+
+        // 스킬 트리 로드 (마지막 순서)
+        if (_skillTreeManager != null && data.progression?.skillTree != null)
+        {
+            _skillTreeManager.LoadSkillTree(data.progression.skillTree);
+            Debug.Log("[CharacterDataManager] 스킬 트리 로드 완료");
+        }
+        else if (_skillTreeManager != null)
+        {
+            Debug.LogWarning("[CharacterDataManager] 스킬 트리 저장 데이터 없음 (신규 캐릭터)");
+        }
     }
 
     /// <summary>
@@ -226,7 +257,8 @@ public class CharacterDataManager : MonoBehaviour
 
     /// <summary>
     /// 각 시스템에서 현재 상태 수집
-    /// Experience, Character, Equipment, Inventory 모두 수집
+    /// 
+    /// Experience, Character, Equipment, Inventory, SkillTree 모두 수집
     /// </summary>
     private void CollectDataFromSystems()
     {
@@ -247,6 +279,18 @@ public class CharacterDataManager : MonoBehaviour
 
         // 인벤토리 저장
         SaveInventoryData(_currentCharacterData);
+
+        // 스킬 트리 저장
+        if (_skillTreeManager != null)
+        {
+            if (_currentCharacterData.progression == null)
+            {
+                _currentCharacterData.progression = new CharacterSaveData.ProgressionData();
+            }
+
+            _currentCharacterData.progression.skillTree = _skillTreeManager.SaveSkillTree();
+            Debug.Log("[CharacterDataManager] 스킬 트리 저장 완료");
+        }
 
         // 위치 정보
         if (_playerCharacter != null)

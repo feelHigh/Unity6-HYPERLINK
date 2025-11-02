@@ -11,6 +11,7 @@ using System.Collections.Generic;
 /// - C: 캐릭터 패널 토글
 /// - K: 스킬 패널 토글
 /// - I: 인벤토리 패널 토글
+/// - T: 스킬 트리 패널 토글
 /// - Tab: 미니맵 토글
 /// - M: 맵 & 퀘스트 패널 토글
 /// - ESC: 모든 패널 닫기 / LoginScene 이동 옵션
@@ -35,6 +36,8 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private CanvasGroup _characterCanvasGroup;
     [Tooltip("Skill Panel의 CanvasGroup")]
     [SerializeField] private CanvasGroup _skillCanvasGroup;
+    [Tooltip("SkillTree Panel의 CanvasGroup")]
+    [SerializeField] private CanvasGroup _skillTreeCanvasGroup;
     [Tooltip("Minimap Panel의 CanvasGroup")]
     [SerializeField] private CanvasGroup _minimapCanvasGroup;
     [Tooltip("Map Quest Panel의 CanvasGroup")]
@@ -45,6 +48,7 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private GameObject _characterPanel;
     [SerializeField] private GameObject _skillPanel;
     [SerializeField] private GameObject _inventoryPanel;
+    [SerializeField] private GameObject _skillTreePanel;
     [SerializeField] private GameObject _minimapPanel;
     [SerializeField] private GameObject _mapQuestPanel;
 
@@ -89,6 +93,7 @@ public class CharacterUIController : MonoBehaviour
         SetPanelVisible(_characterCanvasGroup, false);
         SetPanelVisible(_skillCanvasGroup, true);
         SetPanelVisible(_inventoryCanvasGroup, false);
+        SetPanelVisible(_skillTreeCanvasGroup, false);
         SetPanelVisible(_minimapCanvasGroup, false);
         SetPanelVisible(_mapQuestCanvasGroup, false);
 
@@ -101,6 +106,9 @@ public class CharacterUIController : MonoBehaviour
 
         if (_inventoryCanvasGroup == null && _inventoryPanel != null)
             _inventoryPanel.SetActive(false);
+
+        if (_skillTreeCanvasGroup == null && _skillTreePanel != null)
+            _skillTreePanel.SetActive(false);
 
         if (_minimapCanvasGroup == null && _minimapPanel != null)
             _minimapPanel.SetActive(false);
@@ -148,9 +156,6 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// PlayerSpawner로 스폰된 플레이어를 찾기 위한 재시도 로직
-    /// </summary>
     private void TryFindPlayerAndSystems()
     {
         _retryCount++;
@@ -202,7 +207,6 @@ public class CharacterUIController : MonoBehaviour
 
     private void SubscribeToEvents()
     {
-        // Static 이벤트 구독
         PlayerCharacter.OnHealthChanged += OnHealthChanged;
         PlayerCharacter.OnManaChanged += OnManaChanged;
         PlayerCharacter.OnStatsChanged += UpdateStatsDisplay;
@@ -214,7 +218,6 @@ public class CharacterUIController : MonoBehaviour
 
     private void UnsubscribeFromEvents()
     {
-        // Static 이벤트 구독 해제
         PlayerCharacter.OnHealthChanged -= OnHealthChanged;
         PlayerCharacter.OnManaChanged -= OnManaChanged;
         PlayerCharacter.OnStatsChanged -= UpdateStatsDisplay;
@@ -306,10 +309,6 @@ public class CharacterUIController : MonoBehaviour
         Log("UI 강제 업데이트 완료");
     }
 
-    /// <summary>
-    /// 체력 변경 이벤트 핸들러
-    /// HealthManaBar는 자체 이벤트 구독으로 업데이트되므로 여기서는 로컬 UI만 업데이트
-    /// </summary>
     private void OnHealthChanged(float current, float max)
     {
         if (_previousHealth == current && _previousMaxHealth == max)
@@ -317,15 +316,8 @@ public class CharacterUIController : MonoBehaviour
 
         _previousHealth = current;
         _previousMaxHealth = max;
-
-        // HealthManaBar는 자체적으로 PlayerCharacter 이벤트 구독
-        // 추가 UI가 필요하면 여기에 작성
     }
 
-    /// <summary>
-    /// 마나 변경 이벤트 핸들러
-    /// HealthManaBar는 자체 이벤트 구독으로 업데이트되므로 여기서는 로컬 UI만 업데이트
-    /// </summary>
     private void OnManaChanged(float current, float max)
     {
         if (_previousMana == current && _previousMaxMana == max)
@@ -333,9 +325,6 @@ public class CharacterUIController : MonoBehaviour
 
         _previousMana = current;
         _previousMaxMana = max;
-
-        // HealthManaBar는 자체적으로 PlayerCharacter 이벤트 구독
-        // 추가 UI가 필요하면 여기에 작성
     }
 
     private void UpdateStatsDisplay(CharacterStats stats)
@@ -364,10 +353,6 @@ public class CharacterUIController : MonoBehaviour
             _critDamageText.text = $"{stats.CriticalDamage:F1}%";
     }
 
-    /// <summary>
-    /// 경험치 변경 이벤트 핸들러
-    /// ExperienceManager.OnExperienceChanged: Action<int, int, int> (current, required, level)
-    /// </summary>
     private void OnExperienceChanged(int current, int required, int level)
     {
         if (_previousExperience == current && _previousExperienceRequired == required && _previousLevel == level)
@@ -446,6 +431,9 @@ public class CharacterUIController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.I))
             ToggleInventoryPanel();
+
+        if (Input.GetKeyDown(KeyCode.T))
+            ToggleSkillTreePanel();
 
         if (Input.GetKeyDown(KeyCode.Tab))
             ToggleMinimapPanel();
@@ -535,6 +523,22 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
+    public void ToggleSkillTreePanel()
+    {
+        if (_skillTreeCanvasGroup != null)
+        {
+            bool isVisible = IsPanelVisible(_skillTreeCanvasGroup);
+            SetPanelVisible(_skillTreeCanvasGroup, !isVisible);
+            Log($"스킬 트리 패널 {(!isVisible ? "열림" : "닫힘")}");
+        }
+        else if (_skillTreePanel != null)
+        {
+            bool newState = !_skillTreePanel.activeSelf;
+            _skillTreePanel.SetActive(newState);
+            Log($"스킬 트리 패널 {(newState ? "열림" : "닫힘")}");
+        }
+    }
+
     public void ToggleMinimapPanel()
     {
         if (_minimapCanvasGroup != null)
@@ -579,19 +583,19 @@ public class CharacterUIController : MonoBehaviour
     {
         bool anyPanelOpen = false;
 
-        // CanvasGroup 체크
         if (IsPanelVisible(_characterCanvasGroup)) anyPanelOpen = true;
         if (IsPanelVisible(_skillCanvasGroup)) anyPanelOpen = true;
         if (IsPanelVisible(_inventoryCanvasGroup)) anyPanelOpen = true;
+        if (IsPanelVisible(_skillTreeCanvasGroup)) anyPanelOpen = true;
         if (IsPanelVisible(_minimapCanvasGroup)) anyPanelOpen = true;
         if (IsPanelVisible(_mapQuestCanvasGroup)) anyPanelOpen = true;
 
-        // Fallback GameObject 체크
         if (!anyPanelOpen)
         {
             if (_characterPanel != null && _characterPanel.activeSelf) anyPanelOpen = true;
             if (_skillPanel != null && _skillPanel.activeSelf) anyPanelOpen = true;
             if (_inventoryPanel != null && _inventoryPanel.activeSelf) anyPanelOpen = true;
+            if (_skillTreePanel != null && _skillTreePanel.activeSelf) anyPanelOpen = true;
             if (_minimapPanel != null && _minimapPanel.activeSelf) anyPanelOpen = true;
             if (_mapQuestPanel != null && _mapQuestPanel.activeSelf) anyPanelOpen = true;
         }
@@ -608,17 +612,17 @@ public class CharacterUIController : MonoBehaviour
 
     public void CloseAllPanels()
     {
-        // CanvasGroup으로 닫기
         SetPanelVisible(_characterCanvasGroup, false);
         SetPanelVisible(_skillCanvasGroup, false);
         SetPanelVisible(_inventoryCanvasGroup, false);
+        SetPanelVisible(_skillTreeCanvasGroup, false);
         SetPanelVisible(_minimapCanvasGroup, false);
         SetPanelVisible(_mapQuestCanvasGroup, false);
 
-        // Fallback GameObject로 닫기
         if (_characterPanel != null) _characterPanel.SetActive(false);
         if (_skillPanel != null) _skillPanel.SetActive(false);
         if (_inventoryPanel != null) _inventoryPanel.SetActive(false);
+        if (_skillTreePanel != null) _skillTreePanel.SetActive(false);
         if (_minimapPanel != null) _minimapPanel.SetActive(false);
         if (_mapQuestPanel != null) _mapQuestPanel.SetActive(false);
 
