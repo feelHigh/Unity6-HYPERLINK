@@ -24,7 +24,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
 
         if (_equipInevnetory == null)
         {
-            Debug.LogError($"[EquipSlot] Initialize 실패: equipInventory가 null입니다. 슬롯: {_equipType}");
+            Debug.LogError($"[EquipSlot] InitializeBoss 실패: equipInventory가 null입니다. 슬롯: {_equipType}");
         }
     }
 

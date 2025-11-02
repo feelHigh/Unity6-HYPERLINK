@@ -6,6 +6,7 @@ public class WaveAttackController : MonoBehaviour
     [SerializeField] float _maxDistance = 7.5f;     //최종 길이
     [SerializeField] float _expandSpeed = 3.25f;    //초당 늘어나는 속도
     [SerializeField] Vector3 _boxHalfExtents = new Vector3(0.5f, 1f, 0.5f);     //공격 면적
+    [SerializeField] float _rayHeight = 1f;         //레이캐스트 높이
 
     [SerializeField] LayerMask _playerLayerMask;    //감지할 플레이어 레이어 마스크
     [SerializeField] LayerMask _obstacleLayerMask;  //장애물 레이어 마스크
@@ -32,10 +33,17 @@ public class WaveAttackController : MonoBehaviour
         _targetDistance = _maxDistance;
 
         //전방에 장애물이 있는지 체크하고, 장애물이 있으면 그 거리까지만 공격
-        Ray ray = new Ray(transform.position, transform.forward);
+        Ray ray = new Ray(transform.position + Vector3.up * _rayHeight, transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _obstacleLayerMask))
         {
             _targetDistance = hit.distance;
+            Debug.Log($"[WaveAttack] 장애물 감지: {hit.collider.name}, 거리: {_targetDistance:F2}m");
+            if (_visualEffect != null)
+            {
+                var main = _visualEffect.main;
+                float reachTime = _targetDistance / _expandSpeed;
+                main.startLifetime = Mathf.Min(main.startLifetime.constant, reachTime);
+            }
         }
 
         Destroy(gameObject, 2f);
@@ -92,9 +100,16 @@ public class WaveAttackController : MonoBehaviour
     {
         if (!_isActive) return;
 
+        //레이캐스트 시각화
         Gizmos.color = new Color(0, 0.6f, 1f, 0.25f);
-        Vector3 boxCenter = transform.position + transform.forward * (_curLength * 0.5f);
-        Gizmos.matrix = Matrix4x4.TRS(boxCenter, transform.rotation, new Vector3(_boxHalfExtents.x * 2, _boxHalfExtents.y * 2, _curLength));
+        Vector3 boxCenter1 = transform.position + transform.forward * (_curLength * 0.5f);
+        Gizmos.matrix = Matrix4x4.TRS(boxCenter1, transform.rotation, new Vector3(_boxHalfExtents.x * 2, _boxHalfExtents.y * 2, _curLength));
+        Gizmos.DrawCube(Vector3.zero, Vector3.one);
+
+        //공격 범위 시각화
+        Gizmos.color = new Color(0, 0.6f, 1f, 0.25f);
+        Vector3 boxCenter2 = transform.position + Vector3.up * _rayHeight + transform.forward * (_curLength * 0.5f);
+        Gizmos.matrix = Matrix4x4.TRS(boxCenter2, transform.rotation, new Vector3(_boxHalfExtents.x * 2, _boxHalfExtents.y * 2, _curLength));
         Gizmos.DrawCube(Vector3.zero, Vector3.one);
     }
 }

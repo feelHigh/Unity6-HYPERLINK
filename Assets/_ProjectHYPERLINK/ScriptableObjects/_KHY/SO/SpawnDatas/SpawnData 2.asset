@@ -15,3 +15,5 @@ MonoBehaviour:
   spawnList:
   - enemyData: {fileID: 11400000, guid: 06630287dd2e2fd42b9bf2c493c28317, type: 2}
     count: 3
+  dropTable: {fileID: 11400000, guid: 133c38302c09e85469fb086cce38cb2b, type: 2}
+  dropChance: 0.5
