@@ -18,7 +18,6 @@ using System.Collections.Generic;
 /// - Tooltip Panel: 노드 정보 표시
 /// - SP Counter: 현재 SP 표시
 /// - Connection Lines: 노드 간 연결선
-/// 
 /// </summary>
 public class SkillTreeWindow : MonoBehaviour
 {
@@ -30,7 +29,7 @@ public class SkillTreeWindow : MonoBehaviour
 
     private bool _isInitialized = false;
     private int _retryCount = 0;
-    
+
     [Header("UI 컴포넌트")]
     [SerializeField] private GameObject _windowRoot;
     [SerializeField] private Transform _nodeContainer;
@@ -95,6 +94,9 @@ public class SkillTreeWindow : MonoBehaviour
         // 이벤트 구독
         SkillTreeManager.OnSkillPointsChanged += UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked += OnNodeUnlockedHandler;
+
+        // 스킬 트리 로드 이벤트 구독
+        SkillTreeManager.OnSkillTreeLoaded += OnSkillTreeLoadedHandler;
     }
 
     private void OnDisable()
@@ -102,6 +104,9 @@ public class SkillTreeWindow : MonoBehaviour
         // 이벤트 구독 해제
         SkillTreeManager.OnSkillPointsChanged -= UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked -= OnNodeUnlockedHandler;
+
+        // 스킬 트리 로드 이벤트 구독 해제
+        SkillTreeManager.OnSkillTreeLoaded -= OnSkillTreeLoadedHandler;
     }
 
     private void Start()
@@ -149,12 +154,14 @@ public class SkillTreeWindow : MonoBehaviour
     {
         SkillTreeManager.OnSkillPointsChanged += UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked += OnNodeUnlockedHandler;
+        SkillTreeManager.OnSkillTreeLoaded += OnSkillTreeLoadedHandler;
     }
 
     private void UnsubscribeFromEvents()
     {
         SkillTreeManager.OnSkillPointsChanged -= UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked -= OnNodeUnlockedHandler;
+        SkillTreeManager.OnSkillTreeLoaded -= OnSkillTreeLoadedHandler;
     }
 
     #endregion
@@ -502,6 +509,31 @@ public class SkillTreeWindow : MonoBehaviour
     }
 
     /// <summary>
+    /// 스킬 트리 로드 완료 이벤트 핸들러
+    /// 
+    /// 호출 시점: SkillTreeManager.LoadSkillTree() 완료 후
+    /// 목적: 저장된 데이터가 로드된 후 UI를 자동으로 갱신
+    /// </summary>
+    private void OnSkillTreeLoadedHandler()
+    {
+        Debug.Log("[SkillTreeWindow] 스킬 트리 로드 이벤트 수신 - UI 갱신 시작");
+
+        // UI가 이미 생성되어 있다면 상태만 갱신
+        if (_nodeUIMap.Count > 0)
+        {
+            RefreshAllNodes();
+            UpdateConnectionLines();
+            Debug.Log("[SkillTreeWindow] 기존 UI 갱신 완료");
+        }
+        else
+        {
+            // UI가 아직 생성되지 않았다면 전체 초기화
+            InitializeSkillTree();
+            Debug.Log("[SkillTreeWindow] 전체 UI 재생성 완료");
+        }
+    }
+
+    /// <summary>
     /// 모든 노드 UI 갱신
     /// </summary>
     public void RefreshAllNodes()
@@ -511,6 +543,8 @@ public class SkillTreeWindow : MonoBehaviour
             if (nodeUI != null)
                 nodeUI.RefreshState();
         }
+
+        Debug.Log($"[SkillTreeWindow] {_nodeUIMap.Count}개 노드 UI 상태 갱신 완료");
     }
 
     /// <summary>
@@ -531,6 +565,16 @@ public class SkillTreeWindow : MonoBehaviour
     {
         RefreshAllNodes();
         Debug.Log("[DEBUG] 모든 노드 갱신 완료");
+    }
+
+    [ContextMenu("Debug: Print Window State")]
+    private void DebugPrintState()
+    {
+        Debug.Log("===== SkillTreeWindow 상태 =====");
+        Debug.Log($"초기화 완료: {_isInitialized}");
+        Debug.Log($"노드 UI 개수: {_nodeUIMap.Count}");
+        Debug.Log($"연결선 개수: {_connectionLines.Count}");
+        Debug.Log($"SkillTreeManager 연결: {_skillTreeManager != null}");
     }
 
     #endregion

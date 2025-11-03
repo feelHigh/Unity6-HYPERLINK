@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// 스킬 트리 매니저
+/// 스킬 트리 매니저 - REFACTORED
 /// 
 /// 역할:
 /// - 스킬 포인트 (SP) 관리
@@ -20,6 +20,11 @@ using System.Linq;
 /// - OnSkillPointsChanged: SP 변경 시
 /// - OnNodeUnlocked: 노드 언락 시
 /// - OnNodeStateChanged: 노드 상태 변경 시
+/// - OnSkillTreeLoaded: 스킬 트리 로드 완료 시 (NEW!)
+/// 
+/// 변경 사항 (v2.0):
+/// - OnSkillTreeLoaded 이벤트 추가
+/// - LoadSkillTree 메서드에서 로드 완료 이벤트 발생
 /// </summary>
 public class SkillTreeManager : MonoBehaviour
 {
@@ -63,6 +68,14 @@ public class SkillTreeManager : MonoBehaviour
     public static event Action<int> OnSkillPointsChanged;
     public static event Action<SkillTreeNodeData> OnNodeUnlocked;
     public static event Action<SkillTreeNodeData> OnNodeStateChanged;
+
+    /// <summary>
+    /// [NEW] 스킬 트리 로드 완료 이벤트
+    /// 
+    /// 호출 시점: LoadSkillTree() 완료 후
+    /// 용도: UI가 데이터 로드 후 상태를 갱신하도록 알림
+    /// </summary>
+    public static event Action OnSkillTreeLoaded;
 
     #endregion
 
@@ -424,7 +437,11 @@ public class SkillTreeManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 스킬 트리 상태 로드
+    /// 스킬 트리 상태 로드 - REFACTORED
+    /// 
+    /// 변경 사항:
+    /// - 로드 완료 후 OnSkillTreeLoaded 이벤트 발생
+    /// - 이벤트를 통해 UI가 상태를 갱신할 수 있음
     /// </summary>
     public void LoadSkillTree(SkillTreeSaveData saveData)
     {
@@ -443,6 +460,10 @@ public class SkillTreeManager : MonoBehaviour
         Debug.Log($"[SkillTreeManager] 스킬 트리 로드 완료 - SP: {_currentSkillPoints}, 언락: {_unlockedNodes.Count}개");
 
         OnSkillPointsChanged?.Invoke(_currentSkillPoints);
+
+        // [NEW] 로드 완료 이벤트 발생 - UI 갱신 트리거
+        OnSkillTreeLoaded?.Invoke();
+        Debug.Log($"[SkillTreeManager] OnSkillTreeLoaded 이벤트 발생");
     }
 
     /// <summary>

@@ -164,6 +164,10 @@ public class CharacterDataManager : MonoBehaviour
         {
             _skillTreeManager.LoadSkillTree(data.progression.skillTree);
             Log("스킬 트리 로드 완료");
+
+            // 스킬 트리 로드 후 UI 갱신 대기
+            // SkillTreeManager가 OnSkillTreeLoaded 이벤트를 발생시키면
+            // SkillTreeWindow가 자동으로 UI를 갱신함
         }
         else if (_skillTreeManager != null)
         {
