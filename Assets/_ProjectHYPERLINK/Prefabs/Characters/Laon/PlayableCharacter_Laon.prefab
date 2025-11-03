@@ -146,10 +146,18 @@ MonoBehaviour:
   _attackDamage: 25
   _attackSpeed: 1
   _knockbackDuration: 0.3
+  _knockbackObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 12288
+  _knockbackWallBuffer: 0.5
+  _playerRadius: 0.5
+  _useSphereCast: 0
+  _navMeshSearchRadius: 2
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
   _enableDebugLogs: 1
+  _visualizeKnockbackPath: 1
 --- !u!114 &3735128981493473489
 MonoBehaviour:
   m_ObjectHideFlags: 0
