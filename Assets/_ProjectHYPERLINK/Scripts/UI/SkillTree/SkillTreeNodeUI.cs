@@ -11,6 +11,7 @@ using TMPro;
 /// - 노드 클릭 처리
 /// - 툴팁 표시
 /// - 언락 가능/불가능 상태 표시
+/// - 드래그 시작 (언락된 스킬만)
 /// 
 /// UI 구성:
 /// - Icon: 스킬 아이콘
@@ -18,7 +19,9 @@ using TMPro;
 /// - UnlockableHighlight: 언락 가능할 때 하이라이트
 /// - ConnectionLine: 부모 노드와의 연결선
 /// </summary>
-public class SkillTreeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+public class SkillTreeNodeUI : MonoBehaviour,
+    IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
+    IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     #region UI 참조
 
@@ -55,6 +58,7 @@ public class SkillTreeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
     private SkillTreeNodeData _nodeData;
     private bool _isUnlocked;
     private bool _canUnlock;
+    private bool _isDragging = false;
 
     #endregion
 
@@ -185,14 +189,100 @@ public class SkillTreeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     #endregion
 
-    #region 입력 처리
+    #region 드래그 이벤트 (새 기능)
+
+    /// <summary>
+    /// 드래그 가능 여부 확인
+    /// 
+    /// 조건:
+    /// 1. 언락된 노드여야 함
+    /// 2. 액티브 스킬이어야 함 (패시브는 드래그 불가)
+    /// 3. SkillData가 있어야 함
+    /// </summary>
+    private bool CanDrag()
+    {
+        return _isUnlocked &&
+               !_nodeData.IsPassive &&
+               _nodeData.SkillData != null;
+    }
+
+    /// <summary>
+    /// 드래그 시작
+    /// Unity Event: IBeginDragHandler
+    /// 조건:
+    /// - 언락된 액티브 스킬만 드래그 가능
+    /// </summary>
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (!CanDrag())
+        {
+            Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName}은(는) 드래그할 수 없습니다. (언락: {_isUnlocked}, 패시브: {_nodeData.IsPassive})");
+            return;
+        }
+
+        _isDragging = true;
+
+        // SkillDragDropHandler에 드래그 시작 알림
+        if (SkillDragDropHandler.Instance != null)
+        {
+            SkillDragDropHandler.Instance.BeginDrag(_nodeData.SkillData, this);
+        }
+
+        Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 시작");
+    }
+
+    /// <summary>
+    /// 드래그 중
+    /// Unity Event: IDragHandler
+    /// 매 프레임 호출
+    /// </summary>
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!_isDragging)
+            return;
+
+        // SkillDragDropHandler에 드래그 위치 업데이트
+        if (SkillDragDropHandler.Instance != null)
+        {
+            SkillDragDropHandler.Instance.Drag(eventData);
+        }
+    }
+
+    /// <summary>
+    /// 드래그 종료
+    /// Unity Event: IEndDragHandler
+    /// </summary>
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (!_isDragging)
+            return;
+
+        _isDragging = false;
+
+        // SkillDragDropHandler에 드래그 종료 알림
+        if (SkillDragDropHandler.Instance != null)
+        {
+            SkillDragDropHandler.Instance.EndDrag(eventData);
+        }
+
+        Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 종료");
+    }
+
+    #endregion
+
+    #region 클릭 이벤트
 
     /// <summary>
     /// 클릭 이벤트
+    /// - 드래그 중이 아닐 때만 언락 처리
     /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
         if (_nodeData == null || _skillTreeManager == null)
+            return;
+
+        // 드래그 중에는 클릭 무시
+        if (_isDragging)
             return;
 
         // 이미 언락됨
@@ -221,6 +311,10 @@ public class SkillTreeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
     /// </summary>
     public void OnPointerEnter(PointerEventData eventData)
     {
+        // 드래그 중에는 툴팁 표시하지 않음
+        if (_isDragging)
+            return;
+
         if (_skillTreeWindow != null && _nodeData != null)
         {
             _skillTreeWindow.ShowTooltip(_nodeData, this);
@@ -285,6 +379,12 @@ public class SkillTreeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
         Debug.Log($"필요 레벨: {_nodeData.RequiredLevel}");
         Debug.Log($"언락 상태: {_isUnlocked}");
         Debug.Log($"언락 가능: {_canUnlock}");
+        Debug.Log($"드래그 가능: {CanDrag()}");
+
+        if (_nodeData.SkillData != null)
+        {
+            Debug.Log($"연결된 스킬: {_nodeData.SkillData.SkillName}");
+        }
     }
 
     #endregion

@@ -6,19 +6,6 @@ using System.Collections.Generic;
 /// <summary>
 /// 플레이어 캐릭터 핵심 시스템
 /// 
-/// 변경사항:
-/// - RecalculateResources() → RecalculateStats()
-/// - CalculateDerivedStats() 추가 (주요 스탯 기반 파생 스탯 계산)
-/// - GetTotalStats()에 파생 스탯 계산 로직 추가
-/// - LoadFromSaveData()에서 2차 스탯 로드 제거
-/// - SaveToData()에서 2차 스탯 저장 제거
-/// - Dexterity에 MovementSpeed 파생 스탯 추가
-/// - Dexterity → Attack Speed 비율 변경 (0.1 → 0.05)
-/// - [NEW] GetAttackPower(), IsPhysicalAttacker(), IsMagicalAttacker() 추가
-/// - [NEW] Dexterity → Physical Attack 파생 스탯 추가 (Yujin 지원)
-/// - [SKILL TREE] UnlockSkill() 메서드 추가 (스킬 트리 연동)
-/// - [SKILL TREE] RemoveAllPassiveStats() 메서드 추가 (패시브 스탯 재계산)
-/// 
 /// 공식:
 /// - Strength (1당): Physical Attack +1, All Resistance +0.1
 /// - Dexterity (1당): Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
@@ -29,7 +16,6 @@ public class PlayerCharacter : MonoBehaviour
 {
     [Header("캐릭터 설정")]
     [SerializeField] private CharacterClass _characterClass = CharacterClass.Laon;
-    [SerializeField] private SkillData[] _availableSkills;
 
     [Header("현재 리소스")]
     [SerializeField] private float _currentHealth;
@@ -107,13 +93,7 @@ public class PlayerCharacter : MonoBehaviour
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
 
-        UnlockInitialSkills();
-    }
-
-    private void UnlockInitialSkills()
-    {
-        UnlockSkillsForLevel(1);
-        Debug.Log($"[PlayerCharacter] 초기 스킬 언락 완료: {_unlockedSkills.Count}개");
+        Debug.Log($"[PlayerCharacter] 초기화 완료 - 스킬은 스킬 트리에서 언락하세요!");
     }
 
     #endregion
@@ -217,7 +197,7 @@ public class PlayerCharacter : MonoBehaviour
         builder.AddAllResistance(baseStats.Strength * 0.1f);
 
         // Dexterity: Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
-        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);  // ← Yujin 지원을 위해 추가
+        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);
         builder.AddCriticalChance(baseStats.Dexterity * 1f);
         builder.AddAttackSpeed(baseStats.Dexterity * 0.05f);
         builder.AddMovementSpeed(baseStats.Dexterity * 0.1f);
@@ -254,7 +234,7 @@ public class PlayerCharacter : MonoBehaviour
     /// - Laon (전사), Yujin (궁수): Physical Attack
     /// - Sian (마법사): Magical Attack
     /// 
-    /// 새로운 데미지 시스템:
+    /// 데미지 시스템:
     /// - 마우스 우클릭 공격 = Physical/Magical Attack
     /// - 스킬 공격 = ((Physical/Magical Attack × 배율) + 기본 데미지) × (1 + (주 스탯 × 증가율))
     /// </summary>
@@ -345,33 +325,8 @@ public class PlayerCharacter : MonoBehaviour
     #endregion
 
     #region 스킬 관리
-
+    
     /// <summary>
-    /// 레벨 기반 스킬 언락 (기존 시스템)
-    /// 
-    /// 호출 위치: ExperienceManager.LevelUp()
-    /// 
-    /// 처리 과정:
-    /// 1. _availableSkills에서 해당 레벨 스킬 검색
-    /// 2. 중복 확인
-    /// 3. _unlockedSkills에 추가
-    /// 4. OnSkillUnlocked 이벤트 발생
-    /// </summary>
-    public void UnlockSkillsForLevel(int level)
-    {
-        foreach (SkillData skill in _availableSkills)
-        {
-            if (skill.RequiredLevel == level && !_unlockedSkills.Contains(skill))
-            {
-                _unlockedSkills.Add(skill);
-                OnSkillUnlocked?.Invoke(skill);
-                Debug.Log($"[PlayerCharacter] 스킬 언락 (레벨 {level}): {skill.SkillName}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// ========== [NEW: SKILL TREE] ==========
     /// 스킬 트리에서 개별 스킬 언락
     /// 
     /// 호출 위치: SkillTreeManager.UnlockNode()
@@ -408,7 +363,6 @@ public class PlayerCharacter : MonoBehaviour
     }
 
     /// <summary>
-    /// ========== [NEW: SKILL TREE] ==========
     /// 모든 임시 패시브 스탯 제거
     /// 
     /// 호출 위치: SkillTreeManager.RecalculateAllPassiveStats()
@@ -611,13 +565,9 @@ public class PlayerCharacter : MonoBehaviour
         _unlockedSkills.Clear();
         if (data.progression?.unlockedSkills != null)
         {
-            foreach (SkillData skill in _availableSkills)
-            {
-                if (data.progression.unlockedSkills.Contains(skill.SkillName))
-                {
-                    _unlockedSkills.Add(skill);
-                }
-            }
+            // 스킬 이름으로 복원은 스킬 트리에서 처리
+            // 여기서는 저장된 스킬 이름만 보관
+            Debug.Log($"[PlayerCharacter] 저장된 스킬: {data.progression.unlockedSkills.Count}개");
         }
 
         UpdateUI();

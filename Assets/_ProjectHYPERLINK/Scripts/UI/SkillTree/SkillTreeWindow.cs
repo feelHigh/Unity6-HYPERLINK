@@ -19,9 +19,6 @@ using System.Collections.Generic;
 /// - SP Counter: 현재 SP 표시
 /// - Connection Lines: 노드 간 연결선
 /// 
-/// 변경사항:
-/// - [SKILL TREE] Update() 메서드 제거 (입력 처리는 CharacterUIController로 이관)
-/// - [SKILL TREE] T 키 바인딩 제거
 /// </summary>
 public class SkillTreeWindow : MonoBehaviour
 {

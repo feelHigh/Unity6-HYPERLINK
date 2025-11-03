@@ -232,28 +232,43 @@ public class CharacterUIController : MonoBehaviour
         ForceUpdateAll();
     }
 
+    /// <summary>
+    /// 스킬 슬롯 초기화
+    /// - 모든 슬롯을 빈 상태로 초기화
+    /// - 플레이어가 스킬 트리에서 스킬을 언락하고 드래그 앤 드롭으로 배치
+    /// - 더 많은 플레이어 제어와 전략적 선택 제공
+    /// </summary>
     private void InitializeSkillSlots()
     {
-        if (_playerCharacter == null) return;
-
-        List<SkillData> unlockedSkills = _playerCharacter.UnlockedSkills;
-
-        Log($"스킬 슬롯 초기화 시작: {unlockedSkills.Count}개 언락됨");
-
-        for (int i = 0; i < _skillSlots.Count && i < unlockedSkills.Count; i++)
+        if (_playerCharacter == null)
         {
-            if (_skillSlots[i] != null && unlockedSkills[i] != null)
-            {
-                _skillSlots[i].Initialize(unlockedSkills[i], i);
-                _skillSlots[i].Unlock();
+            LogError("PlayerCharacter가 없어 스킬 슬롯을 초기화할 수 없습니다.");
+            return;
+        }
 
+        Log($"스킬 슬롯 초기화 시작 (빈 슬롯으로 시작)");
+
+        for (int i = 0; i < _skillSlots.Count; i++)
+        {
+            if (_skillSlots[i] != null)
+            {
+                // 빈 슬롯으로 초기화 (skillData = null)
+                _skillSlots[i].Initialize(i, skillData: null);
+
+                // SkillActivationSystem에 슬롯 등록
                 if (_skillActivationSystem != null)
                 {
                     _skillActivationSystem.RegisterSkillSlot(_skillSlots[i]);
-                    Log($"  슬롯 {i}: {unlockedSkills[i].SkillName} → SkillActivationSystem 등록 완료");
+                    Log($"  슬롯 {i}: 빈 슬롯 → SkillActivationSystem 등록 완료");
                 }
             }
+            else
+            {
+                LogError($"  슬롯 {i}가 null입니다!");
+            }
         }
+
+        Log($"스킬 슬롯 초기화 완료: {_skillSlots.Count}개 슬롯 (모두 비어있음)");
     }
 
     #endregion
@@ -384,21 +399,28 @@ public class CharacterUIController : MonoBehaviour
         Log($"레벨업: {oldLevel} → {newLevel}");
     }
 
+    /// <summary>
+    /// 스킬 언락 이벤트 핸들러
+    /// - 스킬 언락 알림만 표시
+    /// - 플레이어가 직접 드래그 앤 드롭으로 슬롯에 배치
+    /// </summary>
     private void OnSkillUnlocked(SkillData skill)
     {
         Log($"스킬 언락: {skill.SkillName}");
-
-        foreach (SkillSlotUI slot in _skillSlots)
-        {
-            if (slot != null && slot.SkillData == skill)
-            {
-                slot.Unlock();
-                Log($"  슬롯 언락 완료: {skill.SkillName}");
-                break;
-            }
-        }
+        
+        ShowSkillUnlockedNotification(skill);
 
         RefreshSkillSlots();
+    }
+
+    /// <summary>
+    /// 스킬 언락 알림 표시
+    /// </summary>
+    private void ShowSkillUnlockedNotification(SkillData skill)
+    {
+        // TODO: UI 알림 팝업 구현
+        // 예: "새 스킬 언락! [스킬 이름]을(를) 스킬 슬롯에 드래그하세요."
+        Log($"[알림] {skill.SkillName}을(를) 언락했습니다! 스킬 슬롯으로 드래그하여 배치하세요.");
     }
 
     private void RefreshSkillSlots()

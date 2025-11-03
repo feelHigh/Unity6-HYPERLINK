@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20fc9c8b8a3576c499132a23b6b55ad6, type: 3}
   m_Name: LaonCharacterStats
   m_EditorClassIdentifier: 
-  _strength: 10
+  _strength: 100
   _dexterity: 5
   _intelligence: 5
   _vitality: 10
