@@ -37,7 +37,7 @@ public class BossAI : MonoBehaviour
     [SerializeField] TargetDetector _comboDetector;     //3연타 감지
 
     [Header("----- 이펙트 -----")]
-    [SerializeField] GameObject _slamWarningEffect;     //내려찍기 경고 이펙트
+    [SerializeField] GameObject _slamEffect;     //내려찍기 경고 이펙트
     [SerializeField] GameObject _breathEffect;          //화염 브레스 이펙트
     [SerializeField] Transform _breathSpawnPos;         //브레스 발사 위치
 
@@ -199,9 +199,13 @@ public class BossAI : MonoBehaviour
             return;
         }
 
-        //추격
-        _agent.isStopped = false;
-        _agent.SetDestination(_target.position);
+        //추격 및 자동 회전 켜기
+        if (_agent.enabled)
+        {
+            _agent.updateRotation = true;
+            _agent.isStopped = false;
+            _agent.SetDestination(_target.position);
+        }
     }
 
     /// <summary>
@@ -226,6 +230,12 @@ public class BossAI : MonoBehaviour
 
         //패턴 실행 중이면 대기
         if (_isExecutingPattern) return;
+
+        //NavMesh 자동 회전 끄기
+        if (_agent.enabled)
+        {
+            _agent.updateRotation = false;
+        }
 
         //타겟 바라보기
         LookAtTarget();
@@ -338,8 +348,8 @@ public class BossAI : MonoBehaviour
 
     /// <summary>
     /// 패턴 1: 내려찍기
-    /// - 1.5초 준비 동작
-    /// - 범위 공격 (반경 8m)
+    /// - 1초 준비 동작
+    /// - 범위 공격 (반경 5m)
     /// </summary>
     IEnumerator SlamPattern()
     {
@@ -349,27 +359,27 @@ public class BossAI : MonoBehaviour
 
         Debug.Log("[BossAI] 패턴 1: 내려찍기 준비!");
 
-        //경고 이펙트 생성
-        GameObject warningEffect = null;
-        if (_slamWarningEffect != null)
-        {
-            warningEffect = Instantiate(_slamWarningEffect, transform.position, Quaternion.identity);
-        }
-
-        //준비 동작
+        //애니메이션 재생
         _animator.SetTrigger(_hashSlam);
-        yield return new WaitForSeconds(_data.SlamPrepareTime);
 
-        //경고 이펙트 제거
-        if (warningEffect != null)
+        //이펙트 생성
+        GameObject slamEffect = null;
+        if (_slamEffect != null)
         {
-            Destroy(warningEffect);
+            slamEffect = Instantiate(_slamEffect, transform.position, Quaternion.identity);
         }
+
+        yield return new WaitForSeconds(_data.SlamPrepareTime);
 
         Debug.Log("[BossAI] 내려찍기 발동!");
 
-        //내려찍기 타격은 애니메이션 이벤트에서 호출
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
+
+        //이펙트 제거
+        if (slamEffect != null)
+        {
+            Destroy(slamEffect);
+        }
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -422,9 +432,10 @@ public class BossAI : MonoBehaviour
 
         _chargeStartPos = transform.position;
 
-        //돌진 애니메이션
-        _animator.SetTrigger(_hashCharge);
         yield return new WaitForSeconds(0.5f);  // 준비 동작
+
+        //돌진 애니메이션
+        _animator.SetBool(_hashCharge, true);
 
         //돌진 시작
         _isCharging = true;
@@ -451,7 +462,7 @@ public class BossAI : MonoBehaviour
         //돌진 이동
         Vector3 nextPosition = transform.position + _chargeDirection * _data.ChargeSpeed * Time.deltaTime;
 
-        //충돌 체크
+        //장애물 충돌 체크
         float checkDistance = _data.ChargeSpeed * Time.deltaTime + 1f;
         if (Physics.Raycast(transform.position, _chargeDirection, out RaycastHit hit, checkDistance, _obstacleLayerMask))
         {
@@ -509,6 +520,7 @@ public class BossAI : MonoBehaviour
     /// </summary>
     void EndCharge(bool hitWall)
     {
+        _animator.SetBool(_hashCharge, false);
         _isCharging = false;
         _agent.enabled = true;
 
@@ -615,7 +627,6 @@ public class BossAI : MonoBehaviour
     /// 패턴 4: 화염 브레스
     /// - 짧은 포효 후
     /// - 직선으로 화염 발사
-    /// - 2초 지속
     /// </summary>
     IEnumerator BreathPattern()
     {
@@ -665,7 +676,7 @@ public class BossAI : MonoBehaviour
 
             foreach (RaycastHit hit in hits)
             {
-                IDamageable damageable = hit.collider.GetComponent<IDamageable>();
+                PlayerCombat damageable = hit.collider.GetComponent<PlayerCombat>();
                 if (damageable != null)
                 {
                     float damage = _controller.Atk * _data.BreathDamageMultiplier;
