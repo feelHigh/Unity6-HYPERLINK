@@ -13,6 +13,7 @@ using System.Linq;
 /// - 플레이 시간 추적
 /// - 스킬 트리 저장/로드
 /// - 스킬 슬롯 (Q/W/E/R) 저장/로드
+/// - 장비 UI 동기화
 /// </summary>
 public class CharacterDataManager : MonoBehaviour
 {
@@ -34,8 +35,9 @@ public class CharacterDataManager : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private ExperienceManager _experienceManager;
     private EquipmentManager _equipmentManager;
+    private EquipInventory _equipInventory;  // [NEW: 장비 UI 동기화를 위해 추가]
     private SkillTreeManager _skillTreeManager;
-    private SkillActivationSystem _skillActivationSystem;  // [NEW: SKILL SLOTS]
+    private SkillActivationSystem _skillActivationSystem;
 
     public CharacterSaveData CurrentCharacterData => _currentCharacterData;
     public bool IsDataLoaded => _currentCharacterData != null;
@@ -79,6 +81,7 @@ public class CharacterDataManager : MonoBehaviour
         _playerCharacter = FindFirstObjectByType<PlayerCharacter>();
         _experienceManager = FindFirstObjectByType<ExperienceManager>();
         _equipmentManager = FindFirstObjectByType<EquipmentManager>();
+        _equipInventory = FindFirstObjectByType<EquipInventory>();
         _skillTreeManager = FindFirstObjectByType<SkillTreeManager>();
         _skillActivationSystem = FindFirstObjectByType<SkillActivationSystem>();
 
@@ -90,6 +93,9 @@ public class CharacterDataManager : MonoBehaviour
 
         if (_equipmentManager == null)
             LogError("EquipmentManager를 찾을 수 없습니다");
+
+        if (_equipInventory == null)
+            LogWarning("EquipInventory를 찾을 수 없습니다 (장비 UI 로드 불가)");
 
         if (_skillTreeManager == null)
             LogWarning("SkillTreeManager를 찾을 수 없습니다 (스킬 트리 비활성화)");
@@ -130,9 +136,10 @@ public class CharacterDataManager : MonoBehaviour
     /// <summary>
     /// 로드된 데이터를 각 시스템에 적용
     /// 
-    /// 순서: Experience → Character → Equipment → Inventory → SkillTree → SkillSlots
+    /// 순서: Experience → Character → Equipment → Equipment UI → Inventory → SkillTree → SkillSlots
     /// 
     /// 중요: 
+    /// - 장비 데이터 로드 후 장비 UI 동기화 (새로 추가)
     /// - 스킬 트리는 마지막에서 두 번째 (패시브 스탯 적용)
     /// - 스킬 슬롯은 가장 마지막 (스킬이 언락된 후 할당)
     /// </summary>
@@ -150,10 +157,24 @@ public class CharacterDataManager : MonoBehaviour
             _playerCharacter.LoadFromSaveData(data);
         }
 
-        // Phase 3: 장비
+        // Phase 3: 장비 (데이터 + UI)
         if (_equipmentManager != null)
         {
+            // 3-1. 내부 데이터 로드
             _equipmentManager.LoadFromSaveData(data);
+            Log("EquipmentManager 데이터 로드 완료");
+
+            // 3-2. UI 슬롯 동기화
+            if (_equipInventory != null)
+            {
+                _equipInventory.LoadEquipmentUI();
+                Log("EquipInventory UI 동기화 완료");
+            }
+            else
+            {
+                LogWarning("EquipInventory를 찾을 수 없어 장비 UI를 로드할 수 없습니다");
+                LogWarning("게임 플레이에는 영향 없지만, UI에 장비가 표시되지 않을 수 있습니다");
+            }
         }
 
         // Phase 4: 인벤토리
@@ -286,14 +307,14 @@ public class CharacterDataManager : MonoBehaviour
 
             SkillSlotUI slot = slots[slotData.slotIndex];
 
-            // 빈 슬롯인 경우
+            // 빈 슬롯 처리
             if (string.IsNullOrEmpty(slotData.assignedSkillID))
             {
                 slot.RemoveSkill();
                 continue;
             }
 
-            // 스킬 이름으로 SkillData 찾기
+            // 스킬 데이터 찾기
             SkillData skillData = FindSkillByName(slotData.assignedSkillID);
 
             if (skillData != null)

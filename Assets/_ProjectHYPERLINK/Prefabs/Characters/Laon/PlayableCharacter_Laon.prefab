@@ -224,7 +224,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _equipmentSlots: []
-  _itemDatabase: []
+  _itemDatabase:
+  - {fileID: 11400000, guid: 1907321dd3946e545ba7acecf6947938, type: 2}
+  - {fileID: 11400000, guid: 48eae9b342dee244ea27b4b7a2a7ac1b, type: 2}
+  - {fileID: 11400000, guid: 3174cfd33d1d6a04a91c7ee95528ebd2, type: 2}
+  - {fileID: 11400000, guid: aabaa3988eac412428e8f3be4aafc1ac, type: 2}
+  - {fileID: 11400000, guid: a39b29a8737da674fa3aa701df02db3f, type: 2}
+  - {fileID: 11400000, guid: 85025b8b428ee8447be266411560891c, type: 2}
+  - {fileID: 11400000, guid: cb7a1d7d6d5868844828f5f456e5f908, type: 2}
+  - {fileID: 11400000, guid: e4dc621f2f63b9d4bba58faeab916361, type: 2}
   _playerCharacter: {fileID: 0}
 --- !u!114 &6395200515974723187
 MonoBehaviour:
