@@ -12,7 +12,7 @@ using System;
 /// - 경험치 획득: 적 처치 시 경험치 추가
 /// - 레벨업 처리: 필요 경험치 도달 시 자동 레벨업
 /// - 스탯 증가: LevelUpData 기반 스탯 상승
-/// - 스킬 언락: 레벨에 맞는 스킬 잠금 해제
+/// - 스킬 트리 시스템 사용
 /// - 이벤트 발생: UI 및 다른 시스템에 알림
 /// 
 /// 주의사항:
@@ -97,14 +97,16 @@ public class ExperienceManager : MonoBehaviour
         }
     }
 
+    /// <summary>
     /// 레벨업 처리
     /// 
     /// 처리 순서:
     /// 1. 레벨 증가
     /// 2. LevelUpData에서 스탯 증가량 가져오기
     /// 3. PlayerCharacter에 스탯 적용
-    /// 4. 스킬 언락 확인
-    /// 5. 이벤트 발생
+    /// 4. [REMOVED] 스킬 언락 → 스킬 트리에서 수동 언락
+    /// 5. OnLevelUp 이벤트 발생 (SkillTreeManager가 SP 획득)
+    /// </summary>
     private void LevelUp()
     {
         int oldLevel = _currentLevel;
@@ -117,10 +119,10 @@ public class ExperienceManager : MonoBehaviour
             _playerCharacter.AddLevelUpStats(statGains);
         }
 
-        // 스킬 언락
-        _playerCharacter?.UnlockSkillsForLevel(_currentLevel);
+        // OnLevelUp 이벤트를 통해 SkillTreeManager가 SP를 부여함
+        Debug.Log($"레벨 업! 레벨 {oldLevel} → {_currentLevel}");
+        Debug.Log($"[ExperienceManager] 스킬은 스킬 트리에서 SP로 언락하세요!");
 
-        Debug.Log($"레벨 업 이제 레벨 {_currentLevel}");
         OnLevelUp?.Invoke(oldLevel, _currentLevel);
     }
 

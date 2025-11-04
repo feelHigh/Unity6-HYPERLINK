@@ -4,13 +4,6 @@ using UnityEngine;
 
 /// <summary>
 /// 스킬 활성화 시스템
-/// 
-/// 최근 변경사항:
-/// - PlayerStateController 연동 (침묵 상태 체크)
-/// - SkillData.cs 실제 구조에 맞춤
-/// - UpdateCooldowns() 딕셔너리 수정 버그 수정
-/// - 새로운 데미지 공식 적용: ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
-/// - [FIX] 사망 상태 체크 추가 (HandleSkillInput, ActivateSkill)
 /// </summary>
 public class SkillActivationSystem : MonoBehaviour
 {
@@ -31,6 +24,9 @@ public class SkillActivationSystem : MonoBehaviour
 
     [Tooltip("세 번째 스킬 슬롯 키 (기본: E)")]
     [SerializeField] private KeyCode _skill3Key = KeyCode.E;
+    
+    [Tooltip("네 번째 스킬 슬롯 키 (기본: R)")]
+    [SerializeField] private KeyCode _skill4Key = KeyCode.R;
 
     [Header("디버그 설정")]
     [SerializeField] private bool _showDebugGizmos = true;
@@ -82,7 +78,7 @@ public class SkillActivationSystem : MonoBehaviour
             }
         }
 
-        _skillKeys = new KeyCode[] { _skill1Key, _skill2Key, _skill3Key };
+        _skillKeys = new KeyCode[] { _skill1Key, _skill2Key, _skill3Key, _skill4Key };
     }
 
     private void Update()
@@ -96,7 +92,15 @@ public class SkillActivationSystem : MonoBehaviour
     #region 입력 처리
 
     /// <summary>
-    /// 스킬 키 입력 처리
+    /// 스킬 키 입력 처리 - 리팩토링 버전
+    /// 
+    /// 빈 슬롯 체크 강화
+    /// 
+    /// 처리 순서:
+    /// 1. 사망 상태 체크
+    /// 2. 상태이상 체크 (침묵, 빙결, 넉다운)
+    /// 3. 슬롯이 비어있는지 체크
+    /// 4. 스킬 활성화
     /// </summary>
     private void HandleSkillInput()
     {
@@ -118,24 +122,35 @@ public class SkillActivationSystem : MonoBehaviour
             {
                 SkillSlotUI slot = _skillSlots[i];
 
+                // 슬롯 null 체크
                 if (slot == null)
                 {
                     Debug.LogWarning($"[SkillActivation] 슬롯 {i}가 null입니다!");
                     continue;
                 }
 
+                // 빈 슬롯 체크
+                if (slot.IsEmpty)
+                {
+                    Debug.Log($"[SkillActivation] 슬롯 {i}가 비어있습니다! 스킬 트리에서 스킬을 드래그하여 배치하세요.");
+                    continue;
+                }
+
+                // SkillData null 체크
                 if (slot.SkillData == null)
                 {
                     Debug.LogWarning($"[SkillActivation] 슬롯 {i}의 SkillData가 null입니다!");
                     continue;
                 }
 
+                // 잠금 상태 체크 (레거시 - 스킬 트리 시스템에서는 사용 안 함)
                 if (slot.IsLocked)
                 {
                     Debug.Log($"[SkillActivation] {slot.SkillData.SkillName}이(가) 잠겨있습니다!");
                     continue;
                 }
 
+                // 스킬 활성화
                 ActivateSkill(slot.SkillData);
             }
         }
@@ -432,7 +447,7 @@ public class SkillActivationSystem : MonoBehaviour
             return _playerCharacter.GetAttackPower();
         }
 
-        // 폴백: PlayerCharacter가 없을 때
+        // PlayerCharacter가 없을 때
         Debug.LogWarning("[SkillActivation] PlayerCharacter가 없어 기본 공격력(25)을 사용합니다.");
         return 25f;
     }
@@ -469,6 +484,69 @@ public class SkillActivationSystem : MonoBehaviour
     public void UnregisterSkillSlot(SkillSlotUI slot)
     {
         _skillSlots.Remove(slot);
+    }
+
+    /// <summary>
+    /// 모든 스킬 슬롯 가져오기 (저장/로드용)
+    /// 
+    /// 사용처:
+    /// - CharacterDataManager.SaveSkillSlots()
+    /// - CharacterDataManager.LoadSkillSlots()
+    /// 
+    /// 반환값:
+    /// - List<SkillSlotUI>: 등록된 모든 스킬 슬롯
+    /// </summary>
+    public List<SkillSlotUI> GetAllSkillSlots()
+    {
+        return _skillSlots;
+    }
+
+    #endregion
+
+    #region 스킬 슬롯 유틸리티
+
+    /// <summary>
+    /// 특정 스킬이 다른 슬롯에 이미 할당되어 있는지 확인
+    /// </summary>
+    /// <param name="skillData">확인할 스킬</param>
+    /// <param name="excludeSlotIndex">제외할 슬롯 인덱스 (자신의 슬롯 제외용)</param>
+    /// <returns>다른 슬롯에 이미 있으면 true</returns>
+    public bool HasSkill(SkillData skillData, int excludeSlotIndex = -1)
+    {
+        if (skillData == null) return false;
+
+        for (int i = 0; i < _skillSlots.Count; i++)
+        {
+            // 현재 슬롯은 제외
+            if (i == excludeSlotIndex) continue;
+
+            if (_skillSlots[i] != null && _skillSlots[i].SkillData == skillData)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 특정 스킬을 가진 슬롯 찾기
+    /// </summary>
+    /// <param name="skillData">찾을 스킬</param>
+    /// <returns>스킬을 가진 슬롯, 없으면 null</returns>
+    public SkillSlotUI FindSlotWithSkill(SkillData skillData)
+    {
+        if (skillData == null) return null;
+
+        foreach (SkillSlotUI slot in _skillSlots)
+        {
+            if (slot != null && slot.SkillData == skillData)
+            {
+                return slot;
+            }
+        }
+
+        return null;
     }
 
     #endregion

@@ -6,17 +6,6 @@ using System.Collections.Generic;
 /// <summary>
 /// 플레이어 캐릭터 핵심 시스템
 /// 
-/// 변경사항:
-/// - RecalculateResources() → RecalculateStats()
-/// - CalculateDerivedStats() 추가 (주요 스탯 기반 파생 스탯 계산)
-/// - GetTotalStats()에 파생 스탯 계산 로직 추가
-/// - LoadFromSaveData()에서 2차 스탯 로드 제거
-/// - SaveToData()에서 2차 스탯 저장 제거
-/// - Dexterity에 MovementSpeed 파생 스탯 추가
-/// - Dexterity → Attack Speed 비율 변경 (0.1 → 0.05)
-/// - [NEW] GetAttackPower(), IsPhysicalAttacker(), IsMagicalAttacker() 추가
-/// - [NEW] Dexterity → Physical Attack 파생 스탯 추가 (Yujin 지원)
-/// 
 /// 공식:
 /// - Strength (1당): Physical Attack +1, All Resistance +0.1
 /// - Dexterity (1당): Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
@@ -27,7 +16,6 @@ public class PlayerCharacter : MonoBehaviour
 {
     [Header("캐릭터 설정")]
     [SerializeField] private CharacterClass _characterClass = CharacterClass.Laon;
-    [SerializeField] private SkillData[] _availableSkills;
 
     [Header("현재 리소스")]
     [SerializeField] private float _currentHealth;
@@ -105,13 +93,7 @@ public class PlayerCharacter : MonoBehaviour
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
 
-        UnlockInitialSkills();
-    }
-
-    private void UnlockInitialSkills()
-    {
-        UnlockSkillsForLevel(1);
-        Debug.Log($"[PlayerCharacter] 초기 스킬 언락 완료: {_unlockedSkills.Count}개");
+        Debug.Log($"[PlayerCharacter] 초기화 완료 - 스킬은 스킬 트리에서 언락하세요!");
     }
 
     #endregion
@@ -215,7 +197,7 @@ public class PlayerCharacter : MonoBehaviour
         builder.AddAllResistance(baseStats.Strength * 0.1f);
 
         // Dexterity: Physical Attack +1, Critical Chance +1, Attack Speed +0.05, Movement Speed +0.1
-        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);  // ← Yujin 지원을 위해 추가
+        builder.AddPhysicalAttack(baseStats.Dexterity * 1f);
         builder.AddCriticalChance(baseStats.Dexterity * 1f);
         builder.AddAttackSpeed(baseStats.Dexterity * 0.05f);
         builder.AddMovementSpeed(baseStats.Dexterity * 0.1f);
@@ -252,7 +234,7 @@ public class PlayerCharacter : MonoBehaviour
     /// - Laon (전사), Yujin (궁수): Physical Attack
     /// - Sian (마법사): Magical Attack
     /// 
-    /// 새로운 데미지 시스템:
+    /// 데미지 시스템:
     /// - 마우스 우클릭 공격 = Physical/Magical Attack
     /// - 스킬 공격 = ((Physical/Magical Attack × 배율) + 기본 데미지) × (1 + (주 스탯 × 증가율))
     /// </summary>
@@ -298,10 +280,8 @@ public class PlayerCharacter : MonoBehaviour
     {
         CharacterStats totalStats = GetTotalStats();
 
-        _maxHealth = (totalStats.Vitality * 10f) + totalStats.MaxHealth;
-
-        float baseMana = totalStats.Intelligence * 10f;
-        _maxMana = baseMana + totalStats.MaxMana;
+        _maxHealth = totalStats.MaxHealth + (totalStats.Vitality * 10f);
+        _maxMana = totalStats.MaxMana + (totalStats.Intelligence * 10f);
 
         _currentHealth = Mathf.Min(_currentHealth, _maxHealth);
         _currentMana = Mathf.Min(_currentMana, _maxMana);
@@ -321,10 +301,10 @@ public class PlayerCharacter : MonoBehaviour
         if (_healthRegenTimer >= REGEN_TICK_INTERVAL)
         {
             _healthRegenTimer = 0f;
-            float healthRegen = totalStats.HealthRegeneration;
-            if (healthRegen > 0 && _currentHealth < _maxHealth)
+
+            if (_currentHealth < _maxHealth && totalStats.HealthRegeneration > 0)
             {
-                _currentHealth = Mathf.Min(_currentHealth + healthRegen, _maxHealth);
+                _currentHealth = Mathf.Min(_currentHealth + totalStats.HealthRegeneration, _maxHealth);
                 OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
             }
         }
@@ -333,10 +313,10 @@ public class PlayerCharacter : MonoBehaviour
         if (_manaRegenTimer >= REGEN_TICK_INTERVAL)
         {
             _manaRegenTimer = 0f;
-            float manaRegen = totalStats.ManaRegeneration;
-            if (manaRegen > 0 && _currentMana < _maxMana)
+
+            if (_currentMana < _maxMana && totalStats.ManaRegeneration > 0)
             {
-                _currentMana = Mathf.Min(_currentMana + manaRegen, _maxMana);
+                _currentMana = Mathf.Min(_currentMana + totalStats.ManaRegeneration, _maxMana);
                 OnManaChanged?.Invoke(_currentMana, _maxMana);
             }
         }
@@ -345,18 +325,71 @@ public class PlayerCharacter : MonoBehaviour
     #endregion
 
     #region 스킬 관리
-
-    public void UnlockSkillsForLevel(int level)
+    
+    /// <summary>
+    /// 스킬 트리에서 개별 스킬 언락
+    /// 
+    /// 호출 위치: SkillTreeManager.UnlockNode()
+    /// 
+    /// 처리 과정:
+    /// 1. null 체크
+    /// 2. 중복 언락 방지
+    /// 3. _unlockedSkills에 추가
+    /// 4. OnSkillUnlocked 이벤트 발생
+    /// 
+    /// 사용 예시:
+    /// - 플레이어가 스킬 트리에서 노드 클릭
+    /// - SkillTreeManager가 조건 검증 후 UnlockSkill() 호출
+    /// - SkillSlotUI가 OnSkillUnlocked 이벤트를 받아 UI 갱신
+    /// </summary>
+    /// <param name="skill">언락할 스킬 데이터</param>
+    public void UnlockSkill(SkillData skill)
     {
-        foreach (SkillData skill in _availableSkills)
+        if (skill == null)
         {
-            if (skill.RequiredLevel == level && !_unlockedSkills.Contains(skill))
-            {
-                _unlockedSkills.Add(skill);
-                OnSkillUnlocked?.Invoke(skill);
-                Debug.Log($"[PlayerCharacter] 스킬 언락: {skill.SkillName}");
-            }
+            Debug.LogWarning("[PlayerCharacter] UnlockSkill: skill이 null입니다!");
+            return;
         }
+
+        if (_unlockedSkills.Contains(skill))
+        {
+            Debug.LogWarning($"[PlayerCharacter] {skill.SkillName}은(는) 이미 언락되었습니다!");
+            return;
+        }
+
+        _unlockedSkills.Add(skill);
+        OnSkillUnlocked?.Invoke(skill);
+        Debug.Log($"[PlayerCharacter] 스킬 언락 (스킬 트리): {skill.SkillName}");
+    }
+
+    /// <summary>
+    /// 모든 임시 패시브 스탯 제거
+    /// 
+    /// 호출 위치: SkillTreeManager.RecalculateAllPassiveStats()
+    /// 
+    /// 사용 목적:
+    /// - 스킬 트리 로드 시 패시브 스탯 재계산
+    /// - 패시브 노드 언락/리셋 시 스탯 재적용
+    /// 
+    /// 처리 과정:
+    /// 1. _temporaryBuffs 리스트 클리어
+    /// 2. RecalculateStats() 호출 (리소스 재계산)
+    /// 3. UpdateUI() 호출 (UI 갱신)
+    /// 4. OnStatsChanged 이벤트 발생
+    /// 
+    /// 주의사항:
+    /// - 이 메서드는 스킬 트리 패시브 스탯만 제거
+    /// - 장비 스탯이나 기본 스탯은 영향받지 않음
+    /// - SkillTreeManager가 이후 새로운 패시브 스탯을 AddTemporaryStats()로 재적용
+    /// </summary>
+    public void RemoveAllPassiveStats()
+    {
+        _temporaryBuffs.Clear();
+        RecalculateStats();
+        UpdateUI();
+        OnStatsChanged?.Invoke(GetTotalStats());
+
+        Debug.Log("[PlayerCharacter] 모든 패시브 스탯 제거 완료");
     }
 
     #endregion
@@ -532,13 +565,9 @@ public class PlayerCharacter : MonoBehaviour
         _unlockedSkills.Clear();
         if (data.progression?.unlockedSkills != null)
         {
-            foreach (SkillData skill in _availableSkills)
-            {
-                if (data.progression.unlockedSkills.Contains(skill.SkillName))
-                {
-                    _unlockedSkills.Add(skill);
-                }
-            }
+            // 스킬 이름으로 복원은 스킬 트리에서 처리
+            // 여기서는 저장된 스킬 이름만 보관
+            Debug.Log($"[PlayerCharacter] 저장된 스킬: {data.progression.unlockedSkills.Count}개");
         }
 
         UpdateUI();

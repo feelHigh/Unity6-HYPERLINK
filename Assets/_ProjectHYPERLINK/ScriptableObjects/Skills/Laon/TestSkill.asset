@@ -10,44 +10,44 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e396be3d5505fa41bdfaf04361e3cac, type: 3}
-  m_Name: SwiftSlash
+  m_Name: TestSkill
   m_EditorClassIdentifier: 
-  _skillName: SwiftSlash
+  _skillName: TestSkill
   _description: 
-  _skillIcon: {fileID: 21300000, guid: 81a2b37f9306b6543907f7df59ee3498, type: 3}
+  _skillIcon: {fileID: 21300000, guid: 38c3ada3f093d7d46bcdafbd2cd77879, type: 3}
   _requiredLevel: 1
-  _animatorTriggerName: SkillSwiftSlash
-  _manaCost: 20
+  _animatorTriggerName: Test
+  _manaCost: 1
   _cooldown: 1
-  _range: 4
-  _skillType: 2
-  _skillMultiplier: 0.5
-  _skillBaseDamage: 50
+  _range: 5
+  _skillType: 0
+  _skillMultiplier: 1
+  _skillBaseDamage: 500
   _mainStatDamageIncrease: 0.01
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
-  _buffDuration: 0
-  _aoeShape: 1
+  _buffDuration: 10
+  _aoeShape: 0
   _damagePointTiming: 0.7
-  _aoeOffset: {x: 0, y: 0, z: 2}
+  _aoeOffset: {x: 0, y: 0, z: 0}
   _sphereRadius: 5
-  _boxSize: {x: 2, y: 1, z: 4}
-  _vfxPrefab: {fileID: 1840690549904964, guid: a8a6ba91edbeef2439175ecf0e08e6fb, type: 3}
-  _vfxSpawnTiming: 0.82
+  _boxSize: {x: 3, y: 2, z: 4}
+  _vfxPrefab: {fileID: 0}
+  _vfxSpawnTiming: 0.5
   _vfxOffset: {x: 0, y: 1, z: 1}
   _vfxRotationOffset: {x: 0, y: 0, z: 0}
-  _vfxLifetime: 0.4
+  _vfxLifetime: 0
   _animationDuration: 1
-  _useRootMotion: 0
+  _useRootMotion: 1
   _dashDistanceMode: 0
-  _dashDistance: 4
+  _dashDistance: 5
   _minDashDistance: 2
   _maxDashDistance: 8
   _dashDuration: 0.3
-  _dashTiming: 0.65
-  _dashEase: 22
+  _dashTiming: 0.1
+  _dashEase: 6
   _checkWallCollision: 1
   _wallLayer:
     serializedVersion: 2
-    m_Bits: 12288
+    m_Bits: 64
   _wallStopBuffer: 0.5
