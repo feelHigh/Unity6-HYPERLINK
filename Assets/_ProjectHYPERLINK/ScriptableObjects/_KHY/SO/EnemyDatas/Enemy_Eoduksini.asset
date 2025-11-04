@@ -16,7 +16,7 @@ MonoBehaviour:
   _prefab: {fileID: 3121302630931607391, guid: 9ac20ce8899122e46b30af2d318d1d42, type: 3}
   _maxHp: 100
   _moveSpeed: 5
-  _atk: 5
+  _atk: 10
   _detectionRange: 8
   _chaseDistance: 10
   _basicAttackType: 1
@@ -29,5 +29,5 @@ MonoBehaviour:
   _canBeEpic: 1
   _epicHpMultiplier: 2
   _epicAtkMultiplier: 2
-  _epicExpMultirlier: 2
-  _epicGoldMultirlier: 2
+  _epicExpMultiplier: 0
+  _epicGoldMultiplier: 0
