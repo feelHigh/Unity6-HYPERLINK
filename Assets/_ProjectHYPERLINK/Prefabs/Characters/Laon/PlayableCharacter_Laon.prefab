@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: -659526161995910388}
   - component: {fileID: 341333240480795390}
   - component: {fileID: 5488621197481358210}
+  - component: {fileID: 4257342531036880149}
   m_Layer: 10
   m_Name: PlayableCharacter_Laon
   m_TagString: Player
@@ -137,6 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 669ba5a3179caab479f408d82376553e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentAttackCooldown: 0
   _animationDampTime: 0.1
   _attackAnimationDuration: 1
   _attackRange: 3
@@ -144,10 +146,18 @@ MonoBehaviour:
   _attackDamage: 25
   _attackSpeed: 1
   _knockbackDuration: 0.3
+  _knockbackObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 12288
+  _knockbackWallBuffer: 0.5
+  _playerRadius: 0.5
+  _useSphereCast: 0
+  _navMeshSearchRadius: 2
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
   _enableDebugLogs: 1
+  _visualizeKnockbackPath: 1
 --- !u!114 &3735128981493473489
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,10 +171,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterClass: 0
-  _availableSkills:
-  - {fileID: 11400000, guid: af521240ce495364aa81e301ce6d02c8, type: 2}
-  - {fileID: 11400000, guid: 8f4826065bebbee4d9c3836f61f221e9, type: 2}
-  - {fileID: 11400000, guid: 90362dc3bc91f3e44a532314451bc317, type: 2}
   _currentHealth: 0
   _currentMana: 0
   _redSoda: 3
@@ -183,10 +189,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerCharacter: {fileID: 0}
   _stateController: {fileID: 0}
+  _navController: {fileID: 0}
   _skillSlots: []
   _skill1Key: 113
   _skill2Key: 119
   _skill3Key: 101
+  _skill4Key: 114
   _showDebugGizmos: 1
 --- !u!114 &4529648162199723491
 MonoBehaviour:
@@ -237,7 +245,7 @@ MonoBehaviour:
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 4096
-  _enableDebugLogs: 1
+  _enableDebugLogs: 0
   _showDebugRay: 1
 --- !u!114 &1237584802716128544
 MonoBehaviour:
@@ -307,6 +315,28 @@ MonoBehaviour:
   _retryInterval: 0.5
   _maxRetries: 20
   _enableDebugLogs: 1
+--- !u!114 &4257342531036880149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f36986c4e5f7e647b37bab24cf7c0b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _allNodes:
+  - {fileID: 11400000, guid: 5649c7b9f7c354b48824852429177d3d, type: 2}
+  - {fileID: 11400000, guid: e8ad376f39021da4d981767e4d42cd8b, type: 2}
+  - {fileID: 11400000, guid: adcf1205c38bbea47853932f0b1c5abd, type: 2}
+  - {fileID: 11400000, guid: 5f1543314dcd38a47afcac62c82a92bf, type: 2}
+  - {fileID: 11400000, guid: 71e65b87b9b90ee48954359f60278eab, type: 2}
+  _startingSkillPoints: 1
+  _skillPointsPerLevel: 1
+  _playerCharacter: {fileID: 0}
+  _experienceManager: {fileID: 0}
 --- !u!1001 &309975090714692918
 PrefabInstance:
   m_ObjectHideFlags: 0

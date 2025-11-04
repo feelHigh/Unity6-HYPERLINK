@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelData:
   - _level: 2
-    _experienceRequired: 50
+    _experienceRequired: 2
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 3
-    _experienceRequired: 100
+    _experienceRequired: 3
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 4
-    _experienceRequired: 150
+    _experienceRequired: 4
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 5
-    _experienceRequired: 200
+    _experienceRequired: 5
     _statGains: {fileID: 11400000, guid: d47440455d8a73849a76c7db0c3a7c12, type: 2}
   - _level: 6
     _experienceRequired: 250

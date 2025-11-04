@@ -9,24 +9,6 @@ using DG.Tweening;
 /// 
 /// 좌클릭: 이동 & 상호작용
 /// 우클릭: 회전 & 전방 원뿔 범위 공격
-/// 
-/// 최근 변경사항:
-/// - PlayerStateController 연동 추가
-/// - 상태이상 체크 (이동/공격 제어)
-/// - ForceStop() 메소드 추가 (빙결/속박)
-/// - ApplyKnockback() 메소드 추가 (넉백)
-/// - 이동속도 배율 적용
-/// - 데미지 적용 방식 변경: IDamageable → EnemyController 직접 호출 (스킬과 동일)
-/// - Attack Speed 기반 Attack Cooldown 동적 조정 추가
-/// - Movement Speed 스탯 기반 이동속도 적용 추가
-/// - _attackCooldown → _attackSpeed 변수명 변경 (기본 공격 속도 기준값)
-/// - [FIX] MovementSpeed와 AttackSpeed를 absolute 값으로 처리하도록 수정
-///   * MovementSpeed: percentage → absolute 가산 (Dex 5 → +0.5 speed)
-///   * AttackSpeed: percentage → absolute 쿨다운 감소 (Dex 5 → -0.25초)
-/// - [FIX] 속박(Root) 상태 버그 수정: 좌클릭/우클릭 입력 처리 분리
-///   * 속박 상태에서 우클릭 공격 가능하도록 수정
-///   * 좌클릭 이동만 차단, 우클릭 공격은 CanAttack 상태만 체크
-/// - [FIX] 넉백 방향: 플레이어 방향 기준 → 공격자 위치 기준으로 변경
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
@@ -57,6 +39,12 @@ public class PlayerNavController : MonoBehaviour
     private float _baseSpeed;
     private float _baseCooldown;
 
+    // 넉백 디버그 시각화용
+    private Vector3 _lastKnockbackStart;
+    private Vector3 _lastKnockbackEnd;
+    private Vector3 _lastKnockbackIdealEnd;
+    private bool _lastKnockbackHitWall;
+
     [Header("런타임 정보")]
     [SerializeField, Tooltip("현재 적용된 공격 쿨다운 (읽기 전용)")]
     private float _currentAttackCooldown;
@@ -79,13 +67,32 @@ public class PlayerNavController : MonoBehaviour
     [SerializeField] private float _attackSpeed = 1f;
 
     [Header("넉백 설정")]
-    [SerializeField] private float _knockbackDuration = 0.3f;
+    [SerializeField, Tooltip("넉백 이동 시간 (초)")]
+    private float _knockbackDuration = 0.3f;
+
+    [SerializeField, Tooltip("벽 충돌 감지 레이어 (Ground, Wall, Obstacle 등)")]
+    private LayerMask _knockbackObstacleLayer = ~0; // 모든 레이어
+
+    [SerializeField, Tooltip("벽과의 최소 안전 거리 (미터)")]
+    private float _knockbackWallBuffer = 0.5f;
+
+    [SerializeField, Tooltip("플레이어 캡슐 반지름 (SphereCast용)")]
+    private float _playerRadius = 0.5f;
+
+    [SerializeField, Tooltip("Raycast 대신 SphereCast 사용 (더 정확하지만 무거움)")]
+    private bool _useSphereCast = false;
+
+    [SerializeField, Tooltip("NavMesh 검색 반경 (미터)")]
+    private float _navMeshSearchRadius = 2f;
 
     [Header("레이어 설정")]
     [SerializeField] private LayerMask _groundLayer = ~0;
 
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
+
+    [SerializeField, Tooltip("넉백 경로 시각화 (Gizmo)")]
+    private bool _visualizeKnockbackPath = true;
 
     #region 초기화
 
@@ -152,17 +159,17 @@ public class PlayerNavController : MonoBehaviour
     #region 이벤트 핸들러
 
     /// <summary>
-    /// 플레이어 사망 시 처리
+    /// 플레이어 사망 핸들러
     /// </summary>
     private void HandlePlayerDead()
     {
         _isDead = true;
+        _isAttacking = false;
 
-        // NavMeshAgent 완전 정지
-        if (_agent != null)
+        if (_agent != null && _agent.enabled)
         {
             _agent.isStopped = true;
-            _agent.enabled = false;
+            _agent.ResetPath();
         }
 
         // 실행 중인 코루틴 정지
@@ -172,34 +179,25 @@ public class PlayerNavController : MonoBehaviour
         _currentTarget = null;
         _pendingInteraction = null;
         _interactionCoroutine = null;
-
-        Log("사망 - 모든 행동 정지");
+        
+        Log("플레이어 사망 - 모든 행동 중지");
     }
 
     /// <summary>
-    /// 스탯 변경 시 처리 (Attack Speed, Movement Speed)
+    /// 스탯 변경 핸들러
+    /// Movement Speed와 Attack Speed 업데이트
     /// </summary>
-    private void HandleStatsChanged(CharacterStats stats)
+    private void HandleStatsChanged(CharacterStats newStats)
     {
-        if (stats == null)
-        {
-            Debug.LogWarning("[PlayerNavController] HandleStatsChanged - stats가 null입니다!");
-            return;
-        }
+        // Attack Speed 갱신
+        UpdateAttackCooldown(newStats.AttackSpeed);
 
-        Debug.Log($"[PlayerNavController] HandleStatsChanged 호출");
-        Debug.Log($"  Movement Speed: {stats.MovementSpeed:F2}");
-        Debug.Log($"  Attack Speed: {stats.AttackSpeed:F2}");
-
-        // Attack Speed 기반 쿨다운 재계산
-        UpdateAttackCooldown(stats.AttackSpeed);
-
-        // Movement Speed 기반 이동속도 업데이트는 Update()에서 처리
-        Log($"스탯 변경 완료");
+        // Movement Speed는 Update()에서 지속적으로 갱신됨
+        Log($"스탯 변경: MS={newStats.MovementSpeed:F2}, AS={newStats.AttackSpeed:F2}");
     }
 
     /// <summary>
-    /// 스킬 실행 시 처리
+    /// 스킬 시전 시작 핸들러
     /// </summary>
     private void HandleSkillExecuted(SkillData skill)
     {
@@ -228,64 +226,84 @@ public class PlayerNavController : MonoBehaviour
         _isPerformingSkill = false;
     }
 
+    /// <summary>
+    /// 스킬 시전 종료 (외부에서 호출)
+    /// </summary>
+    public void SetPerformingSkill(bool isPerforming)
+    {
+        _isPerformingSkill = isPerforming;
+    }
+
     #endregion
+
+    #region Unity Lifecycle
 
     private void Update()
     {
+        // 사망 상태면 아무것도 안 함
         if (_isDead) return;
 
         // 이동속도 업데이트 (스탯 + 상태이상)
         UpdateMovementSpeed();
 
+        // 마우스 입력 처리
         HandleMouseInput();
+
+        // 애니메이터 업데이트
         UpdateAnimator();
 
+        // 타겟 추적
         if (_currentTarget != null)
         {
             FollowTarget();
         }
     }
 
-    #region 마우스 입력
+    #endregion
+
+    #region 입력 처리
 
     /// <summary>
     /// 마우스 입력 처리 (좌클릭: 이동, 우클릭: 공격)
     /// 
-    /// [FIX] 속박(Root) 상태 버그 수정:
+    /// 속박(Root) 상태 주의사항:
     /// - 좌클릭과 우클릭을 독립적으로 처리
     /// - 좌클릭: CanMove 체크 → 속박 시 차단
     /// - 우클릭: CanAttack 체크만 → 속박 시 허용
     /// </summary>
     private void HandleMouseInput()
     {
-        // 스킬 실행 중이면 모든 입력 무시
-        if (_isPerformingSkill) return;
+        // 스킬 시전 중에는 이동/공격 불가
+        if (_isPerformingSkill)
+        {
+            return;
+        }
 
-        // === 좌클릭: 이동 & 상호작용 ===
+        // 좌클릭: 이동 & 상호작용 (속박 상태에서는 불가)
         if (Input.GetMouseButtonDown(0))
         {
-            // 이동 가능 상태일 때만 처리 (속박/빙결/넉다운 시 차단)
+            // 이동 가능 여부 체크 (빙결/속박/넉다운)
             if (_stateController == null || _stateController.CanMove)
             {
                 HandleLeftClick();
             }
             else
             {
-                Log("이동 불가 상태 - 좌클릭 무시");
+                Log($"이동 불가 상태: Frozen={_stateController.IsFrozen}, Root={_stateController.IsRoot}, Stunned={_stateController.IsStunned}");
             }
         }
 
-        // === 우클릭: 공격 ===
+        // 우클릭: 공격 (속박 상태에서도 가능)
         if (Input.GetMouseButtonDown(1))
         {
-            // 공격 가능 상태일 때만 처리 (빙결/넉다운 시 차단, 속박 시 허용)
+            // 공격 가능 여부 체크 (빙결/넉다운만 차단, 속박은 허용)
             if (_stateController == null || _stateController.CanAttack)
             {
                 HandleRightClick();
             }
             else
             {
-                Log("공격 불가 상태 - 우클릭 무시");
+                Log($"공격 불가 상태: Frozen={_stateController.IsFrozen}, Stunned={_stateController.IsStunned}");
             }
         }
     }
@@ -461,12 +479,12 @@ public class PlayerNavController : MonoBehaviour
         // 공격 애니메이션 재생
         _animator.SetTrigger(ATTACK_HASH);
 
-        Log($"공격 시작! 타겟: {enemies.Count}마리");
+        Log($"공격 시작! 적 {enemies.Count}명 범위 내");
 
         // 애니메이션 타이밍에 맞춰 데미지 적용
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
-        // 각 적에게 데미지 적용
+        // 데미지 적용
         if (_playerCharacter != null)
         {
             float attackPower = _playerCharacter.GetAttackPower();
@@ -475,41 +493,29 @@ public class PlayerNavController : MonoBehaviour
             {
                 if (enemy != null)
                 {
-                    // EnemyController의 TakeDamage 호출 (인자 1개)
                     enemy.TakeDamage(attackPower);
-
-                    Log($"[데미지] {enemy.name}에게 {attackPower:F1} 데미지");
-                }
-            }
-        }
-        else
-        {
-            Log("PlayerCharacter가 null - 폴백 데미지 사용");
-            foreach (EnemyController enemy in enemies)
-            {
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(_attackDamage);
+                    Log($"  → {enemy.name}에게 {attackPower:F1} 데미지");
                 }
             }
         }
 
-        // 애니메이션 완료 대기
+        // 애니메이션 종료 대기
         float remainingTime = _attackAnimationDuration - ATTACK_DAMAGE_TIMING;
         yield return new WaitForSeconds(remainingTime);
+
 
         _isAttacking = false;
 
         // 쿨다운 시작
         yield return new WaitForSeconds(_currentAttackCooldown);
-
         _isOnCooldown = false;
+
         Log("공격 쿨다운 완료");
     }
 
     /// <summary>
     /// 공격 쿨다운 업데이트 (Attack Speed 스탯 기반)
-    /// [FIX] AttackSpeed를 absolute 감소값으로 처리
+    /// AttackSpeed를 absolute 감소값으로 처리
     /// 
     /// 공식: 최종 쿨다운 = 기본 쿨다운 - AttackSpeed (최소 0.1초)
     /// 예시: Dex 5 → Attack Speed 0.25 → Cooldown = 1.0 - 0.25 = 0.75초
@@ -553,7 +559,6 @@ public class PlayerNavController : MonoBehaviour
 
     /// <summary>
     /// 이동속도 업데이트 (스탯 기반 + 상태이상 배율)
-    /// [FIX] MovementSpeed를 absolute 값으로 가산 (percentage 방식 제거)
     /// 
     /// 공식: 최종 속도 = (기본속도 + MovementSpeed) × 상태배율
     /// 예시: Dex 5 → Movement Speed 0.5 → Speed = (5 + 0.5) × 1 = 5.5
@@ -612,7 +617,11 @@ public class PlayerNavController : MonoBehaviour
     }
 
     /// <summary>
-    /// 넉백 코루틴
+    /// 넉백 코루틴 (벽 충돌 감지)
+    /// - Raycast/SphereCast로 벽 충돌 사전 감지
+    /// - 벽 감지 시 안전한 거리로 자동 조정
+    /// - NavMesh 유효성 검증
+    /// - 디버그 시각화 추가
     /// </summary>
     private IEnumerator KnockbackCoroutine(float power, Vector3 direction)
     {
@@ -623,14 +632,38 @@ public class PlayerNavController : MonoBehaviour
             _agent.enabled = false;
         }
 
-        // 공격자 방향에서 밀려나는 방향 계산
+        // 넉백 방향 계산 (수평만)
         Vector3 knockbackDirection = direction.normalized;
-        knockbackDirection.y = 0; // 수평 방향만
+        knockbackDirection.y = 0;
+
         Vector3 startPosition = transform.position;
-        Vector3 targetPosition = startPosition + (knockbackDirection * power);
+        Vector3 idealTargetPosition = startPosition + (knockbackDirection * power);
+
+        // === 핵심: 벽 충돌 검사 ===
+        Vector3 finalTargetPosition = CalculateSafeKnockbackPosition(
+            startPosition,
+            knockbackDirection,
+            power
+        );
+
+        // === NavMesh 검증 ===
+        if (!IsPositionOnNavMesh(finalTargetPosition, out Vector3 validPosition))
+        {
+            finalTargetPosition = validPosition;
+            Log($"넉백: NavMesh 밖 감지, 유효한 위치로 보정 ({validPosition})");
+        }
+
+        // 실제 이동 거리 계산
+        float actualDistance = Vector3.Distance(startPosition, finalTargetPosition);
+
+        // 디버그 시각화용 저장
+        _lastKnockbackStart = startPosition;
+        _lastKnockbackEnd = finalTargetPosition;
+        _lastKnockbackIdealEnd = idealTargetPosition;
+        _lastKnockbackHitWall = (finalTargetPosition != idealTargetPosition);
 
         // DOTween으로 부드러운 넉백
-        transform.DOMove(targetPosition, _knockbackDuration)
+        transform.DOMove(finalTargetPosition, _knockbackDuration)
             .SetEase(Ease.OutQuad);
 
         yield return new WaitForSeconds(_knockbackDuration);
@@ -641,7 +674,98 @@ public class PlayerNavController : MonoBehaviour
             _agent.enabled = true;
         }
 
-        Log($"넉백: {power}m 밀려남");
+        Log($"넉백 완료: {actualDistance:F2}m 이동 (요청: {power}m)");
+    }
+
+    /// <summary>
+    /// 안전한 넉백 위치 계산
+    /// 
+    /// Raycast/SphereCast로 벽 충돌 감지하고,
+    /// 충돌 시 벽 앞까지만 이동하도록 거리 조정
+    /// </summary>
+    private Vector3 CalculateSafeKnockbackPosition(Vector3 start, Vector3 direction, float distance)
+    {
+        RaycastHit hit;
+        bool didHit = false;
+
+        if (_useSphereCast)
+        {
+            // SphereCast: 플레이어의 캡슐 형태를 고려한 정확한 충돌 검사
+            didHit = Physics.SphereCast(
+                start,
+                _playerRadius,
+                direction,
+                out hit,
+                distance,
+                _knockbackObstacleLayer
+            );
+
+            if (_enableDebugLogs && didHit)
+            {
+                Debug.Log($"[SphereCast] 충돌 감지: {hit.collider.name} at {hit.distance:F2}m");
+            }
+        }
+        else
+        {
+            // Raycast: 빠르지만 단순한 선형 충돌 검사
+            didHit = Physics.Raycast(
+                start,
+                direction,
+                out hit,
+                distance,
+                _knockbackObstacleLayer
+            );
+
+            if (_enableDebugLogs && didHit)
+            {
+                Debug.Log($"[Raycast] 충돌 감지: {hit.collider.name} at {hit.distance:F2}m");
+            }
+        }
+
+        if (didHit)
+        {
+            // 벽 감지: 충돌 지점에서 안전 버퍼만큼 떨어진 위치
+            float safeDistance = Mathf.Max(0f, hit.distance - _knockbackWallBuffer);
+            Vector3 safePosition = start + (direction * safeDistance);
+
+            Log($"넉백 벽 충돌 감지! {hit.collider.name} - 거리 조정: {distance:F2}m → {safeDistance:F2}m");
+
+            return safePosition;
+        }
+
+        // 벽 없음: 원래 목표 위치로 이동
+        return start + (direction * distance);
+    }
+
+    /// <summary>
+    /// 위치가 NavMesh 위에 있는지 검증
+    /// 
+    /// NavMesh 밖이면 가장 가까운 유효한 위치 반환
+    /// </summary>
+    private bool IsPositionOnNavMesh(Vector3 position, out Vector3 validPosition)
+    {
+        NavMeshHit hit;
+
+        // NavMesh 위에서 가장 가까운 지점 찾기
+        if (NavMesh.SamplePosition(position, out hit, _navMeshSearchRadius, NavMesh.AllAreas))
+        {
+            validPosition = hit.position;
+
+            // 원래 위치와 매우 가까우면 유효함
+            float distance = Vector3.Distance(position, hit.position);
+
+            if (_enableDebugLogs && distance >= 0.1f)
+            {
+                Debug.Log($"[NavMesh] 보정: {distance:F2}m 이동 ({position} → {hit.position})");
+            }
+
+            return distance < 0.5f;
+        }
+
+        // NavMesh를 찾지 못함: 현재 위치 유지
+        validPosition = transform.position;
+        Log("경고: NavMesh를 찾을 수 없음, 현재 위치 유지");
+        return false;
     }
 
     #endregion
@@ -663,6 +787,75 @@ public class PlayerNavController : MonoBehaviour
         if (_enableDebugLogs)
         {
             Debug.Log($"[PlayerNavController] {message}");
+        }
+    }
+
+    /// <summary>
+    /// 넉백 경로 시각화 (Gizmo)
+    /// </summary>
+    private void OnDrawGizmos()
+    {
+        if (!_visualizeKnockbackPath) return;
+
+        // 넉백 경로 시각화
+        if (_lastKnockbackStart != Vector3.zero)
+        {
+            // 이상적인 넉백 경로 (회색 점선)
+            Gizmos.color = Color.gray;
+            DrawDashedLine(_lastKnockbackStart, _lastKnockbackIdealEnd, 0.2f);
+
+            // 실제 넉백 경로 (노란색 or 빨간색)
+            Gizmos.color = _lastKnockbackHitWall ? Color.red : Color.yellow;
+            Gizmos.DrawLine(_lastKnockbackStart, _lastKnockbackEnd);
+
+            // 시작점 (초록색)
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(_lastKnockbackStart, 0.2f);
+
+            // 종료점 (빨간색 or 초록색)
+            Gizmos.color = _lastKnockbackHitWall ? Color.red : Color.green;
+            Gizmos.DrawWireSphere(_lastKnockbackEnd, 0.3f);
+
+            // 이상적인 종료점 (회색)
+            if (_lastKnockbackHitWall)
+            {
+                Gizmos.color = Color.gray;
+                Gizmos.DrawWireSphere(_lastKnockbackIdealEnd, 0.25f);
+            }
+        }
+
+        // 넉백 레이캐스트 시각화 (실시간)
+        if (_useSphereCast)
+        {
+            // SphereCast 경로
+            Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
+            Vector3 direction = transform.forward;
+            for (float t = 0; t <= 1f; t += 0.1f)
+            {
+                Vector3 pos = transform.position + direction * (5f * t);
+                Gizmos.DrawWireSphere(pos, _playerRadius);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 점선 그리기 헬퍼
+    /// </summary>
+    private void DrawDashedLine(Vector3 start, Vector3 end, float dashSize)
+    {
+        Vector3 direction = (end - start).normalized;
+        float totalDistance = Vector3.Distance(start, end);
+        int dashCount = Mathf.CeilToInt(totalDistance / (dashSize * 2));
+
+        for (int i = 0; i < dashCount; i++)
+        {
+            Vector3 dashStart = start + direction * (i * dashSize * 2);
+            Vector3 dashEnd = dashStart + direction * dashSize;
+
+            if (Vector3.Distance(dashEnd, start) > totalDistance)
+                dashEnd = end;
+
+            Gizmos.DrawLine(dashStart, dashEnd);
         }
     }
 
@@ -728,20 +921,7 @@ public class PlayerNavController : MonoBehaviour
             Debug.Log($"캐릭터 클래스: {charClass}");
             Debug.Log($"주요 스탯: {mainStat}");
             Debug.Log($"공격 타입: {attackType}");
-            Debug.Log($"{attackType} 공격력: {attackPower:F1}");
-
-            CharacterStats stats = _playerCharacter.CurrentStats;
-            Debug.Log($"Physical Attack: {stats.PhysicalAttack:F1}");
-            Debug.Log($"Magical Attack: {stats.MagicalAttack:F1}");
-            Debug.Log($"크리티컬 확률: {stats.CriticalChance:F1}%");
-            Debug.Log($"크리티컬 데미지: {stats.CriticalDamage:F1}%");
-
-            // 예상 데미지 계산 (크리티컬 제외)
-            Debug.Log($"예상 기본 공격 데미지: {attackPower:F1}");
-
-            // 크리티컬 적용 시
-            float critDamage = attackPower * (1f + stats.CriticalDamage / 100f);
-            Debug.Log($"크리티컬 히트 시 데미지: {critDamage:F1}");
+            Debug.Log($"최종 공격력: {attackPower:F1}");
         }
         else
         {
@@ -749,6 +929,21 @@ public class PlayerNavController : MonoBehaviour
         }
     }
 
+    [ContextMenu("Debug: Test Knockback (Forward 3m)")]
+    private void DebugTestKnockback()
+    {
+        ApplyKnockback(3f, transform.forward);
+    }
+
+    [ContextMenu("Debug: Test Knockback (Backward 4m)")]
+    private void DebugTestKnockbackBackward()
+    {
+        ApplyKnockback(4f, -transform.forward);
+    }
+
+    /// <summary>
+    /// 공격 범위 시각화 (Scene View에서 선택 시에만)
+    /// </summary>
     private void OnDrawGizmosSelected()
     {
         if (!Application.isPlaying) return;
@@ -766,6 +961,9 @@ public class PlayerNavController : MonoBehaviour
         DrawEnemiesInCone();
     }
 
+    /// <summary>
+    /// 공격 원뿔 그리기
+    /// </summary>
     private void DrawAttackCone(Vector3 position)
     {
         Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
@@ -802,6 +1000,9 @@ public class PlayerNavController : MonoBehaviour
         Gizmos.DrawLine(position, position + rightBound);
     }
 
+    /// <summary>
+    /// 범위 내 적 시각화
+    /// </summary>
     private void DrawEnemiesInCone()
     {
         List<EnemyController> enemiesInCone = GetEnemiesInFrontCone();

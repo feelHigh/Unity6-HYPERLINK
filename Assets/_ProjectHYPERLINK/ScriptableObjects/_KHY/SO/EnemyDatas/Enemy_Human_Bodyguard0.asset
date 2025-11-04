@@ -16,7 +16,7 @@ MonoBehaviour:
   _prefab: {fileID: 1995068114548180859, guid: 3b8886782725fde4a80b0cb42dd964f1, type: 3}
   _maxHp: 100
   _moveSpeed: 5
-  _atk: 5
+  _atk: 10
   _detectionRange: 8
   _chaseDistance: 10
   _basicAttackType: 0

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _skillName: SwiftSlash
   _description: 
-  _skillIcon: {fileID: 21300000, guid: 7b57c1588bc54f44ba5b67dac7a90065, type: 3}
+  _skillIcon: {fileID: 21300000, guid: 81a2b37f9306b6543907f7df59ee3498, type: 3}
   _requiredLevel: 1
   _animatorTriggerName: SkillSwiftSlash
   _manaCost: 20

@@ -12,8 +12,8 @@ public class EnemyController : MonoBehaviour, IDamageable
     [SerializeField] EnemyData _data;       //적 데이터
 
     [Header("----- 드랍 설정 -----")]
-    [SerializeField] private ItemDropTableData _dropTable;              // 아이템 드랍 테이블
-    [SerializeField][Range(0f, 1f)] private float _dropChance = 0.5f;   // 드랍 확률 (50%)
+    ItemDropTableData _dropTable;           // 아이템 드랍 테이블
+    float _dropChance;                      //드랍 확률
 
     [Header("----- 현재 속한 그룹 -----")]
     [SerializeField] EnemyGroup _group;     //현재 속한 그룹
@@ -48,13 +48,17 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// Enemy를 초기화하는 함수
     /// </summary>
     /// <param name="canBeEpic"></param>
-    public void Initialize(bool isEpic, SpecialAttackBase specialAttack)
+    public void Initialize(bool isEpic, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
     {
         _group = transform.parent.GetComponent<EnemyGroup>();
 
         //에픽 여부
         _isEpic = isEpic;
         _specialAttack = specialAttack;
+
+        //드랍 설정
+        _dropTable = dropTable;
+        _dropChance = dropChance;
 
         //스탯 초기화
         _maxHp = _data.MaxHp * (_isEpic ? _data.EpicHpMultiplier : 1);

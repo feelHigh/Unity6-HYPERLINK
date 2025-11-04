@@ -4,12 +4,6 @@ using UnityEngine;
 
 /// <summary>
 /// 캐릭터 저장 데이터 구조
-/// 
-/// 변경사항:
-/// - CreateNew()에 CharacterStats 파라미터 추가
-/// - CreateInitialStatsFromScriptableObject() → Intelligence * 10 공식 적용
-/// - Unity 에디터 스탯을 초기 스탯으로 사용
-/// - currentMana와 maxMana 계산에 Intelligence * 10 추가 (마나 초기화 수정)
 /// </summary>
 [Serializable]
 public class CharacterSaveData
@@ -70,11 +64,27 @@ public class CharacterSaveData
         }
     }
 
+    /// <summary>
+    /// 진행 데이터 (스킬 트리 + 스킬 슬롯 포함)
+    /// </summary>
     [Serializable]
     public class ProgressionData
     {
         public List<string> unlockedSkills = new List<string>();
         public Dictionary<string, int> skillLevels = new Dictionary<string, int>();
+
+        /// <summary>
+        /// 스킬 트리 저장 데이터
+        /// </summary>
+        public SkillTreeSaveData skillTree = new SkillTreeSaveData();
+
+        /// <summary>
+        /// 스킬 슬롯 할당 저장
+        /// 
+        /// Q/W/E/R 슬롯에 할당된 스킬 저장
+        /// 슬롯 인덱스: 0=Q, 1=W, 2=E, 3=R
+        /// </summary>
+        public List<SkillSlotData> skillSlots = new List<SkillSlotData>();
     }
 
     [Serializable]
@@ -125,8 +135,7 @@ public class CharacterSaveData
     /// <summary>
     /// 새 캐릭터 데이터 생성 (Unity 에디터 스탯 사용)
     /// 
-    /// 변경사항:
-    /// - CharacterStats 파라미터 추가
+    /// 주의사항:
     /// - Unity 에디터에서 설정한 스탯을 초기값으로 사용
     /// </summary>
     /// <param name="characterName">캐릭터 이름</param>
@@ -166,11 +175,6 @@ public class CharacterSaveData
     /// 핵심 메서드:
     /// - 하드코딩된 스탯 대신 Unity 에디터 값 사용
     /// - ScriptableObject → Serializable 데이터 구조 변환
-    /// 
-    /// 수정사항 (마나 초기화 수정):
-    /// - currentMana: baseStats.MaxMana → (baseStats.Intelligence * 10f) + baseStats.MaxMana
-    /// - maxMana: baseStats.MaxMana → (baseStats.Intelligence * 10f) + baseStats.MaxMana
-    /// - HP와 동일한 계산 공식 적용 (주 스탯 * 10 + 보너스)
     /// </summary>
     /// <param name="baseStats">Unity에서 설정한 캐릭터 기본 스탯</param>
     /// <returns>저장 가능한 CharacterStatsData</returns>
@@ -235,12 +239,92 @@ public class CharacterSaveData
             // HP: Vitality * 10 + MaxHealth
             // Mana: Intelligence * 10 + MaxMana
             maxHealth = (baseStats.Vitality * 10f) + baseStats.MaxHealth,
-            maxMana = (baseStats.Intelligence * 10f) + baseStats.MaxMana  // 수정: Intelligence * 10 추가
+            maxMana = (baseStats.Intelligence * 10f) + baseStats.MaxMana
         };
 
         Debug.Log($"[CharacterSaveData] {baseStats.name} 스탯으로 초기화: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
         Debug.Log($"[CharacterSaveData] 초기 리소스: HP {stats.currentHealth}/{stats.maxHealth}, Mana {stats.currentMana}/{stats.maxMana}");
 
         return stats;
+    }
+
+    #region 디버그 헬퍼
+
+    /// <summary>
+    /// 저장 데이터 요약 출력 (디버그용)
+    /// </summary>
+    public void PrintSummary()
+    {
+        Debug.Log("===== CharacterSaveData 요약 =====");
+        Debug.Log($"Character: {character.characterName} ({character.characterClass})");
+        Debug.Log($"Level: {character.level} (EXP: {character.experience})");
+        Debug.Log($"Stats: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
+        Debug.Log($"HP: {stats.currentHealth}/{stats.maxHealth}, Mana: {stats.currentMana}/{stats.maxMana}");
+        Debug.Log($"Unlocked Skills: {progression.unlockedSkills.Count}");
+        Debug.Log($"Skill Tree: SP {progression.skillTree.currentSkillPoints}, Nodes {progression.skillTree.unlockedNodeIDs.Count}");
+
+        // [NEW] 스킬 슬롯 정보
+        Debug.Log($"Skill Slots: {progression.skillSlots.Count}");
+        foreach (var slotData in progression.skillSlots)
+        {
+            string skillName = string.IsNullOrEmpty(slotData.assignedSkillID) ?
+                "Empty" : slotData.assignedSkillID;
+            Debug.Log($"  Slot {slotData.slotIndex}: {skillName}");
+        }
+
+        Debug.Log($"Play Time: {metadata.playTimeSeconds} seconds");
+        Debug.Log($"Gold: {inventory.gold}");
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// 스킬 트리 저장 데이터
+/// 
+/// 역할:
+/// - 현재 스킬 포인트 저장
+/// - 언락된 노드 ID 목록 저장
+/// 
+/// 사용:
+/// - CharacterSaveData.ProgressionData.skillTree에 포함
+/// - SkillTreeManager.SaveSkillTree()에서 생성
+/// - SkillTreeManager.LoadSkillTree()에서 로드
+/// </summary>
+[Serializable]
+public class SkillTreeSaveData
+{
+    [Tooltip("현재 보유 스킬 포인트")]
+    public int currentSkillPoints;
+
+    [Tooltip("언락된 노드 ID 목록")]
+    public List<string> unlockedNodeIDs = new List<string>();
+}
+
+/// <summary>
+/// 스킬 슬롯 저장 데이터
+/// 
+/// 역할:
+/// - Q/W/E/R 슬롯에 할당된 스킬 저장
+/// - 게임 재시작 시 슬롯 할당 복원
+/// 
+/// 사용:
+/// - CharacterSaveData.ProgressionData.skillSlots에 포함
+/// - CharacterDataManager.SaveSkillSlots()에서 생성
+/// - CharacterDataManager.LoadSkillSlots()에서 로드
+/// </summary>
+[Serializable]
+public class SkillSlotData
+{
+    [Tooltip("슬롯 인덱스 (0=Q, 1=W, 2=E, 3=R)")]
+    public int slotIndex;
+
+    [Tooltip("할당된 스킬 ID (SkillData.SkillName)")]
+    public string assignedSkillID;
+
+    public SkillSlotData(int index, string skillID)
+    {
+        slotIndex = index;
+        assignedSkillID = skillID;
     }
 }
