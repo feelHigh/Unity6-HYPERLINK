@@ -16,6 +16,7 @@ MonoBehaviour:
   _description: 
   _skillIcon: {fileID: 21300000, guid: 7b57c1588bc54f44ba5b67dac7a90065, type: 3}
   _requiredLevel: 1
+  _animatorTriggerName: SkillSwiftSlash
   _manaCost: 20
   _cooldown: 1
   _range: 4
