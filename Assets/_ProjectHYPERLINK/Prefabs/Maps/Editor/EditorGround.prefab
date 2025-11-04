@@ -72,7 +72,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3137726148368923423}
   - component: {fileID: 4742955903478519683}
-  - component: {fileID: 2656223594742016462}
+  - component: {fileID: 2393471237840583566}
   m_Layer: 0
   m_Name: EditorGround
   m_TagString: Untagged
@@ -110,20 +110,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91531b3e538f3f04f98c5f61f0484c00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _navSurface: {fileID: 2656223594742016462}
+  _navSurface: {fileID: 2393471237840583566}
   _floorMesh: {fileID: 0}
   _tiles: []
   _wallMeshes: []
+  _doors: []
   _tileParent: {fileID: 7759673703614752572}
   _wallParent: {fileID: 19202574792106960}
   _runtimeParent: {fileID: 6171989092384647462}
   _startPos: {x: 0, y: 0, z: 0}
   _cellSize: 0
+  _wallLayer: Wall
+  _groundLayer: Ground
+  _renderer: {fileID: 0}
   _door: {fileID: 1761728152423473159, guid: 7c88d3e3fc20378488b735b01f5ddfe2, type: 3}
   _mapTiles: []
   _xSize: 0
   _rooms: []
---- !u!114 &2656223594742016462
+--- !u!114 &2393471237840583566
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -142,8 +146,8 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
-  m_UseGeometry: 0
+    m_Bits: 24640
+  m_UseGeometry: 1
   m_DefaultArea: 0
   m_GenerateLinks: 0
   m_IgnoreNavMeshAgent: 1
