@@ -35,7 +35,7 @@ public class CharacterDataManager : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private ExperienceManager _experienceManager;
     private EquipmentManager _equipmentManager;
-    private EquipInventory _equipInventory;  // [NEW: 장비 UI 동기화를 위해 추가]
+    private EquipInventory _equipInventory;
     private SkillTreeManager _skillTreeManager;
     private SkillActivationSystem _skillActivationSystem;
 

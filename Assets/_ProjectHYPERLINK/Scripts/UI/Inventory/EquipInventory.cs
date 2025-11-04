@@ -10,14 +10,11 @@ using UnityEngine.EventSystems;
 /// - 장비 아이템 착용/해제
 /// - 드래그 앤 드롭 이벤트 처리
 /// - EquipmentManager와 연동
-/// - [NEW] 세이브/로드 시 UI 동기화
+/// - 세이브/로드 시 UI 동기화
 /// 
 /// 초기화:
 /// - Start()에서 InvokeRepeating으로 EquipmentManager 검색
 /// - PlayerSpawner로 플레이어가 스폰될 때까지 대기
-/// 
-/// 리팩토링 내용:
-/// - LoadEquipmentUI() 메서드 추가 (세이브/로드 지원)
 /// </summary>
 [Serializable]
 public class EquipInventory : MonoBehaviour, IPointerEnterHandler
@@ -368,10 +365,6 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     /// - EquipmentManager.LoadFromSaveData() 호출 후에 실행되어야 함
     /// - _equipmentManager가 null이면 실패
     /// - 아이템이 ItemDatabase에 없으면 해당 슬롯 로드 실패
-    /// 
-    /// 리팩토링 이유:
-    /// - 기존에는 EquipmentManager만 데이터 로드하고 UI는 업데이트 안 됨
-    /// - 로드 후 장비 슬롯이 비어있는 것처럼 보이는 문제 해결
     /// </summary>
     public void LoadEquipmentUI()
     {
