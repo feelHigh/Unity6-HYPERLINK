@@ -83,7 +83,9 @@ public class EnemySpawner : MonoBehaviour
             SpecialAttackBase specialAttack = isEpic ? _epicEnemySelector.GetRandomSpecialAttack() : null;
 
             //적 초기화
-            enemy.GetComponent<EnemyController>().Initialize(isEpic, specialAttack);
+            enemy.GetComponent<EnemyController>().Initialize(
+                isEpic, specialAttack,
+                _data.dropTable, _data.dropChance);
         }
 
         _group.SetActive(false);

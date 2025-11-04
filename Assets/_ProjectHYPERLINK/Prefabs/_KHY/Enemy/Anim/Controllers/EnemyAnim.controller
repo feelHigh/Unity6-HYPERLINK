@@ -481,10 +481,10 @@ AnimatorStateMachine:
     m_Position: {x: -240, y: 20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5808938455381855909}
-    m_Position: {x: 440, y: -120, z: 0}
+    m_Position: {x: 490, y: -30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4624640327220780199}
-    m_Position: {x: 440, y: -50, z: 0}
+    m_Position: {x: 490, y: 30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 6453829441525085104}
     m_Position: {x: 490, y: 90, z: 0}
@@ -678,7 +678,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TakeHit
-  m_Speed: 1
+  m_Speed: 2
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -4641414981580806488}

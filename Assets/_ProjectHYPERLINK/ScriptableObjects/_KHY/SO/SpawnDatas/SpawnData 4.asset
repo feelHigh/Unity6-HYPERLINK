@@ -17,3 +17,5 @@ MonoBehaviour:
     count: 1
   - enemyData: {fileID: 11400000, guid: 0eca62852cda29a4fb3619264a0d6e49, type: 2}
     count: 1
+  dropTable: {fileID: 11400000, guid: 133c38302c09e85469fb086cce38cb2b, type: 2}
+  dropChance: 0.5
