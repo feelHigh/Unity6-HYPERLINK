@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7744111894420667212}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: DoorPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 5026154617066428997}
   - component: {fileID: 4264899800064124519}
   - component: {fileID: 6311055162920721086}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: DoorObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -285,7 +285,7 @@ GameObject:
   - component: {fileID: 2144301110346745440}
   - component: {fileID: 2706459048109476770}
   - component: {fileID: 4380192662858404218}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Door
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -586,6 +586,18 @@ PrefabInstance:
     - target: {fileID: 1202036086350856, guid: fb21c2677f6de9b41b800858634f37f9, type: 3}
       propertyPath: m_Name
       value: Door_1_Brown
+      objectReference: {fileID: 0}
+    - target: {fileID: 1202036086350856, guid: fb21c2677f6de9b41b800858634f37f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1889589370831100, guid: fb21c2677f6de9b41b800858634f37f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1908674092843544, guid: fb21c2677f6de9b41b800858634f37f9, type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4651603642805868, guid: fb21c2677f6de9b41b800858634f37f9, type: 3}
       propertyPath: m_LocalScale.x

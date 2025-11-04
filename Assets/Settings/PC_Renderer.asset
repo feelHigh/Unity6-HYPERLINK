@@ -64,7 +64,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: Render Feature  Outline Transparent
+  m_Name: Render Feature - Outline Transparent
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
@@ -111,7 +111,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    passTag: RenderObjectsFeature
+    passTag: Render Feature - Outline Opaque
     Event: 300
     filterSettings:
       RenderQueueType: 0

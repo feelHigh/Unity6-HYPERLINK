@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.AI.Navigation;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
@@ -11,17 +12,20 @@ public class MapGround : MonoBehaviour
     [SerializeField] ProBuilderMesh _floorMesh;
     [SerializeField] List<ProBuilderMesh> _tiles;
     [SerializeField] List<ProBuilderMesh> _wallMeshes;
+    [SerializeField] List<GameObject> _doors;
     [SerializeField] Transform _tileParent;
     [SerializeField] Transform _wallParent;
     [SerializeField] Transform _runtimeParent;
     [SerializeField] Vector3 _startPos;
     [SerializeField] float _cellSize;
+    [SerializeField] string _wallLayer;
+    [SerializeField] string _groundLayer;
 
-    Renderer _renderer = new Renderer();
+    [SerializeField] Renderer _renderer = new Renderer();
     [SerializeField] GameObject _door;
-    [SerializeField]MapTileData[] _mapTiles;
+    [SerializeField] MapTileData[] _mapTiles;
     [SerializeField] int _xSize;
-    [SerializeField]List<RoomData> _rooms = new List<RoomData>();
+    [SerializeField] List<RoomData> _rooms = new List<RoomData>();
 
     public MapTileData[] MapTiles => _mapTiles;
     public List<RoomData> Rooms => _rooms;
@@ -35,6 +39,8 @@ public class MapGround : MonoBehaviour
         _floorMesh = ShapeGenerator.GeneratePlane(PivotLocation.Center, width, height,1,1,Axis.Up);
         _floorMesh.transform.position = pos;
         _floorMesh.transform.SetParent(transform);
+        _floorMesh.gameObject.layer = LayerMask.NameToLayer(_groundLayer);
+        _floorMesh.gameObject.AddComponent<MeshCollider>();
         _renderer = _floorMesh.GetComponent<Renderer>();
         _renderer.material = material;
     }
@@ -68,6 +74,8 @@ public class MapGround : MonoBehaviour
         for(int i = 1; i <= 2; i++)
         {
             ProBuilderMesh wallMesh = _wallMeshes[_wallMeshes.Count - i];
+            wallMesh.gameObject.layer = LayerMask.NameToLayer(_wallLayer);
+            wallMesh.AddComponent<BoxCollider>();
             wallMesh.transform.SetParent(_wallParent);
             if (i == 1)
             {
@@ -87,6 +95,7 @@ public class MapGround : MonoBehaviour
     public void BuildDoor(Vector3 pos, bool isx)
     {
         GameObject door = Instantiate(_door,pos,Quaternion.identity,_wallParent);
+        _doors.Add(door);
         if (isx)
         {
             door.transform.Rotate(0, 90, 0);
@@ -125,6 +134,10 @@ public class MapGround : MonoBehaviour
         {
             GameObject.DestroyImmediate(_tiles[i].gameObject);
         }
+        for(int i=0;i< _doors.Count; i++)
+        {
+            GameObject.DestroyImmediate(_doors[i].gameObject);
+        }
         _wallMeshes.Clear();
         _tiles.Clear();
         
@@ -137,6 +150,7 @@ public class MapGround : MonoBehaviour
     {
         _renderer.enabled=true;
     }
+
     public void Bake()
     {
         _navSurface.BuildNavMesh();
