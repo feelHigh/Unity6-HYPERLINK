@@ -24,6 +24,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
     // 상태이상 디버프 추적
     private Coroutine _currentDebuffCoroutine;
+    private GameObject _currentHitEffect;
     private GameObject _currentDebuffEffect;
     private GameObject _currentAdditionalEffect;
     private Vector3 _lastAttackerPosition;
@@ -106,7 +107,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 피격 이펙트
         if (attack.HitEffect != null)
         {
-            Instantiate(attack.HitEffect, transform.position, Quaternion.identity);
+            _currentHitEffect = Instantiate(attack.HitEffect, transform.position, Quaternion.identity);
         }
 
         // 기존 디버프 정리 (새 디버프 적용 전)
@@ -393,6 +394,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _currentDebuffCoroutine = null;
         }
 
+        CleanupHitEffect();
         CleanupDebuffEffect();
         CleanupAdditionalEffect();
 
@@ -400,6 +402,18 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         if (_stateController != null)
         {
             _stateController.ResetAllStates();
+        }
+    }
+
+    /// <summary>
+    /// 피격 이펙트 오브젝트 제거
+    /// </summary>
+    private void CleanupHitEffect()
+    {
+        if (_currentHitEffect != null)
+        {
+            Destroy(_currentHitEffect);
+            _currentHitEffect = null;
         }
     }
 

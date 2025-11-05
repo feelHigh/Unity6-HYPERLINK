@@ -56,6 +56,7 @@ public class BossAI : MonoBehaviour
     BossData _data;
     bool _isActive = false;
     bool _isExecutingPattern = false;  //패턴 실행 중 플래그
+    bool _isRotatingToTarget = false;  //타겟을 향해 회전 중 플래그
 
     //쿨타임 관리
     float _lastBasicAttackTime;     //마지막 일반 공격 실행 시간
@@ -66,9 +67,9 @@ public class BossAI : MonoBehaviour
     float _lastBreathTime;          //브레스 패턴 실행 시간
 
     // 돌진 관련
-    bool _isCharging = false;
-    Vector3 _chargeDirection;
-    Vector3 _chargeStartPos;
+    bool _isCharging = false;       //돌진 중 플래그
+    Vector3 _chargeDirection;       //돌진 방향
+    Vector3 _chargeStartPos;        //돌진 시작 위치
 
     // 애니메이터 해시
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");
@@ -199,13 +200,9 @@ public class BossAI : MonoBehaviour
             return;
         }
 
-        //추격 및 자동 회전 켜기
-        if (_agent.enabled)
-        {
-            _agent.updateRotation = true;
-            _agent.isStopped = false;
-            _agent.SetDestination(_target.position);
-        }
+        //추격
+        _agent.isStopped = false;
+        _agent.SetDestination(_target.position);
     }
 
     /// <summary>
@@ -228,23 +225,54 @@ public class BossAI : MonoBehaviour
             return;
         }
 
-        //패턴 실행 중이면 대기
-        if (_isExecutingPattern) return;
-
-        //NavMesh 자동 회전 끄기
-        if (_agent.enabled)
-        {
-            _agent.updateRotation = false;
-        }
-
-        //타겟 바라보기
-        LookAtTarget();
+        //패턴 실행 중이거나 회전 중이면 대기
+        if (_isExecutingPattern || _isRotatingToTarget) return;
 
         //이동 정지
         _agent.isStopped = true;
         _agent.velocity = Vector3.zero;
 
-        //사용 가능한 패턴 확인 및 실행
+        //타겟을 향해 회전 후 공격 코루틴 실행
+        StartCoroutine(RotateAndAttack());
+    }
+
+    IEnumerator RotateAndAttack()
+    {
+        _isRotatingToTarget = true;
+
+        //타겟 방향 계산
+        Vector3 dir = _target.position - transform.position;
+        dir.y = 0f;
+
+        //회전
+        if (dir != Vector3.zero)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(dir);
+
+            float elapsed = 0f;
+            float rotTime = 0.5f;
+
+            while (elapsed < rotTime)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, elapsed /  rotTime);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+
+                if (Quaternion.Angle(transform.rotation, targetRot) < 5f)
+                {
+                    transform.rotation = targetRot;
+                    break;
+                }
+            }
+
+            //최종 회전 보정
+            transform.rotation = targetRot;
+        }
+
+        _isRotatingToTarget = false;
+
+        //회전 완료 후 공격 실행
         TryExecutePattern();
     }
 
@@ -421,15 +449,8 @@ public class BossAI : MonoBehaviour
 
         Debug.Log("[BossAI] 패턴 2: 돌진 준비!");
 
-        //돌진 방향 설정 (플레이어 방향)
-        if (_target != null)
-        {
-            Vector3 dirToTarget = (_target.position - transform.position).normalized;
-            dirToTarget.y = 0;
-            _chargeDirection = dirToTarget;
-            transform.rotation = Quaternion.LookRotation(_chargeDirection);
-        }
-
+        //돌진 방향은 이미 RotateAndAttack()에서 설정 완료
+        _chargeDirection = transform.forward;
         _chargeStartPos = transform.position;
 
         yield return new WaitForSeconds(0.5f);  // 준비 동작

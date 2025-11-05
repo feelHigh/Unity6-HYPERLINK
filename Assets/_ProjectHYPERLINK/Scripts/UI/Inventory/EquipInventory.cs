@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 /// - 장비 아이템 착용/해제
 /// - 드래그 앤 드롭 이벤트 처리
 /// - EquipmentManager와 연동
+/// - 세이브/로드 시 UI 동기화
 /// 
 /// 초기화:
 /// - Start()에서 InvokeRepeating으로 EquipmentManager 검색
@@ -344,6 +345,102 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         _itemEventHandler.ChangeMousePos(MousePos.EquipInventory);
+    }
+
+    #endregion
+
+    #region 세이브/로드
+
+    /// <summary>
+    /// EquipmentManager에서 로드된 장비 데이터를 UI에 반영
+    /// CharacterDataManager.ApplyDataToSystems()에서 호출됨
+    /// 
+    /// 처리 과정:
+    /// 1. EquipmentManager에서 각 슬롯의 장착 아이템 가져오기
+    /// 2. 아이템이 있으면 InventoryItemPrefab 생성
+    /// 3. EquipSlot에 프리팹과 데이터 할당
+    /// 4. 아이콘 업데이트
+    /// 
+    /// 주의사항:
+    /// - EquipmentManager.LoadFromSaveData() 호출 후에 실행되어야 함
+    /// - _equipmentManager가 null이면 실패
+    /// - 아이템이 ItemDatabase에 없으면 해당 슬롯 로드 실패
+    /// </summary>
+    public void LoadEquipmentUI()
+    {
+        if (_equipmentManager == null)
+        {
+            LogError("LoadEquipmentUI: EquipmentManager가 null입니다! 장비 UI를 로드할 수 없습니다.");
+            return;
+        }
+
+        if (_itemVisualizeField == null)
+        {
+            LogError("LoadEquipmentUI: ItemVisualizeField가 null입니다!");
+            return;
+        }
+
+        if (_itemPrefab == null)
+        {
+            LogError("LoadEquipmentUI: ItemPrefab이 null입니다!");
+            return;
+        }
+
+        int loadedCount = 0;
+        int emptyCount = 0;
+
+        foreach (EquipSlot slot in _slots)
+        {
+            if (slot == null)
+            {
+                LogWarning("LoadEquipmentUI: null 슬롯 발견, 건너뜀");
+                continue;
+            }
+
+            // EquipmentManager에서 해당 슬롯의 장착 아이템 가져오기
+            ItemData equippedItem = _equipmentManager.GetEquippedItem(slot.EquipmentType);
+
+            if (equippedItem != null)
+            {
+                try
+                {
+                    // InventoryItemPrefab 생성
+                    InventoryItemPrefab itemPrefab = Instantiate(_itemPrefab, _itemVisualizeField.transform);
+
+                    // 프리팹 초기화
+                    // slot을 firstSlot과 lastSlot 양쪽에 전달 (장비는 1x1 크기)
+                    itemPrefab.Spawn(equippedItem, slot, slot, _inventory.ItemSize);
+
+                    // ItemVisualizeField에 등록
+                    _itemVisualizeField.AddItem(itemPrefab);
+
+                    // EquipSlot에 프리팹과 데이터 할당
+                    // GetItemPrefab()이 내부적으로 GetData()를 호출하여 아이콘 업데이트
+                    slot.GetItemPrefab(itemPrefab);
+
+                    // 장비 슬롯에서는 아이콘만 표시하므로 프리팹 자체는 비활성화
+                    itemPrefab.gameObject.SetActive(false);
+
+                    loadedCount++;
+                    Log($"장비 UI 로드: {equippedItem.ItemName} → {slot.EquipmentType} 슬롯");
+                }
+                catch (System.Exception e)
+                {
+                    LogError($"장비 UI 로드 실패: {equippedItem.ItemName}, 에러: {e.Message}");
+                }
+            }
+            else
+            {
+                // 슬롯이 비어있으면 초기화
+                slot.RemoveData();
+                emptyCount++;
+            }
+        }
+
+        Log($"=== 장비 UI 로드 완료 ===");
+        Log($"로드된 아이템: {loadedCount}개");
+        Log($"빈 슬롯: {emptyCount}개");
+        Log($"총 슬롯: {_slots.Length}개");
     }
 
     #endregion
