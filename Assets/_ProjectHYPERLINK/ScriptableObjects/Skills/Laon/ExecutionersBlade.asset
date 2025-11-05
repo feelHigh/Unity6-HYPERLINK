@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _skillName: ExecutionersBlade
   _description: 
-  _skillIcon: {fileID: 21300000, guid: 958fbaf1688aeaa40bbf21fd369000e4, type: 3}
+  _skillIcon: {fileID: 21300000, guid: 4912100793cf0f740926f614a24cf1b3, type: 3}
   _requiredLevel: 1
   _animatorTriggerName: SkillExecutionersBlade
   _manaCost: 10
@@ -27,16 +27,18 @@ MonoBehaviour:
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 0
-  _aoeShape: 1
+  _aoeShape: 0
   _damagePointTiming: 0.9
-  _aoeOffset: {x: 0, y: 0, z: 0}
-  _sphereRadius: 5
+  _aoeOffset: {x: 0, y: 1, z: 0}
+  _sphereRadius: 3
   _boxSize: {x: 3, y: 2, z: 4}
-  _vfxPrefab: {fileID: 1485466043327710, guid: 3e914ef784028124db1daf7002a87cc8, type: 3}
-  _vfxSpawnTiming: 0.4
-  _vfxOffset: {x: 0, y: 1, z: 0}
-  _vfxRotationOffset: {x: 0, y: 0, z: 180}
-  _vfxLifetime: 0.3
+  _vfxConfigs:
+  - _vfxPrefab: {fileID: 1919708242137258, guid: e60d36cff17a1ce4db49ef54f9e72f61, type: 3}
+    _spawnTiming: 0.4
+    _positionOffset: {x: 0, y: 1, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 180}
+    _lifetime: 0.3
+    _attachToCharacter: 0
   _animationDuration: 1
   _useRootMotion: 0
   _dashDistanceMode: 0

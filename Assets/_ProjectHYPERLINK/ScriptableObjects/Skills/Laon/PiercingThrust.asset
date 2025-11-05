@@ -20,23 +20,25 @@ MonoBehaviour:
   _manaCost: 0
   _cooldown: 1
   _range: 3
-  _skillType: 0
+  _skillType: 2
   _skillMultiplier: 1
   _skillBaseDamage: 500
   _mainStatDamageIncrease: 0.01
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 10
-  _aoeShape: 0
+  _aoeShape: 1
   _damagePointTiming: 0.7
-  _aoeOffset: {x: 0, y: 0, z: 0}
+  _aoeOffset: {x: 0, y: 0, z: 1.5}
   _sphereRadius: 5
-  _boxSize: {x: 3, y: 2, z: 4}
-  _vfxPrefab: {fileID: 1893033738566276, guid: 3e04efdf8ee665d48962b33b06e8e3d3, type: 3}
-  _vfxSpawnTiming: 0.24
-  _vfxOffset: {x: 0, y: 1, z: 1}
-  _vfxRotationOffset: {x: 0, y: 0, z: 0}
-  _vfxLifetime: 0.2
+  _boxSize: {x: 1.5, y: 2, z: 4}
+  _vfxConfigs:
+  - _vfxPrefab: {fileID: 1893033738566276, guid: 3e04efdf8ee665d48962b33b06e8e3d3, type: 3}
+    _spawnTiming: 0.3
+    _positionOffset: {x: 0, y: 1, z: 0.5}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _lifetime: 0.3
+    _attachToCharacter: 0
   _animationDuration: 1
   _useRootMotion: 1
   _dashDistanceMode: 0
