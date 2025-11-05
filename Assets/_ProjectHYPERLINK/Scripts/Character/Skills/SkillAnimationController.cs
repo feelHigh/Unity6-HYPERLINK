@@ -13,6 +13,11 @@ using DG.Tweening;
 /// - 애니메이터 해시 캐싱 시스템 추가 (성능 최적화)
 /// - 새 스킬 추가 시 코드 수정 불필요
 /// 
+/// VFX 시스템 리팩토링 (다중 VFX 지원):
+/// - SpawnSkillVFX → SpawnAllSkillVFX로 변경 (여러 VFX 처리)
+/// - 각 VfxConfig마다 독립적인 코루틴 시작
+/// - 하위 호환성: 레거시 단일 VFX도 여전히 작동
+/// 
 /// 마우스 거리 기반 대시:
 /// - CalculateActualDashDistance(): 모드별 대시 거리 결정
 /// - GetMousePositionDistance(): 마우스까지 수평 거리 계산
@@ -77,6 +82,9 @@ public class SkillAnimationController : MonoBehaviour
     private static readonly int HASH_HIT = Animator.StringToHash("Hit");
     private static readonly int HASH_DEAD = Animator.StringToHash("Dead");
 
+    // 다중 VFX 관리
+    private List<Coroutine> _activeVfxCoroutines = new List<Coroutine>();
+
     #region 초기화
 
     private void Awake()
@@ -128,6 +136,9 @@ public class SkillAnimationController : MonoBehaviour
             StopCoroutine(_skillCoroutine);
             _skillCoroutine = null;
         }
+
+        // 모든 VFX 코루틴 정리
+        CleanupAllVfxCoroutines();
 
         CleanupDashTween();
 
@@ -192,6 +203,7 @@ public class SkillAnimationController : MonoBehaviour
     /// 
     /// 수정사항:
     /// - updateRotation 비활성화 추가
+    /// - 모든 VFX 코루틴 정리
     /// </summary>
     private void HandlePlayerDead()
     {
@@ -212,6 +224,7 @@ public class SkillAnimationController : MonoBehaviour
             _skillCoroutine = null;
         }
 
+        CleanupAllVfxCoroutines();
         CleanupDashTween();
     }
 
@@ -222,17 +235,15 @@ public class SkillAnimationController : MonoBehaviour
     /// <summary>
     /// 스킬 실행 코루틴
     /// 
-    /// 수정사항:
-    /// - NavMeshAgent 정지 로직 제거 (이미 HandleSkillExecuted()에서 처리)
-    /// - 종료 시 updateRotation 재활성화 추가
+    /// 수정사항 (다중 VFX 지원):
+    /// - GetVfxConfigs()로 여러 VFX 가져오기
+    /// - 각 VfxConfig마다 독립적인 코루틴 시작
+    /// - 레거시 VFX 코드 제거 (GetVfxConfigs()가 자동 처리)
     /// </summary>
     private IEnumerator PerformSkillCoroutine(SkillData skill)
     {
         _isPerformingSkill = true;
         Log($"스킬 시작: {skill.SkillName}");
-
-        // NavMeshAgent 제어는 이미 HandleSkillExecuted()에서 완료
-        // 중복 로직 제거
 
         // Root Motion 설정
         bool wasUsingRootMotion = _animator.applyRootMotion;
@@ -250,12 +261,8 @@ public class SkillAnimationController : MonoBehaviour
         // 애니메이션 트리거 (동적 처리)
         PlaySkillAnimation(skill);
 
-        // VFX 생성 타이밍 처리
-        if (skill.VfxPrefab != null)
-        {
-            float vfxDelay = skill.AnimationDuration * skill.VfxSpawnTiming;
-            StartCoroutine(SpawnSkillVFX(skill, vfxDelay));
-        }
+        // VFX 생성 - 다중 VFX 지원
+        SpawnAllSkillVFX(skill);
 
         // DOTween 대시
         if (useDOTweenDash)
@@ -509,7 +516,6 @@ public class SkillAnimationController : MonoBehaviour
 
         if (skill.AoeShape == AOEShape.Sphere)
         {
-            // Range 대신 SphereRadius 사용
             hits = Physics.OverlapSphere(centerPosition, skill.SphereRadius);
         }
         else
@@ -583,40 +589,86 @@ public class SkillAnimationController : MonoBehaviour
 
     #endregion
 
-    #region VFX 처리
+    #region VFX 처리 (다중 VFX 지원)
 
     /// <summary>
-    /// 스킬 VFX 생성 및 재생
+    /// 모든 스킬 VFX 생성 (다중 VFX 지원)
+    /// 
+    /// 개선사항:
+    /// - 여러 VfxConfig를 순회하며 각각 코루틴 시작
+    /// - GetVfxConfigs()가 레거시 VFX 자동 변환 처리
+    /// - 각 VFX는 독립적인 타이밍에 생성됨
     /// </summary>
-    private IEnumerator SpawnSkillVFX(SkillData skill, float delay)
+    private void SpawnAllSkillVFX(SkillData skill)
+    {
+        // VFX 설정 배열 가져오기 (레거시 자동 변환 포함)
+        VfxConfig[] vfxConfigs = skill.GetVfxConfigs();
+
+        if (vfxConfigs == null || vfxConfigs.Length == 0)
+        {
+            Log($"[{skill.SkillName}] VFX 없음");
+            return;
+        }
+
+        Log($"[{skill.SkillName}] {vfxConfigs.Length}개 VFX 준비");
+
+        // 각 VfxConfig마다 독립적인 코루틴 시작
+        foreach (VfxConfig config in vfxConfigs)
+        {
+            if (config.IsValid())
+            {
+                float delay = skill.AnimationDuration * config.SpawnTiming;
+                Coroutine vfxCoroutine = StartCoroutine(SpawnSingleVFX(config, delay, skill.SkillName));
+                _activeVfxCoroutines.Add(vfxCoroutine);
+            }
+            else
+            {
+                Debug.LogWarning($"[{skill.SkillName}] 유효하지 않은 VfxConfig 발견 (프리팹 없음)");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 단일 VFX 생성 코루틴
+    /// 
+    /// 매개변수:
+    /// - config: VFX 설정 (프리팹, 위치, 회전 등)
+    /// - delay: 생성 지연 시간 (초)
+    /// - skillName: 디버그용 스킬 이름
+    /// </summary>
+    private IEnumerator SpawnSingleVFX(VfxConfig config, float delay, string skillName)
     {
         // VFX 생성 시점까지 대기
         if (delay > 0)
             yield return new WaitForSeconds(delay);
 
-        if (skill.VfxPrefab == null)
-            yield break;
-
         // VFX 위치 계산 (로컬 좌표 -> 월드 좌표)
-        Vector3 spawnPosition = transform.position + transform.TransformDirection(skill.VfxOffset);
+        Vector3 spawnPosition = transform.position + transform.TransformDirection(config.PositionOffset);
 
         // VFX 회전 계산 (캐릭터 회전 + 오프셋)
-        Quaternion spawnRotation = transform.rotation * Quaternion.Euler(skill.VfxRotationOffset);
+        Quaternion spawnRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
 
         // VFX 인스턴스 생성
         GameObject vfxInstance = Instantiate(
-            skill.VfxPrefab,
+            config.VfxPrefab,
             spawnPosition,
             spawnRotation
         );
 
-        Log($"[{skill.SkillName}] VFX 생성: {vfxInstance.name}");
+        // 캐릭터에 부착 옵션
+        if (config.AttachToCharacter)
+        {
+            vfxInstance.transform.SetParent(transform);
+            Log($"[{skillName}] VFX 캐릭터에 부착: {vfxInstance.name}");
+        }
+
+        Log($"[{skillName}] VFX 생성: {vfxInstance.name} (타이밍: {delay:F2}초)");
 
         // VFX 자동 제거 처리
-        float lifetime = skill.VfxLifetime;
+        float lifetime = config.Lifetime;
         if (lifetime <= 0)
         {
-            // VfxLifetime이 0이면 파티클 시스템의 Duration 사용
+            // Lifetime이 0이면 파티클 시스템의 Duration 사용
             ParticleSystem ps = vfxInstance.GetComponent<ParticleSystem>();
             if (ps != null)
             {
@@ -629,6 +681,22 @@ public class SkillAnimationController : MonoBehaviour
         }
 
         Destroy(vfxInstance, lifetime);
+    }
+
+    /// <summary>
+    /// 모든 활성 VFX 코루틴 정리
+    /// </summary>
+    private void CleanupAllVfxCoroutines()
+    {
+        foreach (Coroutine coroutine in _activeVfxCoroutines)
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+        _activeVfxCoroutines.Clear();
+        Log("모든 VFX 코루틴 정리 완료");
     }
 
     #endregion
@@ -656,7 +724,6 @@ public class SkillAnimationController : MonoBehaviour
 
             if (_currentSkill.AoeShape == AOEShape.Sphere)
             {
-                // Range 대신 SphereRadius 사용
                 Gizmos.DrawWireSphere(centerPosition, _currentSkill.SphereRadius);
             }
             else

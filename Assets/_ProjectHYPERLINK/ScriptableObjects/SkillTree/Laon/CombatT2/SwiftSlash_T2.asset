@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55efebda079b5fc45bd8b884058f711f, type: 3}
-  m_Name: TestSkill_T2
+  m_Name: SwiftSlash_T2
   m_EditorClassIdentifier: 
-  _nodeID: TestSkill_T2
-  _nodeName: Test Skill
+  _nodeID: SwiftSlash_T2
+  _nodeName: Swift Slash
   _description: 
-  _icon: {fileID: 21300000, guid: 38c3ada3f093d7d46bcdafbd2cd77879, type: 3}
+  _icon: {fileID: 21300000, guid: 81a2b37f9306b6543907f7df59ee3498, type: 3}
   _tier: 2
   _isPassive: 0
-  _skillData: {fileID: 11400000, guid: df8fdf724d3436541b932e329c7a56a7, type: 2}
+  _skillData: {fileID: 11400000, guid: 8f4826065bebbee4d9c3836f61f221e9, type: 2}
   _passiveStatBonuses: []
   _requiredSkillPoints: 1
   _requiredLevel: 1
-  _requiredNodeData: {fileID: 11400000, guid: 5649c7b9f7c354b48824852429177d3d, type: 2}
+  _requiredNodeData: {fileID: 11400000, guid: 71e65b87b9b90ee48954359f60278eab, type: 2}
   _gridRow: 1
-  _gridColumn: 0
+  _gridColumn: 1
