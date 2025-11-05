@@ -282,7 +282,7 @@ MonoBehaviour:
   _playerCharacter: {fileID: 0}
   _stateController: {fileID: 0}
   _navController: {fileID: 0}
-  _hitStunDuration: 0
+  _hitStunDuration: 1
 --- !u!114 &341333240480795390
 MonoBehaviour:
   m_ObjectHideFlags: 0
