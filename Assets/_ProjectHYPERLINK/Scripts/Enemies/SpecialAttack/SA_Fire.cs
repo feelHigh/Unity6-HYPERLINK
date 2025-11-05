@@ -67,8 +67,12 @@ public class SA_Fire : SpecialAttackBase
 
         //firePos가 있으면 거기서, 없으면 기본 위치에서 발사 (적 위치보다 약간 앞)
         Vector3 spawnPos = firePos != null ? firePos.position : attacker.position + attacker.forward * 1.2f + attacker.up * 1;
+
         //발사 방향은 타겟(플레이어)를 향해
-        Quaternion spawnRot = Quaternion.LookRotation(target.position - spawnPos);
+        Vector3 targetPos = target.position + Vector3.up;
+        Vector3 dir = (targetPos - spawnPos).normalized;
+
+        Quaternion spawnRot = Quaternion.LookRotation(dir, Vector3.up);
 
         //화염구 프리팹 생성
         GameObject projectileGO = Instantiate(_projectilePrefab, spawnPos, spawnRot);

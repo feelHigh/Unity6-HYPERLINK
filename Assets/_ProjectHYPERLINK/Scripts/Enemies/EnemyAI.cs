@@ -566,24 +566,17 @@ public class EnemyAI : MonoBehaviour
                 {
                     return hit.position;
                 }
-                /*
-                //해당 위치에서 타겟까지 경로가 있는지 확인
-                NavMeshPath path = new NavMeshPath();
-                if (NavMesh.CalculatePath(hit.position, targetPos, NavMesh.AllAreas, path)
-                    && path.status == NavMeshPathStatus.PathComplete)
-                {
-                    //해당 위치에서 타겟까지 시야가 확보되는지 임시 체크
-                    Vector3 checkStart = hit.position + Vector3.up * _heightOffset;
-                    Vector3 checkTarget = targetPos + Vector3.up * _heightOffset;
-                    Vector3 dir = checkTarget - checkStart;
 
-                    //장애물이 없으면 이 위치를 우회 위치로 선택
-                    if (!Physics.Raycast(checkStart, dir.normalized, dir.magnitude, ~_playerLayerMask))
-                    {
-                        return hit.position;
-                    }
+                //해당 위치에서 타겟까지 시야가 확보되는지 임시 체크
+                Vector3 checkStart = hit.position + Vector3.up * _heightOffset;
+                Vector3 checkTarget = targetPos + Vector3.up * _heightOffset;
+                Vector3 dir = checkTarget - checkStart;
+
+                //장애물이 없으면 이 위치를 우회 위치로 선택
+                if (!Physics.Raycast(checkStart, dir.normalized, dir.magnitude, ~_playerLayerMask))
+                {
+                    return hit.position;
                 }
-                */
             }
         }
 
