@@ -9,11 +9,6 @@ using UnityEngine;
 /// - 특수 공격 효과 처리 (IMonsterDamageable 인터페이스 구현)
 /// - 사망 처리
 /// - 골드 관리
-/// 
-/// 최근 변경사항:
-/// - IMonsterDamageable 인터페이스 완전 구현
-/// - 5가지 속성 상태이상 코루틴 완성
-/// - PlayerStateController, PlayerNavController 연동
 /// </summary>
 public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 {
@@ -28,6 +23,12 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     private GameObject _currentDebuffEffect;
     private GameObject _currentAdditionalEffect;
     private Vector3 _lastAttackerPosition;
+    // 히트 스턴 관리
+    private Coroutine _hitStunCoroutine;
+
+    [Header("히트 스턴 설정")]
+    [SerializeField, Tooltip("일반 피격 시 스턴 지속 시간 (초)")]
+    private float _hitStunDuration = 0.2f;
 
     private void Awake()
     {
@@ -58,6 +59,9 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         if (_playerCharacter != null)
         {
             _playerCharacter.TakeDamage(damage);
+
+            // 일반 피격 시 히트 스턴 적용
+            ApplyHitStun();
         }
         else
         {
@@ -367,6 +371,53 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         Debug.Log("[상태이상] 넉백 종료");
     }
 
+
+    /// <summary>
+    /// 히트 스턴 적용 (일반 피격)
+    /// - 짧은 시간 동안 모든 행동 불가
+    /// </summary>
+    private void ApplyHitStun()
+    {
+        // 이미 히트 스턴 중이거나 더 강한 상태이상 중이면 무시
+        if (_hitStunCoroutine != null) return;
+        if (_stateController != null && (_stateController.IsFrozen || _stateController.IsStunned)) return;
+
+        // 히트 스턴 코루틴 시작
+        _hitStunCoroutine = StartCoroutine(HitStunCoroutine());
+    }
+
+    /// <summary>
+    /// 히트 스턴 코루틴
+    /// </summary>
+    private IEnumerator HitStunCoroutine()
+    {
+        Debug.Log($"[히트 스턴] 시작 ({_hitStunDuration}초)");
+
+        // 히트 스턴 상태 적용
+        if (_stateController != null)
+        {
+            _stateController.SetHitStun(true);
+        }
+
+        // NavMeshAgent 정지
+        if (_navController != null)
+        {
+            _navController.ForceStop();
+        }
+
+        // 히트 스턴 대기
+        yield return new WaitForSeconds(_hitStunDuration);
+
+        // 히트 스턴 해제
+        if (_stateController != null)
+        {
+            _stateController.SetHitStun(false);
+        }
+
+        _hitStunCoroutine = null;
+        Debug.Log("[히트 스턴] 종료");
+    }
+
     #endregion
 
     #region 이펙트 관리
@@ -447,6 +498,13 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     private void CleanupAllEffects()
     {
         CleanupCurrentDebuff();
+
+        // 히트 스턴 코루틴 정지
+        if (_hitStunCoroutine != null)
+        {
+            StopCoroutine(_hitStunCoroutine);
+            _hitStunCoroutine = null;
+        }
     }
 
     #endregion
