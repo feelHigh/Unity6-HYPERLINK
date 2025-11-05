@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55efebda079b5fc45bd8b884058f711f, type: 3}
+  m_Name: WhirlwindOfFaith_T2
+  m_EditorClassIdentifier: 
+  _nodeID: WhirlwindOfFaith_T2
+  _nodeName: WhirlwindOfFaith
+  _description: 
+  _icon: {fileID: 21300000, guid: 7a487265c4ea74d44b002d6a213dfc53, type: 3}
+  _tier: 2
+  _isPassive: 0
+  _skillData: {fileID: 11400000, guid: b3673db97a8b24846be1a8a6ee55c74d, type: 2}
+  _passiveStatBonuses: []
+  _requiredSkillPoints: 1
+  _requiredLevel: 1
+  _requiredNodeData: {fileID: 11400000, guid: adcf1205c38bbea47853932f0b1c5abd, type: 2}
+  _gridRow: 1
+  _gridColumn: 2

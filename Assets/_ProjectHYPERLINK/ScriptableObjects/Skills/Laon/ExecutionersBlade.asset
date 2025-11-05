@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e396be3d5505fa41bdfaf04361e3cac, type: 3}
+  m_Name: ExecutionersBlade
+  m_EditorClassIdentifier: 
+  _skillName: ExecutionersBlade
+  _description: 
+  _skillIcon: {fileID: 21300000, guid: 958fbaf1688aeaa40bbf21fd369000e4, type: 3}
+  _requiredLevel: 1
+  _animatorTriggerName: SkillExecutionersBlade
+  _manaCost: 10
+  _cooldown: 1
+  _range: 2
+  _skillType: 2
+  _skillMultiplier: 1.2
+  _skillBaseDamage: 50
+  _mainStatDamageIncrease: 0.01
+  _projectilePrefab: {fileID: 0}
+  _buffAmount: 0
+  _buffDuration: 0
+  _aoeShape: 1
+  _damagePointTiming: 0.9
+  _aoeOffset: {x: 0, y: 0, z: 0}
+  _sphereRadius: 5
+  _boxSize: {x: 3, y: 2, z: 4}
+  _vfxPrefab: {fileID: 1485466043327710, guid: 3e914ef784028124db1daf7002a87cc8, type: 3}
+  _vfxSpawnTiming: 0.4
+  _vfxOffset: {x: 0, y: 1, z: 0}
+  _vfxRotationOffset: {x: 0, y: 0, z: 180}
+  _vfxLifetime: 0.3
+  _animationDuration: 1
+  _useRootMotion: 0
+  _dashDistanceMode: 0
+  _dashDistance: 1
+  _minDashDistance: 2
+  _maxDashDistance: 8
+  _dashDuration: 0.3
+  _dashTiming: 0.1
+  _dashEase: 6
+  _checkWallCollision: 1
+  _wallLayer:
+    serializedVersion: 2
+    m_Bits: 12288
+  _wallStopBuffer: 0.5

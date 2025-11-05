@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55efebda079b5fc45bd8b884058f711f, type: 3}
+  m_Name: PiercingThrust_T1
+  m_EditorClassIdentifier: 
+  _nodeID: PiercingThrust_T1
+  _nodeName: PiercingThrust
+  _description: 
+  _icon: {fileID: 21300000, guid: aa059b0dbce3b0a4e93acb4b56a5356c, type: 3}
+  _tier: 1
+  _isPassive: 0
+  _skillData: {fileID: 11400000, guid: df8fdf724d3436541b932e329c7a56a7, type: 2}
+  _passiveStatBonuses: []
+  _requiredSkillPoints: 1
+  _requiredLevel: 1
+  _requiredNodeData: {fileID: 11400000, guid: 5649c7b9f7c354b48824852429177d3d, type: 2}
+  _gridRow: 0
+  _gridColumn: 1

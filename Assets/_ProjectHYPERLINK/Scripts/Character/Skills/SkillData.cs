@@ -4,9 +4,9 @@ using DG.Tweening;
 /// <summary>
 /// 스킬 데이터 ScriptableObject
 /// 
-/// 리팩토링 변경사항:
-/// - _animatorTriggerName 필드 추가: 각 스킬의 Animator 트리거 이름을 ScriptableObject에서 관리
-/// - 이제 새 스킬 추가 시 코드 수정 없이 Inspector에서 설정 가능
+/// VFX 시스템 (다중 VFX 지원):
+/// - VfxConfig 배열: 여러 VFX를 독립적으로 설정 가능
+/// - 각 VFX는 다른 타이밍, 위치, 회전에서 재생됨
 /// 
 /// 새로운 데미지 시스템:
 /// 최종 데미지 = ((캐릭터 공격력 × 스킬 배율) + 스킬 기본 데미지) × (1 + (주요 스탯 × 스탯당 데미지 증가%))
@@ -81,22 +81,17 @@ public class SkillData : ScriptableObject
     [Tooltip("Box 형태일 때 박스 크기")]
     [SerializeField] private Vector3 _boxSize = new Vector3(3f, 2f, 4f);
 
-    [Header("VFX 설정")]
-    [Tooltip("스킬 실행 시 재생할 Sword Slash VFX 프리팹")]
-    [SerializeField] private GameObject _vfxPrefab;
+    #endregion
 
-    [Tooltip("VFX 생성 타이밍 (0.0 ~ 1.0, 애니메이션 진행률)")]
-    [Range(0f, 1f)]
-    [SerializeField] private float _vfxSpawnTiming = 0.5f;
+    #region VFX 설정 (다중 VFX 시스템)
 
-    [Tooltip("VFX 위치 오프셋 (캐릭터 로컬 좌표)")]
-    [SerializeField] private Vector3 _vfxOffset = new Vector3(0f, 1f, 1f);
+    [Header("VFX 설정 (다중 VFX 지원)")]
+    [Tooltip("여러 VFX를 독립적으로 설정 가능 - 각 VFX는 다른 타이밍, 위치, 회전에서 재생됨")]
+    [SerializeField] private VfxConfig[] _vfxConfigs = new VfxConfig[0];
 
-    [Tooltip("VFX 회전 오프셋 (오일러 각도)")]
-    [SerializeField] private Vector3 _vfxRotationOffset = Vector3.zero;
+    #endregion
 
-    [Tooltip("VFX 자동 제거 시간 (초, 0이면 파티클 시스템 Duration 사용)")]
-    [SerializeField] private float _vfxLifetime = 0f;
+    #region 애니메이션 설정
 
     [Header("애니메이션 설정")]
     [Tooltip("애니메이션 전체 재생 시간 (초)")]
@@ -189,12 +184,21 @@ public class SkillData : ScriptableObject
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
 
-    // VFX 프로퍼티
-    public GameObject VfxPrefab => _vfxPrefab;
-    public float VfxSpawnTiming => _vfxSpawnTiming;
-    public Vector3 VfxOffset => _vfxOffset;
-    public Vector3 VfxRotationOffset => _vfxRotationOffset;
-    public float VfxLifetime => _vfxLifetime;
+    /// <summary>
+    /// VFX 설정 목록 가져오기 (다중 VFX 지원)
+    /// </summary>
+    public VfxConfig[] GetVfxConfigs()
+    {
+        return _vfxConfigs;
+    }
+
+    /// <summary>
+    /// VFX 설정이 있는지 확인
+    /// </summary>
+    public bool HasVfx()
+    {
+        return GetVfxConfigs().Length > 0;
+    }
 
     #endregion
 
