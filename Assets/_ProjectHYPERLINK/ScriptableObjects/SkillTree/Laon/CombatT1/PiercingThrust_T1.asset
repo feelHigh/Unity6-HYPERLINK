@@ -22,6 +22,6 @@ MonoBehaviour:
   _passiveStatBonuses: []
   _requiredSkillPoints: 1
   _requiredLevel: 1
-  _requiredNodeData: {fileID: 11400000, guid: 5649c7b9f7c354b48824852429177d3d, type: 2}
+  _requiredNodeData: {fileID: 0}
   _gridRow: 0
   _gridColumn: 1

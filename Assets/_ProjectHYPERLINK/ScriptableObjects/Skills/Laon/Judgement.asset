@@ -27,11 +27,15 @@ MonoBehaviour:
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 0
-  _aoeShape: 1
-  _damagePointTiming: 0.9
-  _aoeOffset: {x: 0, y: 0, z: 0}
-  _sphereRadius: 5
-  _boxSize: {x: 3, y: 2, z: 4}
+  _hitAreaConfigs:
+  - _shape: 1
+    _damagePointTiming: 0.4
+    _positionOffset: {x: 0, y: 1, z: 0.5}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _sphereRadius: 0
+    _boxSize: {x: 2.5, y: 1, z: 2}
+    _ignoreTags: []
+    _damageMultiplier: 1
   _vfxConfigs:
   - _vfxPrefab: {fileID: 1485466043327710, guid: 3e914ef784028124db1daf7002a87cc8, type: 3}
     _spawnTiming: 0.4
@@ -40,7 +44,7 @@ MonoBehaviour:
     _lifetime: 0.3
     _attachToCharacter: 0
   _animationDuration: 1
-  _useRootMotion: 0
+  _useRootMotion: 1
   _dashDistanceMode: 0
   _dashDistance: 1
   _minDashDistance: 2
