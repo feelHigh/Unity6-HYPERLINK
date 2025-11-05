@@ -2,13 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// 플레이어의 디버프 상태를 관리하는 클래스
-/// 
-/// 최근 변경사항:
-/// - SetSlow() 메소드 추가 (이동속도 감소)
-/// - SetWeaken() 메소드 추가 (방어력 감소)
-/// - ResetAllStates() 메소드 추가
-/// - 상태 프로퍼티 추가
-/// - SetRoot() 주석 개선: 속박 상태에서 공격/스킬 가능 명시
 /// </summary>
 public class PlayerStateController : MonoBehaviour
 {
@@ -24,10 +17,54 @@ public class PlayerStateController : MonoBehaviour
     public bool IsSilenced { get; private set; } = false;
     public bool IsSlowed { get; private set; } = false;
     public bool IsWeakened { get; private set; } = false;
+    public bool IsAttacking { get; private set; } = false;  // 공격 중 상태
+    public bool IsHitStunned { get; private set; } = false; // 히트 스턴 상태
 
     // 상태이상 수치
     public float SlowPercent { get; private set; } = 0f;
     public float WeakenPercent { get; private set; } = 0f;
+
+    /// <summary>
+    /// 공격 중 상태 설정
+    /// - 공격 중일 때 이동 불가
+    /// - 스킬 시스템과 유사한 입력 잠금
+    /// </summary>
+    public void SetAttacking(bool active)
+    {
+        IsAttacking = active;
+
+        // 공격 중에는 이동만 막음 (연속 공격은 가능)
+        if (active)
+        {
+            CanMove = false;
+        }
+        else
+        {
+            // 다른 상태이상이 없다면 이동 가능
+            if (!IsStunned && !IsFrozen && !IsRoot && !IsHitStunned)
+            {
+                CanMove = true;
+            }
+        }
+
+        Debug.Log($"[상태] 공격 중: {active}");
+    }
+
+    /// <summary>
+    /// 히트 스턴 상태
+    /// - 피격 시 짧은 시간 동안 모든 행동 불가
+    /// - 일반 몬스터 공격 시 적용
+    /// </summary>
+    public void SetHitStun(bool active)
+    {
+        IsHitStunned = active;
+        IsStunned = active; // 스턴 플래그도 함께 설정
+        CanMove = !active;
+        CanAttack = !active;
+        CanUseSkill = !active;
+
+        Debug.Log($"[상태] 히트 스턴: {active}");
+    }
 
     /// <summary>
     /// 빙결 상태
@@ -126,6 +163,8 @@ public class PlayerStateController : MonoBehaviour
         IsSilenced = false;
         IsSlowed = false;
         IsWeakened = false;
+        IsAttacking = false;
+        IsHitStunned = false;
 
         SlowPercent = 0f;
         WeakenPercent = 0f;
@@ -139,7 +178,7 @@ public class PlayerStateController : MonoBehaviour
     /// </summary>
     public float GetMovementSpeedMultiplier()
     {
-        if (!CanMove || IsStunned || IsFrozen || IsRoot)
+        if (!CanMove || IsStunned || IsFrozen || IsRoot || IsHitStunned)
             return 0f;
 
         if (IsSlowed)
@@ -175,6 +214,8 @@ public class PlayerStateController : MonoBehaviour
         Debug.Log($"둔화: {IsSlowed} ({SlowPercent}%)");
         Debug.Log($"약화: {IsWeakened} ({WeakenPercent}%)");
         Debug.Log($"넉다운: {IsStunned}");
+        Debug.Log($"공격 중: {IsAttacking}");
+        Debug.Log($"히트 스턴: {IsHitStunned}");
         Debug.Log($"이동속도 배율: {GetMovementSpeedMultiplier():P0}");
         Debug.Log($"방어력 배율: {GetDefenseMultiplier():P0}");
     }

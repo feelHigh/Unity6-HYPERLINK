@@ -92,7 +92,7 @@ public class SkillActivationSystem : MonoBehaviour
     #region 입력 처리
 
     /// <summary>
-    /// 스킬 키 입력 처리 - 리팩토링 버전
+    /// 스킬 키 입력 처리
     /// 
     /// 빈 슬롯 체크 강화
     /// 
