@@ -6,7 +6,10 @@ public class EnemyData : ScriptableObject
 {
     [Header("----- 기본 정보 -----")]
     [SerializeField] string _name;                  //이름
-    [SerializeField] GameObject _prefab;            //프리팹
+    [SerializeField] EnemyType _enemyType;          //타입
+
+    [Header("----- 프리팹 -----")]
+    [SerializeField] List<GameObject> _prefabs = new List<GameObject>();  //프리팹
 
     [Header("----- 스탯 -----")]
     [SerializeField] float _maxHp;                  //최대 체력
@@ -37,7 +40,7 @@ public class EnemyData : ScriptableObject
 
     // ----- 프로퍼티 ------ //
     public string Name => _name;
-    public GameObject Prefab => _prefab;
+    public EnemyType EnemyType => _enemyType;
     public float MaxHp => _maxHp;
     public float MoveSpeed => _moveSpeed;
     public float Atk => _atk;
@@ -57,4 +60,50 @@ public class EnemyData : ScriptableObject
     public float EpicAtkMultiplier => _epicAtkMultiplier;
     public int EpicExpMultiplier => _epicExpMultiplier;
     public int EpicGoldMultiplier => _epicGoldMultiplier;
+
+    /// <summary>
+    /// 프리팹 리스트에서 랜덤하게 하나 반환
+    /// </summary>
+    public GameObject Prefab
+    {
+        get
+        {
+            if (_prefabs == null || _prefabs.Count == 0)
+            {
+                Debug.LogError($"[EnemyData] {_name}: 프리팹이 설정되지 않았습니다.");
+                return null;
+            }
+
+            //프리팹이 1개면 그냥 반환
+            if (_prefabs.Count == 1)
+            {
+                return _prefabs[0];
+            }
+
+            //여러 개면 랜덤 선택
+            int ran = Random.Range(0, _prefabs.Count);
+            return _prefabs[ran];
+        }
+    }
+
+    /// <summary>
+    /// 프리팹 리스트에서 특정 인덱스의 프리팹 반환
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public GameObject GetPrefab(int index)
+    {
+        if (_prefabs == null || index < 0 || index >= _prefabs.Count)
+        {
+            Debug.LogError($"[EnemyData] 잘못된 인덱스: {index}");
+            return null;
+        }
+
+        return _prefabs[index];
+    }
+
+    /// <summary>
+    /// 프리팹 개수
+    /// </summary>
+    public int PrefabCount => _prefabs?.Count ?? 0;
 }

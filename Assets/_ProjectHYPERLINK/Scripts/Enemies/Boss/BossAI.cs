@@ -21,7 +21,7 @@ using static EnemyAI;
 public class BossAI : MonoBehaviour
 {
     [Header("----- 참조 -----")]
-    [SerializeField] BossController _controller;
+    [SerializeField] EnemyController _controller;
     [SerializeField] NavMeshAgent _agent;
     [SerializeField] Animator _animator;
 
@@ -54,7 +54,8 @@ public class BossAI : MonoBehaviour
     [SerializeField] BossState _curState = BossState.Idle;
 
     BossData _data;
-    bool _isActive = false;
+
+    bool _isActive = false;            //AI 활성화 플래그
     bool _isExecutingPattern = false;  //패턴 실행 중 플래그
     bool _isRotatingToTarget = false;  //타겟을 향해 회전 중 플래그
 
@@ -86,7 +87,7 @@ public class BossAI : MonoBehaviour
     private void Awake()
     {
         if (_controller == null)
-            _controller = GetComponent<BossController>();
+            _controller = GetComponent<EnemyController>();
 
         if (_agent == null)
             _agent = GetComponent<NavMeshAgent>();
@@ -94,7 +95,7 @@ public class BossAI : MonoBehaviour
         if (_animator == null)
             _animator = GetComponent<Animator>();
 
-        // 이벤트 연결
+        //이벤트 연결
         _controller.OnInitialized += StartAI;
         _controller.OnHit += OnHit;
         _controller.OnDie += OnDeath;
@@ -105,7 +106,7 @@ public class BossAI : MonoBehaviour
     /// </summary>
     void StartAI()
     {
-        _data = _controller.Data;
+        _data = _controller.BossData;
         _isActive = true;
         _curState = BossState.Idle;
 
@@ -193,9 +194,10 @@ public class BossAI : MonoBehaviour
 
         float distance = Vector3.Distance(transform.position, _target.position);
 
-        //공격 범위 안에 들어오면 공격 상태로 전환
-        if (distance <= _data.BasicAttackRange)
+        //공격 범위 안에 들어오고, 시야가 있을 경우 공격 상태로 전환
+        if (distance <= _data.BasicAttackRange && HasLineOfSight(_target))
         {
+            //공격 상태로 전환
             ChangeState(BossState.Attack);
             return;
         }
@@ -219,7 +221,7 @@ public class BossAI : MonoBehaviour
         float distance = Vector3.Distance(transform.position, _target.position);
 
         //공격 범위 밖으로 나가면 추격
-        if (distance > _data.BasicAttackRange * 1.2f)
+        if (distance > _data.BasicAttackRange)
         {
             ChangeState(BossState.Chase);
             return;
@@ -236,6 +238,10 @@ public class BossAI : MonoBehaviour
         StartCoroutine(RotateAndAttack());
     }
 
+    /// <summary>
+    /// 타겟을 향해 회전한 후 공격을 실행하는 함수
+    /// </summary>
+    /// <returns></returns>
     IEnumerator RotateAndAttack()
     {
         _isRotatingToTarget = true;
@@ -666,11 +672,20 @@ public class BossAI : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        //브레스 방향 계산
+        Vector3 breathDir = transform.forward;
+
+        Vector3 toPlayer = _target.position - _breathSpawnPos.position;
+        float angleDown = Mathf.Atan2(-toPlayer.y, new Vector2(toPlayer.x, toPlayer.z).magnitude) * Mathf.Rad2Deg;
+        angleDown = Mathf.Clamp(angleDown, -30, 30);
+
+        Quaternion breathRotation = _breathSpawnPos.rotation * Quaternion.Euler(angleDown, 0, 0);
+
         //브레스 이펙트 생성
         GameObject breathEffect = null;
         if (_breathEffect != null && _breathSpawnPos != null)
         {
-            breathEffect = Instantiate(_breathEffect, _breathSpawnPos.position, _breathSpawnPos.rotation, transform);
+            breathEffect = Instantiate(_breathEffect, _breathSpawnPos.position, breathRotation, transform);
         }
 
         Debug.Log("[BossAI] 화염 브레스 발사!");
@@ -683,25 +698,27 @@ public class BossAI : MonoBehaviour
         {
             //브레스 범위 내 플레이어 감지
             Vector3 breathStart = _breathSpawnPos != null ? _breathSpawnPos.position : transform.position + transform.forward * 2f;
-            Vector3 breathEnd = breathStart + transform.forward * _data.BreathRange;
 
-            //BoxCast로 직선 범위 체크
-            RaycastHit[] hits = Physics.BoxCastAll(
-                breathStart,
-                new Vector3(_data.BreathWidth / 2f, 1f, 0.5f),
-                transform.forward,
-                transform.rotation,
-                _data.BreathRange,
-                _playerLayerMask
-            );
+            //브레스 범위 박스 중심점 계산
+            Vector3 boxCenter = breathStart + breathDir * (_data.BreathRange / 2);
 
-            foreach (RaycastHit hit in hits)
+            //박스 크기 설정
+            Vector3 boxHalfExtents = new Vector3(
+                _data.BreathWidth / 2,  //폭
+                3f,                     //높이
+                _data.BreathRange / 2   //길이
+                );
+
+            //OverlapBox로 범위 내 플레이어 감지
+            Collider[] hits = Physics.OverlapBox(boxCenter, boxHalfExtents, breathRotation, _playerLayerMask);
+
+            foreach (Collider hit in hits)
             {
-                PlayerCombat damageable = hit.collider.GetComponent<PlayerCombat>();
-                if (damageable != null)
+                PlayerCombat player = hit.GetComponent<PlayerCombat>();
+                if (player != null)
                 {
                     float damage = _controller.Atk * _data.BreathDamageMultiplier;
-                    damageable.TakeDamage(damage);
+                    player.TakeDamage(damage);
                 }
             }
 
@@ -739,23 +756,34 @@ public class BossAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 타겟 바라보기
+    /// 타겟까지 시야가 확보되어 있는지 레이캐스트로 체크하는 함수
     /// </summary>
-    void LookAtTarget()
+    /// <param name="target">타겟 (플레이어) 트랜스폼</param>
+    /// <returns>시야 확보 여부</returns>
+    bool HasLineOfSight(Transform target)
     {
-        if (_target == null) return;
+        if (target == null) return false;
 
-        Vector3 lookDir = _target.position - transform.position;
-        lookDir.y = 0f;
+        //발사 위치 (적 위치)
+        Vector3 startPos = transform.position + Vector3.up;
+        //타겟 위치 (플레이어 위치)
+        Vector3 targetPos = target.position + Vector3.up;
 
-        if (lookDir != Vector3.zero)
+        //방향 및 거리 계산
+        Vector3 dir = targetPos - startPos;
+        float distance = dir.magnitude;
+
+        //만약 발사한 레이캐스트가 장애물 레이어에 맞았다면
+        if (Physics.Raycast(startPos, dir.normalized, out RaycastHit hit, distance, _obstacleLayerMask))
         {
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                Quaternion.LookRotation(lookDir),
-                Time.deltaTime * 5f
-            );
+            //시야 막힘 반환
+            Debug.DrawRay(startPos, dir.normalized * hit.distance, Color.red, 0.1f);
+            return false;
         }
+
+        //장애물 없으면 시야 확보 반환
+        Debug.DrawRay(startPos, dir.normalized * distance, Color.green, 0.1f);
+        return true;
     }
 
     /// <summary>

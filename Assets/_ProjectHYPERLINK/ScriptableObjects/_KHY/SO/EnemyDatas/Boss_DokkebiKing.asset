@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d927624777ef6ef4790154a5c60840e8, type: 3}
   m_Name: Boss_DokkebiKing
   m_EditorClassIdentifier: 
-  _bossName: "\uB3C4\uAE68\uBE44"
+  _bossName: "\uB3C4\uAE68\uBE44 \uB450\uBAA9, \uB450\uC5B5\uC2DC\uB2C8"
   _prefab: {fileID: 1461186578264706854, guid: f5a5b1d450236814d8303d4ca1e600d2, type: 3}
   _maxHp: 500
   _atk: 10
