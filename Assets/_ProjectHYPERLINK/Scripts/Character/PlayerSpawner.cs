@@ -53,8 +53,35 @@ public class PlayerSpawner : MonoBehaviour
 
     private void Start()
     {
-        // 디폴트 지점에 자동 스폰
-        SpawnPlayerAtDefault();
+        // Portal에서 지정한 스폰 포인트 확인
+        if (PlayerPrefs.HasKey("TargetSpawnPoint"))
+        {
+            string targetSpawn = PlayerPrefs.GetString("TargetSpawnPoint");
+            PlayerPrefs.DeleteKey("TargetSpawnPoint");
+
+            Log($"Portal 지정 스폰 포인트: {targetSpawn}");
+
+            // TeleportPoint 찾기
+            TeleportPoint point = System.Array.Find(_teleportPoints,
+                tp => tp.LocationName == targetSpawn);
+
+            if (point != null)
+            {
+                // 해당 위치에 직접 스폰
+                SpawnPlayer(point.Position, point.Rotation);
+                Log($"스폰 완료: {targetSpawn}");
+            }
+            else
+            {
+                LogWarning($"스폰 포인트 '{targetSpawn}'를 찾을 수 없습니다. 기본 위치에 스폰합니다.");
+                SpawnPlayerAtDefault();
+            }
+        }
+        else
+        {
+            // 디폴트 지점에 자동 스폰
+            SpawnPlayerAtDefault();
+        }
     }
 
     /// <summary>
