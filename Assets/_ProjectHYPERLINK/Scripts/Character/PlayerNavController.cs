@@ -57,7 +57,7 @@ public class PlayerNavController : MonoBehaviour
     [Tooltip("공격 범위 (미터)")]
     [SerializeField] private float _attackRange = 3f;
 
-    [Tooltip("공격 각도 (전방 원뿔 범위, 90° = 전방 1/4 원)")]
+    [Tooltip("공격 각도 (전방 원뿔 범위, 90도 = 전방 1/4 원)")]
     [SerializeField] private float _attackAngle = 90f;
 
     [SerializeField] private float _attackDamage = 25f;
@@ -289,7 +289,7 @@ public class PlayerNavController : MonoBehaviour
             }
             else
             {
-                Log($"이동 불가 상태: Frozen={_stateController.IsFrozen}, Root={_stateController.IsRoot}, Stunned={_stateController.IsStunned}");
+                Log($"이동 불가 상태: Frozen={_stateController.IsFrozen}, Root={_stateController.IsRoot}, Stunned={_stateController.IsStunned}, Attacking={_stateController.IsAttacking}");
             }
         }
 
@@ -476,6 +476,12 @@ public class PlayerNavController : MonoBehaviour
         _isAttacking = true;
         _isOnCooldown = true;
 
+        // 공격 상태 설정 (이동 차단)
+        if (_stateController != null)
+        {
+            _stateController.SetAttacking(true);
+        }
+
         // 공격 애니메이션 재생
         _animator.SetTrigger(ATTACK_HASH);
 
@@ -497,6 +503,12 @@ public class PlayerNavController : MonoBehaviour
                     Log($"  → {enemy.name}에게 {attackPower:F1} 데미지");
                 }
             }
+        }
+
+        // 공격 상태 해제 (이동 가능)
+        if (_stateController != null)
+        {
+            _stateController.SetAttacking(false);
         }
 
         // 애니메이션 종료 대기
