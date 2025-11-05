@@ -13,6 +13,7 @@ public class MapGround : MonoBehaviour
     [SerializeField] List<ProBuilderMesh> _tiles;
     [SerializeField] List<ProBuilderMesh> _wallMeshes;
     [SerializeField] List<GameObject> _doors;
+    [SerializeField] List<GameObject> _objects;
     [SerializeField] Transform _tileParent;
     [SerializeField] Transform _wallParent;
     [SerializeField] Transform _runtimeParent;
@@ -138,9 +139,21 @@ public class MapGround : MonoBehaviour
         {
             GameObject.DestroyImmediate(_doors[i].gameObject);
         }
+        for(int i=0;i<_objects.Count; i++)
+        {
+            GameObject.DestroyImmediate(_objects[i].gameObject);
+        }
         _wallMeshes.Clear();
         _tiles.Clear();
+        _doors.Clear();
+        _objects.Clear();
         
+    }
+
+    public void BuildObject(Vector3 pos, GameObject ob)
+    {
+        GameObject go = Instantiate(ob,pos,Quaternion.identity,_tileParent);
+        _objects.Add(go);
     }
     public void Hide()
     {
