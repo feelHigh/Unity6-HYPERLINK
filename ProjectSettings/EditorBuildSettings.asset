@@ -11,11 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/CharacterSelectionScene.unity
     guid: adb89467ac70d2d468244dca76923f78
-  - enabled: 1
+  - enabled: 0
     path: Assets/_ProjectHYPERLINK/Scenes/Release/TutorialScene.unity
     guid: e3cbeb66789511143bcba24695c9c07d
-  - enabled: 0
-    path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TutorialScene.unity
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TeleportScene.unity
     guid: 345cd5ad26297c64faf4a092eebfb020
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 53dad33bf8e229a46b73a2e6186c84d3, type: 2}

@@ -34,10 +34,21 @@ public class SpawnerManager : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(FindPlayer());
+    }
+
+    /// <summary>
+    /// 플레이어를 찾은 후에 스포너 거리 체크 코루틴을 실행하는 코루틴
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator FindPlayer()
+    {
         if (_player == null)
         {
             _player = GameObject.FindGameObjectWithTag("Player").transform;
         }
+
+        yield return null;
 
         StartCoroutine(CheckSpawnersRoutine());
     }

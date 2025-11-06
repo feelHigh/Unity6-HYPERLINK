@@ -16856,6 +16856,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 834424696071007684, guid: 67c5ac6ec4c61204f92542f982d048d5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1003042867033014048, guid: 67c5ac6ec4c61204f92542f982d048d5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -18392,6 +18396,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9164934359825532191, guid: 67c5ac6ec4c61204f92542f982d048d5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18653,6 +18661,10 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -0.05913601
       objectReference: {fileID: 0}
+    - target: {fileID: 4957289201852418590, guid: f5a5b1d450236814d8303d4ca1e600d2, type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 1573751659}
     - target: {fileID: 4964444714362055468, guid: f5a5b1d450236814d8303d4ca1e600d2, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.9586979
@@ -19030,6 +19042,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f5a5b1d450236814d8303d4ca1e600d2, type: 3}
+--- !u!95 &1573751659 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 3363569825978005817, guid: f5a5b1d450236814d8303d4ca1e600d2, type: 3}
+  m_PrefabInstance: {fileID: 1573751658}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1614177054
 Mesh:
   m_ObjectHideFlags: 0

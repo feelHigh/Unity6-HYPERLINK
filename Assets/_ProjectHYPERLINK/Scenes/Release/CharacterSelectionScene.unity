@@ -2297,6 +2297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _autoSaveInterval: 300
+  _enableDebugLogs: 1
 --- !u!4 &1007815298
 Transform:
   m_ObjectHideFlags: 0
