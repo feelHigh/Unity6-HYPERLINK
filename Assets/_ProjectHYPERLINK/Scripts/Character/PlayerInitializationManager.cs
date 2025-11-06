@@ -51,6 +51,9 @@ public class PlayerInitializationManager : MonoBehaviour
     /// </summary>
     public static event Action<GameObject> OnPlayerSpawned;
 
+
+    public static event Action FindPlayer;
+
     /// <summary>
     /// Phase 2: PlayerCharacter 컴포넌트와 데이터가 초기화되었을 때 발생
     /// 의존 시스템: CharacterUIController, EquipInventory
@@ -160,6 +163,7 @@ public class PlayerInitializationManager : MonoBehaviour
 
                     // Phase 1 이벤트 발생
                     OnPlayerSpawned?.Invoke(_playerObject);
+                    FindPlayer?.Invoke();
                     return true;
                 }
             }

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9c9bed5cfb442049935a899d33ba465, type: 3}
-  m_Name: PortalToTestData
+  m_Name: TestPortalData2
   m_EditorClassIdentifier: 
   _portalName: "\uD3EC\uD0C8"
-  _portalType: 0
-  _targetSceneName: TestScene1
-  _targetSpawnPointName: Enter
+  _portalType: 1
+  _targetSceneName: 
+  _targetSpawnPointName: 
   _teleportLocationName: 
   _interactionRange: 2
-  _autoActivate: 1
+  _autoActivate: 0
   _isActive: 1
   _portalColor: {r: 0, g: 1, b: 1, a: 1}

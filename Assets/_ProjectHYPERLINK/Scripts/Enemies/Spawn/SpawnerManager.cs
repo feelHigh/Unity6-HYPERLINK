@@ -19,6 +19,14 @@ public class SpawnerManager : MonoBehaviour
     List<EnemySpawner> _allSpawners = new List<EnemySpawner>();     //모든 스포너 리스트
     float _checkInterval = 1f;  //체크 시간 간격
 
+    private void OnEnable()
+    {
+        PlayerInitializationManager.FindPlayer += FindPlayer;
+    }
+    private void OnDisable()
+    {
+        PlayerInitializationManager.FindPlayer -= FindPlayer;
+    }
     private void Awake()
     {
         if (Instance == null)
@@ -32,23 +40,18 @@ public class SpawnerManager : MonoBehaviour
 
     }
 
-    private void Start()
-    {
-        StartCoroutine(FindPlayer());
-    }
-
     /// <summary>
     /// 플레이어를 찾은 후에 스포너 거리 체크 코루틴을 실행하는 코루틴
     /// </summary>
     /// <returns></returns>
-    IEnumerator FindPlayer()
+    private void FindPlayer()
     {
         if (_player == null)
         {
             _player = GameObject.FindGameObjectWithTag("Player").transform;
         }
 
-        yield return null;
+        
 
         StartCoroutine(CheckSpawnersRoutine());
     }

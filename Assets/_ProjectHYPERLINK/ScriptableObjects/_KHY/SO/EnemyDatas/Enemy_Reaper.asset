@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
   m_Name: Enemy_Reaper
   m_EditorClassIdentifier: 
-  _name: Reaper
-  _prefab: {fileID: 7428713037589431689, guid: 489ae0ccb228ce24b8bc9c6b4fd55c48, type: 3}
+  _name: "\uC800\uC2B9\uC0AC\uC790"
+  _enemyType: 0
   _maxHp: 100
   _moveSpeed: 5
   _atk: 5

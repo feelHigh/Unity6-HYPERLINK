@@ -11,12 +11,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/CharacterSelectionScene.unity
     guid: adb89467ac70d2d468244dca76923f78
-  - enabled: 0
+  - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/TutorialScene.unity
     guid: e3cbeb66789511143bcba24695c9c07d
   - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/KHY/TutorialScene.unity
+    guid: de6e507e748d1804c84cb5ae1f7f6c74
+  - enabled: 0
     path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TeleportScene.unity
     guid: 345cd5ad26297c64faf4a092eebfb020
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/KHH/TestScene1.unity
+    guid: 9a4785a68e102da43bf7bb4407368178
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 53dad33bf8e229a46b73a2e6186c84d3, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

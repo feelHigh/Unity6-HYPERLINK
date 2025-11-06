@@ -294,4 +294,10 @@ public class TeleportPoint
     public string LocationName => _locationName;
     public Vector3 Position => _spawnTransform.position;
     public Quaternion Rotation => _spawnTransform.rotation;
+
+    public void PortalToPoint(Portal portal)
+    {
+        _locationName = portal.PortalLocation;
+        _spawnTransform = portal.transform;
+    }
 }

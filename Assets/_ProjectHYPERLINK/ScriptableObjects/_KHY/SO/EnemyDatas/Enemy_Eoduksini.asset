@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
   m_Name: Enemy_Eoduksini
   m_EditorClassIdentifier: 
-  _name: Eoduksini
-  _prefab: {fileID: 3121302630931607391, guid: 9ac20ce8899122e46b30af2d318d1d42, type: 3}
+  _name: "\uC5B4\uB451\uC2DC\uB2C8"
+  _enemyType: 0
   _maxHp: 100
   _moveSpeed: 5
   _atk: 10
