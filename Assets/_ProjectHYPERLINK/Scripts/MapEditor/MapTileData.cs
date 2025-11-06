@@ -14,6 +14,14 @@ public enum WallType
     Wall,
     Door,
 }
+
+public enum ObjectType
+{
+    None,
+    Potion,
+    Teleport,
+}
+
 [System.Serializable]
 public class MapTileData
 {
@@ -22,4 +30,5 @@ public class MapTileData
     public WallType yWall = WallType.Empty;
     public TileType Type = TileType.Empty;
     public bool HasObject = false;
+    public ObjectType OwnObject = ObjectType.None;
 }

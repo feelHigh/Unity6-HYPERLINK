@@ -22,21 +22,41 @@ MonoBehaviour:
   _range: 1
   _skillType: 2
   _skillMultiplier: 1
-  _skillBaseDamage: 0
+  _skillBaseDamage: 50
   _mainStatDamageIncrease: 0.01
   _projectilePrefab: {fileID: 0}
   _buffAmount: 0
   _buffDuration: 10
-  _aoeShape: 0
-  _damagePointTiming: 0.7
-  _aoeOffset: {x: 0, y: 0, z: 0}
-  _sphereRadius: 5
-  _boxSize: {x: 3, y: 2, z: 4}
-  _vfxPrefab: {fileID: 0}
-  _vfxSpawnTiming: 0.5
-  _vfxOffset: {x: 0, y: 1, z: 1}
-  _vfxRotationOffset: {x: 0, y: 0, z: 0}
-  _vfxLifetime: 0
+  _hitAreaConfigs:
+  - _shape: 0
+    _damagePointTiming: 0.2
+    _positionOffset: {x: 0, y: 0, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _sphereRadius: 2.5
+    _boxSize: {x: 0, y: 0, z: 0}
+    _ignoreTags: []
+    _damageMultiplier: 1
+  - _shape: 0
+    _damagePointTiming: 0.9
+    _positionOffset: {x: 0, y: 0, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _sphereRadius: 2
+    _boxSize: {x: 0, y: 0, z: 0}
+    _ignoreTags: []
+    _damageMultiplier: 1.5
+  _vfxConfigs:
+  - _vfxPrefab: {fileID: 1294101409476956, guid: 231e3be01ac50c047bb16d07fd8d2ba5, type: 3}
+    _spawnTiming: 0.4
+    _positionOffset: {x: 0, y: 1, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 180}
+    _lifetime: 0.3
+    _attachToCharacter: 0
+  - _vfxPrefab: {fileID: 1872147318604286, guid: 5bea49531fc500c408823a2e2863106f, type: 3}
+    _spawnTiming: 1
+    _positionOffset: {x: 0, y: 1, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 240}
+    _lifetime: 0.3
+    _attachToCharacter: 0
   _animationDuration: 1
   _useRootMotion: 1
   _dashDistanceMode: 0

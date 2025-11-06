@@ -15,8 +15,10 @@ public enum TileBrushType
 {
     None,
     Tile,
-    Wall
+    Wall,
+    Object
 }
+
 
 
 
@@ -52,6 +54,10 @@ public class MapEditor : EditorWindow
     int _selectionWallIndex = 1;
     WallType _selectedWall = WallType.Empty;
 
+    string[] _objectNames;
+    int _selectionObjectIndex = 1;
+    ObjectType _selectedObject = ObjectType.None;
+
     Dictionary<int, RoomData> _rooms = new Dictionary<int, RoomData>();
 
     public void OnEnable()
@@ -59,14 +65,14 @@ public class MapEditor : EditorWindow
         _brushNames = Enum.GetNames(typeof(TileBrushType));
         _tileNames = Enum.GetNames(typeof(TileType));
         _wallNames = Enum.GetNames(typeof(WallType));
-
+        _objectNames = Enum.GetNames(typeof(ObjectType));
         SceneView.duringSceneGui += this.OnSceneGUI;
     }
 
     public void OnDisable()
     {
         SceneView.duringSceneGui -= this.OnSceneGUI;
-        
+
     }
 
     [MenuItem("Tools/HyperMapEditor")]
@@ -120,6 +126,15 @@ public class MapEditor : EditorWindow
                 _selectedWall = (WallType)_selectionWallIndex;
             }
         }
+        else if (_selectedBrushType == TileBrushType.Object)
+        {
+            _selectionObjectIndex = GUILayout.Toolbar(_selectionObjectIndex, _objectNames);
+            if (_selectedObject != (ObjectType)_selectionObjectIndex)
+            {
+                _selectedObject = (ObjectType)_selectionObjectIndex;
+            }
+        }
+
         EditorGUILayout.Space(5);
         if (GUILayout.Button("벽 자동 생성", EditorStyles.miniButtonMid))
         {
@@ -201,6 +216,10 @@ public class MapEditor : EditorWindow
         else if (_selectedBrushType == TileBrushType.Wall)
         {
             WallDraw(e);
+        }
+        else if (_selectedBrushType == TileBrushType.Object)
+        {
+            ObjectDraw(e);
         }
 
 
@@ -360,6 +379,40 @@ public class MapEditor : EditorWindow
         return true;
     }
 
+    void ObjectDraw(Event e)
+    {
+        if (e.button == 0 && e.type == EventType.MouseDown)
+        {
+            e.Use();
+            ChangeObject(e);
+        }
+
+    }
+
+    void ChangeObject(Event e)
+    {
+        Ray ray = UnityEditor.HandleUtility.GUIPointToWorldRay(e.mousePosition);
+
+        Plane plane = new Plane(Vector3.up, Vector3.zero);
+        if (plane.Raycast(ray, out float enter))
+        {
+            Vector3 pos = ray.GetPoint(enter) - _startPos;
+            int x = Mathf.FloorToInt((pos.x + CELL_SIZE / 2) / CELL_SIZE);
+            int y = Mathf.FloorToInt((pos.z + CELL_SIZE / 2) / CELL_SIZE);
+            if (_mapTiles.GetLength(0) <= x || x < 0) return;
+            if (_mapTiles.GetLength(1) <= y || y < 0) return;
+            if (_selectedObject == ObjectType.None)
+            {
+                _mapTiles[x, y].HasObject = false;
+            }
+            else
+            {
+                _mapTiles[x, y].HasObject = true;
+            }
+            _mapTiles[x, y].OwnObject = _selectedObject;
+        }
+
+    }
     void DrawMapPreview()
     {
         for (int x = 0; x < _mapTiles.GetLength(0); x++)
@@ -398,6 +451,13 @@ public class MapEditor : EditorWindow
                         Handles.color = Color.blue;
                         Handles.DrawWireCube(worldPos, new Vector3(2, 3, 0.15f));
                     }
+                }
+                if (_mapTiles[x, z].HasObject)
+                {
+                    Vector3 worldPos = new Vector3(x * CELL_SIZE, 0.5f, z * CELL_SIZE) + _startPos;
+                    if (_mapTiles[x, z].OwnObject == ObjectType.Potion) Handles.color = Color.red;
+                    else if (_mapTiles[x, z].OwnObject == ObjectType.Teleport) Handles.color = Color.blue;
+                    Handles.DrawWireCube(worldPos, new Vector3(CELL_SIZE, 1, CELL_SIZE));
                 }
 
             }
@@ -455,7 +515,7 @@ public class MapEditor : EditorWindow
         _isMaking = false;
         _showGrid = false;
         MakeRooms();
-        
+
         GenerateVisualMap();
         Save();
     }
@@ -496,7 +556,10 @@ public class MapEditor : EditorWindow
                     Material material = GetTileMaterial(_mapTiles[x, y].Type);
                     Vector3 worldPos = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + _startPos;
                     _currentMap.BuildTileMesh(worldPos, CELL_SIZE, CELL_SIZE, material);
-
+                    if (_mapTiles[x,y].Type == TileType.Exit || _mapTiles[x,y].Type == TileType.Enter)
+                    {
+                        _currentMap.BuildObject(worldPos, _mapConfig.EnterAndExit);
+                    }
                 }
 
                 // 벽 생성 부분
@@ -556,7 +619,16 @@ public class MapEditor : EditorWindow
                         _currentMap.BuildWallMesh(worldPos, new Vector3(CELL_SIZE, 3, 0.15f), firstMaterial, secondMaterial, false);
                     }
                 }
-
+                if (_mapTiles[x,y].OwnObject == ObjectType.Potion)
+                {
+                    Vector3 worldPos = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + _startPos;
+                    _currentMap.BuildObject(worldPos,_mapConfig.Potion);
+                }
+                else if (_mapTiles[x, y].OwnObject == ObjectType.Teleport)
+                {
+                    Vector3 worldPos = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + _startPos;
+                    _currentMap.BuildObject(worldPos, _mapConfig.Portal);
+                }
             }
         }
     }
@@ -582,7 +654,7 @@ public class MapEditor : EditorWindow
 
     void Save()
     {
-        _currentMap.GetData(_mapTiles, _rooms,_startPos,CELL_SIZE);
+        _currentMap.GetData(_mapTiles, _rooms, _startPos, CELL_SIZE);
         EditorUtility.SetDirty(_currentMap);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -591,7 +663,7 @@ public class MapEditor : EditorWindow
     {
         _rooms[num].Tiles.Add(_mapTiles[x, y]);
         _mapTiles[x, y].RoomNum = num;
-        if (x > 0 && _mapTiles[x - 1, y].xWall == WallType.Empty && _mapTiles[x, y].Type == _mapTiles[x - 1, y].Type && _mapTiles[x-1,y].RoomNum ==0)
+        if (x > 0 && _mapTiles[x - 1, y].xWall == WallType.Empty && _mapTiles[x, y].Type == _mapTiles[x - 1, y].Type && _mapTiles[x - 1, y].RoomNum == 0)
         {
             CheckRoom(x - 1, y, num);
         }
