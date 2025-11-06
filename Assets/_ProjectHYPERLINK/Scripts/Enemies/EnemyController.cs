@@ -1,24 +1,32 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 /// <summary>
-/// 기본 적 클래스
-/// 
+/// 통합 적 컨트롤러
+/// - 일반, 에픽, 보스 몬스터
 /// </summary>
 public class EnemyController : MonoBehaviour, IDamageable
 {
+    [Header("----- 적 타입 -----")]
+    [SerializeField] EnemyType _enemyType;
+
+    [Header("----- 데이터 -----")]
+    [SerializeField] EnemyData _enemyData;  //일반/에픽 데이터 (런타임 불러오기)
+    [SerializeField] BossData _bossData;    //보스 데이터 (미리 참조)
+
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] EnemyData _data;       //적 데이터
+    [SerializeField] Collider _collider;    //콜라이더
 
     [Header("----- 드랍 설정 -----")]
-    ItemDropTableData _dropTable;           // 아이템 드랍 테이블
+    ItemDropTableData _dropTable;           //아이템 드랍 테이블
     float _dropChance;                      //드랍 확률
 
-    [Header("----- 현재 속한 그룹 -----")]
+    [Header("----- 현재 속한 그룹 (일반/에픽) -----")]
     [SerializeField] EnemyGroup _group;     //현재 속한 그룹
 
-    [Header("----- 에픽 몬스터 -----")]
+    [Header("----- 에픽 몬스터 설정 -----")]
     [SerializeField] SpecialAttackBase _specialAttack;  //특수 공격 데이터
     [SerializeField] List<GameObject> _epicOrbs = new List<GameObject>();   //에픽 몬스터 오브 이펙트 리스트
 
@@ -28,82 +36,153 @@ public class EnemyController : MonoBehaviour, IDamageable
     public event Action OnDie;              //죽음 이벤트
 
     // 현재 상태 스탯 //
-    bool _isEpic = false;   //에픽 몬스터 여부
     float _maxHp;           //최대 체력
     float _curHp;           //현재 체력
     float _atk;             //공격력
+    float _moveSpeed;
+    bool _isDead = false;
 
+    // 보상 //
     int _expReward;         //보상 경험치
     int _goldReward;        //보상 골드
 
 
     // 프로퍼티 //
-    public EnemyData Data => _data;
+    public EnemyType Type => _enemyType;
+    public EnemyData EnemyData => _enemyData;
+    public BossData BossData => _bossData;
     public EnemyGroup Group => _group;
-    public bool IsEpic => _isEpic;
+    public bool IsEpic => _enemyType == EnemyType.Epic;
+    public bool IsBoss => _enemyType == EnemyType.Boss;
     public SpecialAttackBase SpecialAttack => _specialAttack;
     public float Atk => _atk;
+    public float MoveSpeed => _moveSpeed;
+    public float MaxHp => _maxHp;
+    public float CurHp => _curHp;
+    public bool IsDead => _isDead;
+
+    private void Start()
+    {
+        if (_enemyType == EnemyType.Boss)
+        {
+            InitializeBoss();
+        }
+    }
 
     /// <summary>
-    /// Enemy를 초기화하는 함수
+    /// 일반 적을 초기화하는 함수
     /// </summary>
     /// <param name="canBeEpic"></param>
-    public void Initialize(bool isEpic, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
+    public void InitializeNormal(EnemyData data, ItemDropTableData dropTable, float dropChance)
     {
-        _group = transform.parent.GetComponent<EnemyGroup>();
+        if (_enemyData == null)
+        {
+            Debug.LogError($"[Enemy] {name}: EnemtData가 없습니다.");
+            return;
+        }
 
-        //에픽 여부
-        _isEpic = isEpic;
-        _specialAttack = specialAttack;
+        _enemyData = data;
+        _enemyType = _enemyData.EnemyType;
+        _group = transform.parent?.GetComponent<EnemyGroup>();
 
         //드랍 설정
         _dropTable = dropTable;
         _dropChance = dropChance;
 
         //스탯 초기화
-        _maxHp = _data.MaxHp * (_isEpic ? _data.EpicHpMultiplier : 1);
+        _maxHp = _enemyData.MaxHp;
         _curHp = _maxHp;
+        _atk = _enemyData.Atk;
+        _moveSpeed = _enemyData.MoveSpeed;
+        _expReward = _enemyData.RewardExp;
+        _goldReward = _enemyData.RewardGold;
 
-        _atk = _data.Atk * (_isEpic ? _data.EpicAtkMultiplier : 1);
-
-        _expReward = _data.RewardExp * (_isEpic ? _data.EpicExpMultiplier : 1);
-        _goldReward = _data.RewardGold * (_isEpic ? _data.EpicGoldMultiplier : 1);
-
-        //에픽 몬스터 크기 변경 및 이펙트 (오브) 생성
-        if (_isEpic)
-        {
-            transform.localScale *= 1.2f;
-            Debug.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
-
-            if (_specialAttack != null && _specialAttack.EpicEffect != null)
-            {
-                int orbCount = 2;
-                float radius = 1.5f;
-
-                for (int i = 0; i < orbCount; i++)
-                {
-                    float angle = i * Mathf.PI;
-
-                    GameObject orbGO = Instantiate(_specialAttack.EpicEffect, transform);
-                    orbGO.transform.localRotation = Quaternion.identity;
-                    _epicOrbs.Add(orbGO);
-
-                    EffectOrbit orb = orbGO.GetComponent<EffectOrbit>();
-
-                    if (orb == null)
-                    {
-                        orbGO.AddComponent<EffectOrbit>();
-                    }
-
-                    orb.Initialize(transform, 90f, radius, angle * Mathf.Rad2Deg);
-                }
-            }
-        }
+        _isDead = false;
 
         //초기화 완료 이벤트 발행
         OnInitialized?.Invoke();
     }
 
+    /// <summary>
+    /// 에픽 적을 초기화하는 함수
+    /// </summary>
+    /// <param name="specialAttack"></param>
+    /// <param name="dropTable"></param>
+    /// <param name="dropChance"></param>
+    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
+    {
+        if (_enemyData == null)
+        {
+            Debug.LogError($"[Enemy] {name}: EnemyData가 없습니다.");
+            return;
+        }
+
+        _enemyData = data;
+        _enemyType = _enemyData.EnemyType;
+        _group = transform.parent?.GetComponent<EnemyGroup>();
+        _specialAttack = specialAttack;
+
+        //드랍 설정
+        _dropTable = dropTable;
+        _dropChance = dropChance;
+
+        //스탯 초기화 (에픽 배수 적용)
+        _maxHp = _enemyData.MaxHp * _enemyData.EpicHpMultiplier;
+        _curHp = _maxHp;
+        _atk = _enemyData.Atk * _enemyData.EpicAtkMultiplier;
+        _moveSpeed = _enemyData.MoveSpeed;
+        _expReward = _enemyData.RewardExp * _enemyData.EpicExpMultiplier;
+        _goldReward = _enemyData.RewardGold * _enemyData.EpicGoldMultiplier;
+
+        _isDead = false;
+
+        //에픽 크기 변경
+        transform.localScale *= 1.2f;
+        Debug.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
+
+        //오브 생성
+        CreateEpicOrbs();
+
+        OnInitialized?.Invoke();
+    }
+
+    /// <summary>
+    /// 보스를 초기화하는 함수
+    /// </summary>
+    private void InitializeBoss(/*ItemDropTableData dropTable, float dropChance*/)
+    {
+        if (_bossData == null)
+        {
+            Debug.LogError($"[Boss] {name}: BossData가 없습니다.");
+            return;
+        }
+
+        _enemyType = _enemyData.EnemyType;
+
+        /*
+        //드랍 설정
+        _dropTable = dropTable;
+        _dropChance = dropChance;
+        */
+
+        //스탯 초기화
+        _maxHp = _bossData.MaxHp;
+        _curHp = _maxHp;
+        _atk = _bossData.Atk;
+        _moveSpeed = _bossData.MoveSpeed;
+        _expReward = _bossData.RewardExp;
+        _goldReward = _bossData.RewardGold;
+
+        _isDead = false;
+
+        //초기화 완료 이벤트 발행
+        OnInitialized?.Invoke();
+    }
+
+    /// <summary>
+    /// 데미지 받는 함수 (공통)
+    /// </summary>
+    /// <param name="damage"></param>
     public void TakeDamage(float damage)
     {
         //현재 상태가 죽음 상태면 리턴
@@ -111,8 +190,9 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //현재 체력을 데미지 만큼 감소
         _curHp -= damage;
+        _curHp = Mathf.Max(_curHp, 0);
 
-        //애니메이션 이벤트 발행
+        //피격 애니메이션 이벤트 발행
         OnHit?.Invoke();
 
         //현재 체력이 0보다 작거나 같으면
@@ -122,47 +202,117 @@ public class EnemyController : MonoBehaviour, IDamageable
         }
     }
 
+    /// <summary>
+    /// 죽음 처리 함수 (공통)
+    /// </summary>
     void Die()
     {
-        //죽음 이벤트 발행
-        OnDie?.Invoke();
+        if (_isDead) return;
+
+        _isDead = true;
 
         //콜라이더 비활성화
-        GetComponent<Collider>().enabled = false;
+        if (_collider != null)
+        {
+            _collider.enabled = false;
+        }
+        else
+        {
+            _collider = GetComponent<Collider>();
+            _collider.enabled = false;
+        }
 
         //에픽 몬스터라면 오브 이펙트 파괴
-        if (_isEpic)
+        if (_enemyType == EnemyType.Epic)
         {
-            foreach (GameObject orb in _epicOrbs)
-            {
-                Destroy(orb);
-            }
-
-            _epicOrbs.Clear();
+            DestroyEpicOrbs();
         }
 
         //보상 지급
-        //경험치
-        ExperienceManager playerExperienceManager = FindFirstObjectByType<ExperienceManager>();
-        if (playerExperienceManager != null)
+        GiveRewards();
+
+        //아이템 드랍
+        TryDropItem();
+
+        //죽음 이벤트 발행
+        OnDie?.Invoke();
+    }
+
+    /// <summary>
+    /// 에픽 몬스터 오브 이펙트 생성
+    /// </summary>
+    void CreateEpicOrbs()
+    {
+        if (_specialAttack == null || _specialAttack.EpicEffect == null) return;
+
+        int orbCount = 2;
+        float radius = 1.5f;
+
+        for (int i = 0; i < orbCount; i++)
         {
-            playerExperienceManager.GainExperience(_expReward);
+            float angle = i * Mathf.PI;
+
+            GameObject orbGO = Instantiate(_specialAttack.EpicEffect, transform);
+            orbGO.transform.localRotation = Quaternion.identity;
+            _epicOrbs.Add(orbGO);
+
+            EffectOrbit orb = orbGO.GetComponent<EffectOrbit>();
+
+            if (orb == null)
+            {
+                orbGO.AddComponent<EffectOrbit>();
+            }
+
+            orb.Initialize(transform, 90f, radius, angle * Mathf.Rad2Deg);
+        }
+    }
+
+    /// <summary>
+    /// 에픽 몬스터 오브 이펙트 파괴
+    /// </summary>
+    void DestroyEpicOrbs()
+    {
+        foreach (GameObject orb in _epicOrbs)
+        {
+            if (orb != null)
+            {
+                Destroy(orb);
+            }
+        }
+        _epicOrbs.Clear();
+    }
+
+    /// <summary>
+    /// 보상 지급 함수 (공통)
+    /// </summary>
+    void GiveRewards()
+    {
+        //경험치
+        ExperienceManager playerExpManager = FindFirstObjectByType<ExperienceManager>();
+        if (playerExpManager != null)
+        {
+            playerExpManager.GainExperience(_expReward);
         }
         //골드
         //PlayerCombat player = _target.GetComponent<PlayerCombat>();
         //if (player != null)
         //{
-            //player.AddGold(_goldReward);
+        //player.AddGold(_goldReward);
         //}
+    }
 
-        //아이템 드랍
-        // ItemSpawner와 드랍 테이블이 설정되어 있는지 확인
+    /// <summary>
+    /// 아이템 드랍 함수 (공통)
+    /// </summary>
+    void TryDropItem()
+    {
+        //ItemSpawner와 드랍 테이블이 설정되어 있는지 확인
         if (ItemSpawner.Instance != null && _dropTable != null)
         {
-            // 확률 체크 (0~1 사이 랜덤 값)
+            //확률 체크 (0~1 사이 랜덤 값)
             if (UnityEngine.Random.Range(0f, 1f) < _dropChance)
             {
-                // 적의 현재 위치에 아이템 드랍
+                //적의 현재 위치에 아이템 드랍
                 ItemSpawner.Instance.SpawnItem(transform.position, _dropTable);
                 Debug.Log($"아이템 드랍!");
             }
