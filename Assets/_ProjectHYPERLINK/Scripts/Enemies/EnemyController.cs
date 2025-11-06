@@ -13,8 +13,8 @@ public class EnemyController : MonoBehaviour, IDamageable
     [SerializeField] EnemyType _enemyType;
 
     [Header("----- 데이터 -----")]
-    [SerializeField] EnemyData _enemyData;  //일반/에픽 데이터
-    [SerializeField] BossData _bossData;    //보스 데이터
+    [SerializeField] EnemyData _enemyData;  //일반/에픽 데이터 (런타임 불러오기)
+    [SerializeField] BossData _bossData;    //보스 데이터 (미리 참조)
 
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Collider _collider;    //콜라이더
@@ -73,7 +73,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// 일반 적을 초기화하는 함수
     /// </summary>
     /// <param name="canBeEpic"></param>
-    public void InitializeNormal(ItemDropTableData dropTable, float dropChance)
+    public void InitializeNormal(EnemyData data, ItemDropTableData dropTable, float dropChance)
     {
         if (_enemyData == null)
         {
@@ -81,6 +81,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             return;
         }
 
+        _enemyData = data;
         _enemyType = _enemyData.EnemyType;
         _group = transform.parent?.GetComponent<EnemyGroup>();
 
@@ -108,7 +109,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <param name="specialAttack"></param>
     /// <param name="dropTable"></param>
     /// <param name="dropChance"></param>
-    public void InitializeEpic(SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
+    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
     {
         if (_enemyData == null)
         {
@@ -116,6 +117,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             return;
         }
 
+        _enemyData = data;
         _enemyType = _enemyData.EnemyType;
         _group = transform.parent?.GetComponent<EnemyGroup>();
         _specialAttack = specialAttack;

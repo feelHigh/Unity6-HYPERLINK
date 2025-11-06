@@ -43,12 +43,12 @@ public class EnemySpawner : MonoBehaviour
         _group.AddComponent<EnemyGroup>();
 
         //스폰할 몬스터 목록 준비
-        List<EnemyData> enemiesToSpawn = new List<EnemyData>();
+        List<(EnemyData data, GameObject prefab)> enemiesToSpawn = new List<(EnemyData, GameObject)>();
         foreach (var info in _data.spawnList)
         {
             for (int i = 0; i < info.count; i++)
             {
-                enemiesToSpawn.Add(info.enemyData);
+                enemiesToSpawn.Add((info.enemyData, info.prefab));
             }
         }
 
@@ -59,7 +59,7 @@ public class EnemySpawner : MonoBehaviour
         List<int> epicIdxs = new List<int>();
         for (int i = 0; i < enemiesToSpawn.Count; i++)
         {
-            if (enemiesToSpawn[i].CanBeEpic)
+            if (enemiesToSpawn[i].data.CanBeEpic)
             {
                 epicIdxs.Add(i);
             }
@@ -76,14 +76,16 @@ public class EnemySpawner : MonoBehaviour
         // 몬스터 실제 생성 //
         for (int i = 0; i < enemiesToSpawn.Count; i++)
         {
-            EnemyData data = enemiesToSpawn[i];
+            var spawnEntry = enemiesToSpawn[i];
+            EnemyData data = spawnEntry.data;
+            GameObject prefab = spawnEntry.prefab;
 
             //위치 설정
             Vector3 ranPos = transform.position + Random.insideUnitSphere * _spawnRadius;
             ranPos.y = 0;
 
             //프리팹을 생성하고, 그룹 오브젝트의 자식으로 만들기
-            GameObject enemyGO = Instantiate(data.Prefab, ranPos, Quaternion.identity);
+            GameObject enemyGO = Instantiate(prefab, ranPos, Quaternion.identity);
             enemyGO.transform.SetParent(_group.transform);
 
             //EnemyController 가져오기
@@ -102,11 +104,11 @@ public class EnemySpawner : MonoBehaviour
             //적 초기화
             if (isEpic)
             {
-                enemy.InitializeEpic(specialAttack, _data.dropTable, _data.dropChance);
+                enemy.InitializeEpic(data, specialAttack, _data.dropTable, _data.dropChance);
             }
             else
             {
-                enemy.InitializeNormal(_data.dropTable, _data.dropChance);
+                enemy.InitializeNormal(data, _data.dropTable, _data.dropChance);
             }
         }
 
