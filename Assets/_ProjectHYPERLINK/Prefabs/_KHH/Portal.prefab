@@ -121,3 +121,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 188177021f9948c4c8a3d56bc11f15a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _portalData: {fileID: 0}
+  _portalEffect: {fileID: 0}
+  _rotateTowardsPlayer: 1
+  _rotationSpeed: 5
+  _enableDebugLogs: 1

@@ -340,11 +340,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e50379ace2cce3b4b984999cde4ea76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data: {fileID: 11400000, guid: 0eca62852cda29a4fb3619264a0d6e49, type: 2}
-  _dropTable: {fileID: 11400000, guid: 133c38302c09e85469fb086cce38cb2b, type: 2}
-  _dropChance: 0.5
+  _enemyType: 0
+  _enemyData: {fileID: 0}
+  _bossData: {fileID: 0}
+  _collider: {fileID: -4258607214474432638}
   _group: {fileID: 0}
   _specialAttack: {fileID: 0}
+  _epicOrbs: []
 --- !u!114 &4849416787939462836
 MonoBehaviour:
   m_ObjectHideFlags: 0

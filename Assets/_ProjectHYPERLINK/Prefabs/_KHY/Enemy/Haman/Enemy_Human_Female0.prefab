@@ -4609,7 +4609,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e50379ace2cce3b4b984999cde4ea76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data: {fileID: 0}
+  _enemyType: 0
+  _enemyData: {fileID: 0}
+  _bossData: {fileID: 0}
+  _collider: {fileID: 6509754043138460326}
   _group: {fileID: 0}
   _specialAttack: {fileID: 0}
   _epicOrbs: []

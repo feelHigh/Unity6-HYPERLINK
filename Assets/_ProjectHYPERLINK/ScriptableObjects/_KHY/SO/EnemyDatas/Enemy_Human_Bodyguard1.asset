@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
   m_Name: Enemy_Human_Bodyguard1
   m_EditorClassIdentifier: 
-  _name: Human_Bodyguard1
-  _prefab: {fileID: 1610941678409685151, guid: ad483f92bbf02ef45b0394810a9462d5, type: 3}
+  _name: "\uBE59\uC758\uB41C \uBCF4\uB514\uAC00\uB4DC_1"
+  _enemyType: 0
   _maxHp: 100
   _moveSpeed: 5
   _atk: 10

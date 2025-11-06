@@ -48,7 +48,6 @@ public class EnemyController : MonoBehaviour, IDamageable
 
 
     // 프로퍼티 //
-    public EnemyType Type => _enemyType;
     public EnemyData EnemyData => _enemyData;
     public BossData BossData => _bossData;
     public EnemyGroup Group => _group;
@@ -72,15 +71,8 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 일반 적을 초기화하는 함수
     /// </summary>
-    /// <param name="canBeEpic"></param>
     public void InitializeNormal(EnemyData data, ItemDropTableData dropTable, float dropChance)
     {
-        if (_enemyData == null)
-        {
-            Debug.LogError($"[Enemy] {name}: EnemtData가 없습니다.");
-            return;
-        }
-
         _enemyData = data;
         _enemyType = _enemyData.EnemyType;
         _group = transform.parent?.GetComponent<EnemyGroup>();
@@ -106,17 +98,8 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 에픽 적을 초기화하는 함수
     /// </summary>
-    /// <param name="specialAttack"></param>
-    /// <param name="dropTable"></param>
-    /// <param name="dropChance"></param>
     public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
     {
-        if (_enemyData == null)
-        {
-            Debug.LogError($"[Enemy] {name}: EnemyData가 없습니다.");
-            return;
-        }
-
         _enemyData = data;
         _enemyType = _enemyData.EnemyType;
         _group = transform.parent?.GetComponent<EnemyGroup>();
@@ -157,7 +140,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             return;
         }
 
-        _enemyType = _enemyData.EnemyType;
+        _enemyType = EnemyType.Boss;
 
         /*
         //드랍 설정

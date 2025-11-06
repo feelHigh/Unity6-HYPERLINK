@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
   m_Name: Enemy_Human_Female0
   m_EditorClassIdentifier: 
-  _name: Human_Female0
-  _prefab: {fileID: 4952193516828555621, guid: 1a963cca8baf3c943b82d616f2331dc6, type: 3}
+  _name: "\uBE59\uC758\uB41C \uC5EC\uC790_0"
+  _enemyType: 0
   _maxHp: 100
   _moveSpeed: 5
   _atk: 10
