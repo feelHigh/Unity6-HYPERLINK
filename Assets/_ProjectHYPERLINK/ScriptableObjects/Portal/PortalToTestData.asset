@@ -17,7 +17,7 @@ MonoBehaviour:
   _targetSceneName: TeleportScene
   _targetSpawnPointName: Bathroom
   _teleportLocationName: 
-  _interactionRange: 3
+  _interactionRange: 2
   _autoActivate: 1
   _isActive: 1
   _portalColor: {r: 0, g: 1, b: 1, a: 1}
