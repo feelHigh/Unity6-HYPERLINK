@@ -1,14 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 플레이어 스폰 / 텔레포트 시스템
-/// 
-/// 변경사항:
-/// - 기존 기능 유지
-/// - PlayerInitializationManager와 통합 가능하도록 준비
-/// - GetPlayer() 메서드를 통해 스폰 상태 확인 가능
-/// 
+///  
 /// 기능:
 /// - 지정한 위치에 직업별 플레이어 스폰
 /// - 위치 간의 텔레포트 관리
@@ -34,7 +30,7 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private Transform _defaultSpawnPoint;
 
     [Header("Teleport Points")]
-    [SerializeField] private TeleportPoint[] _teleportPoints;
+    public List<TeleportPoint> _teleportPoints = new List<TeleportPoint>();
 
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
@@ -62,8 +58,16 @@ public class PlayerSpawner : MonoBehaviour
             Log($"Portal 지정 스폰 포인트: {targetSpawn}");
 
             // TeleportPoint 찾기
-            TeleportPoint point = System.Array.Find(_teleportPoints,
-                tp => tp.LocationName == targetSpawn);
+            TeleportPoint point = null;
+
+            foreach (var portalPoint in _teleportPoints)
+            {
+                if (portalPoint.LocationName == targetSpawn)
+                {
+                    point = portalPoint;
+                    break;
+                }
+            }
 
             if (point != null)
             {
@@ -185,8 +189,16 @@ public class PlayerSpawner : MonoBehaviour
     /// </summary>
     public void TeleportToLocation(string locationName)
     {
-        TeleportPoint point = Array.Find(_teleportPoints,
-            tp => tp.LocationName == locationName);
+        TeleportPoint point = null;
+
+        foreach (var portalPoint in _teleportPoints)
+        {
+            if (portalPoint.LocationName == locationName)
+            {
+                point = portalPoint;
+                break;
+            }
+        }
 
         if (point != null && _currentPlayer != null)
         {
