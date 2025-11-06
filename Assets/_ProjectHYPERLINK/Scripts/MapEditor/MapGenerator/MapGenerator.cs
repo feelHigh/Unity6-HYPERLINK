@@ -4,7 +4,11 @@ using UnityEngine;
 public class MapGenerator : MonoBehaviour
 {
     [SerializeField] MapGround[] _mapBluePrint;
+
+    [SerializeField] PlayerSpawner _playerSpawner;
+
     [SerializeField] List<TileGenerator> _generators;
+    [SerializeField] List<Portal> _portals;
     Vector3 _startPos;
     float _cellSize;
     MapGround _map;
@@ -17,7 +21,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] int _tile1X1Value = 3;
     Dictionary<int, RoomData> _rooms = new Dictionary<int, RoomData>();
 
-    private void Start()
+    private void Awake()
     {
         Initialize();
         GenerateMap();
@@ -47,6 +51,14 @@ public class MapGenerator : MonoBehaviour
             _generatorDic.Add(gen.Type, gen);
         }
 
+        _portals = _mapBluePrint[rnd].Portals;
+        foreach(var portal in _portals)
+        {
+            TeleportPoint point = new TeleportPoint();
+            point.PortalToPoint(portal);
+
+            _playerSpawner._teleportPoints.Add(point);
+        }
     }
 
     public void GenerateMap()

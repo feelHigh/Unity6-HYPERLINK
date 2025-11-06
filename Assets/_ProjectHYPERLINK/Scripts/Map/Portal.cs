@@ -37,10 +37,15 @@ public class Portal : MonoBehaviour, IInteractable
     [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
 
+    [Header("포탈 위치")]
+    [SerializeField] string _portalLocation;
+
     // 내부 상태
     private Collider _collider;
     private bool _isActivating = false;
     private Transform _playerTransform;
+
+    public string PortalLocation => _portalLocation;
 
     #region Unity Lifecycle
 

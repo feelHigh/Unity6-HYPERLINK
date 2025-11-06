@@ -27,6 +27,7 @@ public class MapGround : MonoBehaviour
     [SerializeField] MapTileData[] _mapTiles;
     [SerializeField] int _xSize;
     [SerializeField] List<RoomData> _rooms = new List<RoomData>();
+    [SerializeField] List<Portal> _portals;
 
     public MapTileData[] MapTiles => _mapTiles;
     public List<RoomData> Rooms => _rooms;
@@ -34,6 +35,7 @@ public class MapGround : MonoBehaviour
     public Vector3 StartPos => _startPos;
     public float CellSize => _cellSize;
     public Transform RuntimeParent => _runtimeParent;
+    public List<Portal> Portals => _portals;
 
     public void BuildMapMesh(Vector3 pos, float width, float height , Material material)
     {
@@ -114,6 +116,7 @@ public class MapGround : MonoBehaviour
             _mapTiles[i].RoomNum = mapTileData.RoomNum;
             _mapTiles[i].yWall = mapTileData.yWall;
             _mapTiles[i].xWall = mapTileData.xWall;
+            _mapTiles[i].HasObject = mapTileData.HasObject;
             _mapTiles[i++].Type = mapTileData.Type;
         }
         foreach(var room in rooms)
@@ -124,7 +127,17 @@ public class MapGround : MonoBehaviour
         _cellSize = cellSize;
 
     }
+    public void BuildObject(Vector3 pos, GameObject ob)
+    {
+        GameObject go = Instantiate(ob, pos, Quaternion.identity, _tileParent);
+        _objects.Add(go);
+    }
 
+    public void BuildPortal(Vector3 pos, Portal ob)
+    {
+        Portal PortalPrefab = Instantiate(ob, pos, Quaternion.identity, _tileParent);
+        _portals.Add(PortalPrefab);
+    }
     public void RemoveObjects()
     {
         for(int i =0; i<_wallMeshes.Count; i++)
@@ -150,11 +163,7 @@ public class MapGround : MonoBehaviour
         
     }
 
-    public void BuildObject(Vector3 pos, GameObject ob)
-    {
-        GameObject go = Instantiate(ob,pos,Quaternion.identity,_tileParent);
-        _objects.Add(go);
-    }
+
     public void Hide()
     {
         _renderer.enabled = false;

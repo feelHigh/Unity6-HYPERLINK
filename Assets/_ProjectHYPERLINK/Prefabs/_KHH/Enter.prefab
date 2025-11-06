@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2119999844348069664}
   - component: {fileID: 6845208204105470062}
   m_Layer: 0
-  m_Name: Portal
+  m_Name: Enter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -126,4 +126,4 @@ MonoBehaviour:
   _rotateTowardsPlayer: 1
   _rotationSpeed: 5
   _enableDebugLogs: 1
-  _portalLocation: WayPoint
+  _portalLocation: Enter

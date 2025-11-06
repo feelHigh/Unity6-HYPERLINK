@@ -556,9 +556,13 @@ public class MapEditor : EditorWindow
                     Material material = GetTileMaterial(_mapTiles[x, y].Type);
                     Vector3 worldPos = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + _startPos;
                     _currentMap.BuildTileMesh(worldPos, CELL_SIZE, CELL_SIZE, material);
-                    if (_mapTiles[x,y].Type == TileType.Exit || _mapTiles[x,y].Type == TileType.Enter)
+                    if (_mapTiles[x,y].Type == TileType.Exit)
                     {
-                        _currentMap.BuildObject(worldPos, _mapConfig.EnterAndExit);
+                        _currentMap.BuildPortal(worldPos, _mapConfig.Exit);
+                    }
+                    else if(_mapTiles[x, y].Type == TileType.Enter)
+                    {
+                        _currentMap.BuildPortal(worldPos, _mapConfig.Enter);
                     }
                 }
 
@@ -627,7 +631,7 @@ public class MapEditor : EditorWindow
                 else if (_mapTiles[x, y].OwnObject == ObjectType.Teleport)
                 {
                     Vector3 worldPos = new Vector3(x * CELL_SIZE, 0, y * CELL_SIZE) + _startPos;
-                    _currentMap.BuildObject(worldPos, _mapConfig.Portal);
+                    _currentMap.BuildPortal(worldPos, _mapConfig.PortalPrefab);
                 }
             }
         }

@@ -13,8 +13,9 @@ public class MapConfig : ScriptableObject
     [SerializeField] Material[] _wallMaterials;
     [SerializeField] GameObject _doorPrefab;
     [SerializeField] GameObject _potion;
-    [SerializeField] GameObject _portal;
-    [SerializeField] GameObject _enterAndExit;
+    [SerializeField] Portal _portalPrefab;
+    [SerializeField] Portal _enter;
+    [SerializeField] Portal _exit;
 
     public MapGround Ground => _groundPrefab;
     public Material NormalMaterial => _normalMaterial;
@@ -23,7 +24,8 @@ public class MapConfig : ScriptableObject
     public Material[] WallMaterials => _wallMaterials;
     public GameObject DoorPrefab => _doorPrefab;
     public GameObject Potion => _potion;
-    public GameObject Portal => _portal;
-    public GameObject EnterAndExit => _enterAndExit;
+    public Portal PortalPrefab => _portalPrefab;
+    public Portal Enter => _enter;
+    public Portal Exit => _exit;
 }
 
