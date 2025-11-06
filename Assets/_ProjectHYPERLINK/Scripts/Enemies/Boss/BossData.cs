@@ -8,7 +8,6 @@ public class BossData : ScriptableObject
 {
     [Header("----- 기본 정보 -----")]
     [SerializeField] string _bossName;                  //보스 이름
-    [SerializeField] GameObject _prefab;                //보스 프리팹
 
     [Header("----- 기본 스탯 -----")]
     [SerializeField] float _maxHp = 5000f;              //최대 체력
@@ -85,7 +84,6 @@ public class BossData : ScriptableObject
 
     //프로퍼티
     public string BossName => _bossName;
-    public GameObject Prefab => _prefab;
     public float MaxHp => _maxHp;
     public float Atk => _atk;
     public float MoveSpeed => _moveSpeed;
