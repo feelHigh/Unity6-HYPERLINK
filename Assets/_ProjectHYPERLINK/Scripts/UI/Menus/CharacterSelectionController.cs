@@ -146,7 +146,10 @@ public class CharacterSelectionController : MonoBehaviour
 
         DateTime lastPlayed = DateTime.Parse(data.metadata.lastPlayed);
         TimeSpan timeSince = DateTime.UtcNow - lastPlayed;
-        _lastPlayedText.text = $"최근 플레이: {FormatTimeSince(timeSince)}";
+
+        // 마지막 씬 정보 추가
+        string lastScene = !string.IsNullOrEmpty(data.position?.scene) ? data.position.scene : _gameScene;
+        _lastPlayedText.text = $"최근 플레이: {FormatTimeSince(timeSince)} ({lastScene})";
 
         _existingCharacterPanel.SetActive(true);
     }
@@ -332,10 +335,32 @@ public class CharacterSelectionController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 게임 씬 로드
+    /// 
+    /// 로직:
+    /// 1. 마지막 저장된 씬 정보 확인 (position.scene)
+    /// 2. 씬 정보가 없거나 빈 값이면 기본 씬 사용
+    /// 3. 씬 정보가 있으면 해당 씬 로드
+    /// </summary>
     private void LoadGameScene()
     {
         GameSessionManager.Instance.SetCharacterData(_currentCharacterData);
-        SceneManager.LoadScene(_gameScene);
+
+        // 마지막 저장된 씬 정보 확인
+        string lastScene = _currentCharacterData?.position?.scene;
+
+        // 씬 정보가 없거나 빈 값이면 기본 씬 사용
+        if (string.IsNullOrEmpty(lastScene))
+        {
+            Debug.Log($"[CharacterSelection] 씬 정보 없음 - 기본 씬 로드: {_gameScene}");
+            SceneManager.LoadScene(_gameScene);
+        }
+        else
+        {
+            Debug.Log($"[CharacterSelection] 마지막 씬 로드: {lastScene}");
+            SceneManager.LoadScene(lastScene);
+        }
     }
 
     private void HideAllPanels()

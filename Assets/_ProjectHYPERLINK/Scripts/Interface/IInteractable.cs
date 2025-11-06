@@ -2,10 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// 상호작용 가능한 오브젝트 인터페이스
-/// 
-/// ⭐ Task 3 업데이트:
-/// - GetInteractionType() 추가
-/// - GetInteractionName() 추가
 /// </summary>
 public interface IInteractable
 {
@@ -31,7 +27,7 @@ public interface IInteractable
     float GetInteractionRange();
 
     /// <summary>
-    /// ⭐ 새 메서드: 상호작용 타입 반환
+    /// 상호작용 타입 반환
     /// 
     /// 반환값:
     /// - Door, Chest, NPC, Merchant 등
@@ -43,7 +39,7 @@ public interface IInteractable
     InteractionType GetInteractionType();
 
     /// <summary>
-    /// ⭐ 새 메서드: 상호작용 오브젝트 이름 반환
+    /// 상호작용 오브젝트 이름 반환
     /// 
     /// 반환값:
     /// - "문", "상자", "상인" 등의 한글 이름
