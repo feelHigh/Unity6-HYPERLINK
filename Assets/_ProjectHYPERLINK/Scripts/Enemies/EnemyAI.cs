@@ -86,7 +86,7 @@ public class EnemyAI : MonoBehaviour
         _isActive = true;
         _curState = EnemyState.Idle;
 
-        _data = _controller.Data;
+        _data = _controller.EnemyData;
         _basicAttack = _data.BasicAttackType;
 
         _specialAttack = _controller.SpecialAttack;
@@ -229,7 +229,7 @@ public class EnemyAI : MonoBehaviour
         //그룹이 null이 아니고, 어그로 상태가 아닐 때
         if (_controller.Group != null && !_controller.Group.HasAggro)
         {
-            //자신과 타겟 사이의 거리가 감지 범위보다 크다면
+            //자신과 타겟 사이의 거리가 추격 거리보다 크다면
             if (distance > _data.ChaseDistance)
             {
                 Debug.Log("타겟을 찾을 수 없음. 추격 중지");
@@ -523,7 +523,7 @@ public class EnemyAI : MonoBehaviour
 
         int ignoreLayerMask = _playerLayerMask | _enemyLayerMask;
 
-        //만약 발사한 레이캐스트가 플레이어를 제외한 다른 레이어에 맞았다면
+        //만약 발사한 레이캐스트가 플레이어와 적을 제외한 다른 레이어에 맞았다면
         if (Physics.Raycast(startPos, dir.normalized, out RaycastHit hit, distance, ~ignoreLayerMask))
         {
             //시야 막힘 반환

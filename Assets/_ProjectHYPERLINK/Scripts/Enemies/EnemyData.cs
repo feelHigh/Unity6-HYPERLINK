@@ -6,7 +6,7 @@ public class EnemyData : ScriptableObject
 {
     [Header("----- 기본 정보 -----")]
     [SerializeField] string _name;                  //이름
-    [SerializeField] GameObject _prefab;            //프리팹
+    [SerializeField] EnemyType _enemyType;          //타입
 
     [Header("----- 스탯 -----")]
     [SerializeField] float _maxHp;                  //최대 체력
@@ -37,7 +37,7 @@ public class EnemyData : ScriptableObject
 
     // ----- 프로퍼티 ------ //
     public string Name => _name;
-    public GameObject Prefab => _prefab;
+    public EnemyType EnemyType => _enemyType;
     public float MaxHp => _maxHp;
     public float MoveSpeed => _moveSpeed;
     public float Atk => _atk;

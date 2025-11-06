@@ -1,4 +1,14 @@
 /// <summary>
+/// 적 타입 enum
+/// </summary>
+public enum EnemyType
+{
+    Normal,     //일반
+    Epic,       //에픽
+    Boss        //보스
+}
+
+/// <summary>
 /// 특수 공격 타입 enum
 /// </summary>
 public enum SpecialAttackType
