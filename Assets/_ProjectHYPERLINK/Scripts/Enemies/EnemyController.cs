@@ -75,12 +75,6 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <param name="canBeEpic"></param>
     public void InitializeNormal(EnemyData data, ItemDropTableData dropTable, float dropChance)
     {
-        if (_enemyData == null)
-        {
-            Debug.LogError($"[Enemy] {name}: EnemtData가 없습니다.");
-            return;
-        }
-
         _enemyData = data;
         _enemyType = _enemyData.EnemyType;
         _group = transform.parent?.GetComponent<EnemyGroup>();

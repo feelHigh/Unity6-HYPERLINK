@@ -37,5 +37,6 @@ MonoBehaviour:
   - {fileID: 2100000, guid: a6dde328453539345b8a56c776846b05, type: 2}
   _doorPrefab: {fileID: 1761728152423473159, guid: 7c88d3e3fc20378488b735b01f5ddfe2, type: 3}
   _potion: {fileID: 6627913718144171684, guid: 875528ce6ef8c0c42995a2492aeeb261, type: 3}
-  _portal: {fileID: 6309585957370235011, guid: 351b66d2de49c634999346d20b648b13, type: 3}
-  _enterAndExit: {fileID: 6309585957370235011, guid: d344601085098d54584e78c4bf66aaa5, type: 3}
+  _portalPrefab: {fileID: 6845208204105470062, guid: 351b66d2de49c634999346d20b648b13, type: 3}
+  _enter: {fileID: 6845208204105470062, guid: 14e1ca4eb357907418738fa2ff9e2dfa, type: 3}
+  _exit: {fileID: 6845208204105470062, guid: 3e9a5e59eb6c7a64bb05ad0516f6a599, type: 3}
