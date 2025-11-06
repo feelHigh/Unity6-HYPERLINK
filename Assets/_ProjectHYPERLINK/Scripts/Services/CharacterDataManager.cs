@@ -9,6 +9,7 @@ using System.Linq;
 /// 기능:
 /// - Cloud Save 연동
 /// - Experience, Character, Equipment, Inventory 데이터 관리
+/// - 골드 관리
 /// - 자동 저장 (5분마다)
 /// - 플레이 시간 추적
 /// - 스킬 트리 저장/로드
@@ -129,7 +130,7 @@ public class CharacterDataManager : MonoBehaviour
         _totalPlayTimeSeconds = _currentCharacterData.metadata.playTimeSeconds;
         _sessionStartTime = Time.time;
 
-        Log($"캐릭터 로드 완료: {_currentCharacterData.character.characterName}, 레벨 {_currentCharacterData.character.level}");
+        Log($"캐릭터 로드 완료: {_currentCharacterData.character.characterName}, 레벨 {_currentCharacterData.character.level}, 골드 {_currentCharacterData.inventory.gold}");
         return true;
     }
 
@@ -139,7 +140,8 @@ public class CharacterDataManager : MonoBehaviour
     /// 순서: Experience → Character → Equipment → Equipment UI → Inventory → SkillTree → SkillSlots
     /// 
     /// 중요: 
-    /// - 장비 데이터 로드 후 장비 UI 동기화 (새로 추가)
+    /// - 장비 데이터 로드 후 장비 UI 동기화
+    /// - 골드는 PlayerCharacter.LoadFromSaveData()에서 자동 로드
     /// - 스킬 트리는 마지막에서 두 번째 (패시브 스탯 적용)
     /// - 스킬 슬롯은 가장 마지막 (스킬이 언락된 후 할당)
     /// </summary>
@@ -151,10 +153,11 @@ public class CharacterDataManager : MonoBehaviour
             _experienceManager.LoadFromSaveData(data);
         }
 
-        // Phase 2: 캐릭터 스탯
+        // Phase 2: 캐릭터 스탯 (골드 포함)
         if (_playerCharacter != null)
         {
             _playerCharacter.LoadFromSaveData(data);
+            Log($"PlayerCharacter 로드 완료 (골드: {_playerCharacter.CurrentGold})");
         }
 
         // Phase 3: 장비 (데이터 + UI)
@@ -395,7 +398,7 @@ public class CharacterDataManager : MonoBehaviour
 
         if (success)
         {
-            Log("캐릭터 데이터 저장 완료");
+            Log($"캐릭터 데이터 저장 완료 (골드: {_currentCharacterData.inventory.gold})");
         }
         else
         {
@@ -409,6 +412,7 @@ public class CharacterDataManager : MonoBehaviour
     /// 각 시스템에서 현재 상태 수집
     /// 
     /// Experience, Character, Equipment, Inventory, SkillTree, SkillSlots 모두 수집
+    /// 골드는 PlayerCharacter.SaveToData()에서 자동 저장
     /// </summary>
     private void CollectDataFromSystems()
     {
@@ -420,6 +424,7 @@ public class CharacterDataManager : MonoBehaviour
         if (_playerCharacter != null)
         {
             _playerCharacter.SaveToData(_currentCharacterData);
+            Log($"PlayerCharacter 저장 완료 (골드: {_playerCharacter.CurrentGold})");
         }
 
         if (_equipmentManager != null)

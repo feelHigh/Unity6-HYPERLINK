@@ -12732,10 +12732,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _portalData: {fileID: 11400000, guid: 9a9718b14f8dfb647aef599267891cf9, type: 2}
+  _requiredQuestID: 
   _portalEffect: {fileID: 0}
   _rotateTowardsPlayer: 1
   _rotationSpeed: 5
   _enableDebugLogs: 1
+  _portalLocation: 
 --- !u!135 &1220669414
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -18648,6 +18650,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _characterSelectionScene: CharacterSelectionScene
+  _autoStartQuestIDs:
+  - tutorial_complete
   _loadingPanel: {fileID: 0}
   _loadingText: {fileID: 0}
   _enableDebugLogs: 1

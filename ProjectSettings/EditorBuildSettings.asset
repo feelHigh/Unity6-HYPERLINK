@@ -14,10 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/TutorialScene.unity
     guid: e3cbeb66789511143bcba24695c9c07d
-  - enabled: 1
+  - enabled: 0
     path: Assets/_ProjectHYPERLINK/Scenes/KHY/TutorialScene.unity
     guid: de6e507e748d1804c84cb5ae1f7f6c74
-  - enabled: 0
+  - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TeleportScene.unity
     guid: 345cd5ad26297c64faf4a092eebfb020
   - enabled: 1

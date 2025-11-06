@@ -123,13 +123,21 @@ public class CharacterSaveData
         public float z;
     }
 
+    /// <summary>
+    /// 게임플레이 데이터 (퀘스트 진행 상황 포함)
+    /// </summary>
     [Serializable]
     public class GameplayData
     {
         public string difficulty = "Normal";
         public int deaths;
         public int enemiesKilled;
+
+        [Tooltip("완료된 퀘스트 ID 목록")]
         public List<string> questsCompleted = new List<string>();
+
+        [Tooltip("진행 중인 퀘스트 진행 상황")]
+        public List<QuestProgress> questProgress = new List<QuestProgress>();
     }
 
     /// <summary>
@@ -263,7 +271,7 @@ public class CharacterSaveData
         Debug.Log($"Unlocked Skills: {progression.unlockedSkills.Count}");
         Debug.Log($"Skill Tree: SP {progression.skillTree.currentSkillPoints}, Nodes {progression.skillTree.unlockedNodeIDs.Count}");
 
-        // [NEW] 스킬 슬롯 정보
+        // 스킬 슬롯 정보
         Debug.Log($"Skill Slots: {progression.skillSlots.Count}");
         foreach (var slotData in progression.skillSlots)
         {
@@ -274,6 +282,10 @@ public class CharacterSaveData
 
         Debug.Log($"Play Time: {metadata.playTimeSeconds} seconds");
         Debug.Log($"Gold: {inventory.gold}");
+
+        // 퀘스트 정보
+        Debug.Log($"Quests Completed: {gameplay.questsCompleted.Count}");
+        Debug.Log($"Quests In Progress: {gameplay.questProgress.Count}");
     }
 
     #endregion

@@ -25,8 +25,12 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private int _redSoda = 3;
     [SerializeField] private float _redSodaHealAmount = 50f;
 
+    [Header("골드 (Currency)")]
+    [SerializeField] private int _currentGold = 0;
+
     private PlayerStateController _stateController;
 
+    // 기존 이벤트
     public static event Action<float, float> OnHealthChanged;
     public static event Action<float, float> OnManaChanged;
     public static event Action<CharacterStats> OnStatsChanged;
@@ -34,6 +38,7 @@ public class PlayerCharacter : MonoBehaviour
     public static event Action<SkillData> OnSkillUnlocked;
     public static event Action<float> OnPlayerHit;
     public static event Action OnPlayerDead;
+    public static event Action<int> OnGoldChanged;
 
     private CharacterStats _currentStats;
     private CharacterStats _equipmentStats;
@@ -47,6 +52,7 @@ public class PlayerCharacter : MonoBehaviour
     private float _manaRegenTimer = 0f;
     private const float REGEN_TICK_INTERVAL = 1f;
 
+    // 기존 프로퍼티
     public CharacterClass CharacterClass => _characterClass;
     public CharacterStats CurrentStats => GetTotalStats();
     public CharacterStats BaseStats => _currentStats;
@@ -60,6 +66,7 @@ public class PlayerCharacter : MonoBehaviour
     public bool IsAlive => _currentHealth > 0;
     public float HealthPercentage => _maxHealth > 0 ? _currentHealth / _maxHealth : 0f;
     public float ManaPercentage => _maxMana > 0 ? _currentMana / _maxMana : 0f;
+    public int CurrentGold => _currentGold;
 
     #region 초기화
 
@@ -271,7 +278,7 @@ public class PlayerCharacter : MonoBehaviour
     public bool IsMagicalAttacker()
     {
         return _characterClass == CharacterClass.Sian;
-    }
+        }
 
     /// <summary>
     /// 리소스 재계산
@@ -325,7 +332,7 @@ public class PlayerCharacter : MonoBehaviour
     #endregion
 
     #region 스킬 관리
-    
+
     /// <summary>
     /// 스킬 트리에서 개별 스킬 언락
     /// 
@@ -523,6 +530,70 @@ public class PlayerCharacter : MonoBehaviour
 
     #endregion
 
+    #region 골드 관리
+
+    /// <summary>
+    /// 골드 추가
+    /// - 적 처치 시
+    /// - 퀘스트 완료 시
+    /// - 아이템 판매 시
+    /// </summary>
+    public void AddGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            Debug.LogWarning($"[PlayerCharacter] 잘못된 골드 추가 시도: {amount}");
+            return;
+        }
+
+        _currentGold += amount;
+        Debug.Log($"[골드] +{amount} 골드 획득! (현재: {_currentGold})");
+        OnGoldChanged?.Invoke(_currentGold);
+    }
+
+    /// <summary>
+    /// 골드 제거 (구매 시)
+    /// </summary>
+    /// <returns>골드가 충분하면 true, 부족하면 false</returns>
+    public bool RemoveGold(int amount)
+    {
+        if (amount <= 0)
+        {
+            Debug.LogWarning($"[PlayerCharacter] 잘못된 골드 제거 시도: {amount}");
+            return false;
+        }
+
+        if (_currentGold < amount)
+        {
+            Debug.Log($"[골드] 골드 부족! 필요: {amount}, 현재: {_currentGold}");
+            return false;
+        }
+
+        _currentGold -= amount;
+        Debug.Log($"[골드] -{amount} 골드 사용! (현재: {_currentGold})");
+        OnGoldChanged?.Invoke(_currentGold);
+        return true;
+    }
+
+    /// <summary>
+    /// 골드 보유 여부 확인
+    /// </summary>
+    public bool HasGold(int amount)
+    {
+        return _currentGold >= amount;
+    }
+
+    /// <summary>
+    /// 골드 직접 설정 (저장 데이터 로드 시)
+    /// </summary>
+    public void SetGold(int amount)
+    {
+        _currentGold = Mathf.Max(0, amount);
+        OnGoldChanged?.Invoke(_currentGold);
+    }
+
+    #endregion
+
     #region UI 업데이트
 
     private void UpdateUI()
@@ -530,6 +601,7 @@ public class PlayerCharacter : MonoBehaviour
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
         OnManaChanged?.Invoke(_currentMana, _maxMana);
         OnStatsChanged?.Invoke(GetTotalStats());
+        OnGoldChanged?.Invoke(_currentGold);
     }
 
     #endregion
@@ -538,6 +610,7 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// 2차 스탯 로드 제거 (파생 스탯 자동 계산)
+    /// 골드 로드 추가
     /// </summary>
     public void LoadFromSaveData(CharacterSaveData data)
     {
@@ -562,6 +635,13 @@ public class PlayerCharacter : MonoBehaviour
         _currentMana = data.stats.currentMana;
         _redSoda = data.stats.redSoda;
 
+        // 골드 로드
+        if (data.inventory != null)
+        {
+            _currentGold = data.inventory.gold;
+            Debug.Log($"[PlayerCharacter] 골드 로드: {_currentGold}");
+        }
+
         _unlockedSkills.Clear();
         if (data.progression?.unlockedSkills != null)
         {
@@ -576,6 +656,7 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// 2차 스탯 저장 제거 (로드 시 재계산)
+    /// 골드 저장 추가
     /// </summary>
     public void SaveToData(CharacterSaveData data)
     {
@@ -617,7 +698,14 @@ public class PlayerCharacter : MonoBehaviour
             data.progression.unlockedSkills.Add(skill.SkillName);
         }
 
-        Debug.Log($"캐릭터 데이터 저장 완료 (스킬: {_unlockedSkills.Count}개)");
+        // 골드 저장
+        if (data.inventory == null)
+        {
+            data.inventory = new CharacterSaveData.InventoryData();
+        }
+        data.inventory.gold = _currentGold;
+
+        Debug.Log($"캐릭터 데이터 저장 완료 (스킬: {_unlockedSkills.Count}개, 골드: {_currentGold})");
     }
 
     #endregion
@@ -632,6 +720,7 @@ public class PlayerCharacter : MonoBehaviour
         Debug.Log($"체력: {_currentHealth:F0}/{_maxHealth:F0}");
         Debug.Log($"마나: {_currentMana:F0}/{_maxMana:F0}");
         Debug.Log($"레드 소다: {_redSoda}개");
+        Debug.Log($"골드: {_currentGold}");
 
         CharacterStats totalStats = GetTotalStats();
         Debug.Log($"--- 주요 스탯 ---");
@@ -672,6 +761,18 @@ public class PlayerCharacter : MonoBehaviour
 
         AddLevelUpStats(strengthBonus);
         Debug.Log("[테스트] Strength +10 추가");
+    }
+
+    [ContextMenu("Test: Add Gold +100")]
+    private void TestAddGold()
+    {
+        AddGold(100);
+    }
+
+    [ContextMenu("Test: Remove Gold -50")]
+    private void TestRemoveGold()
+    {
+        RemoveGold(50);
     }
 
     #endregion
