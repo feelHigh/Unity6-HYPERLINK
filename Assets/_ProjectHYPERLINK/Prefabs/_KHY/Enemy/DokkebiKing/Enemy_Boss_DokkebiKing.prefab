@@ -955,8 +955,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enemyType: 0
   _enemyData: {fileID: 0}
-  _bossData: {fileID: 0}
-  _collider: {fileID: 0}
+  _bossData: {fileID: 11400000, guid: c3d47db656b87614ebf8abeeb63959c3, type: 2}
+  _collider: {fileID: 2106980769959432526}
   _group: {fileID: 0}
   _specialAttack: {fileID: 0}
   _epicOrbs: []
@@ -974,7 +974,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _controller: {fileID: 5728921177153519391}
   _agent: {fileID: 1428468943852515801}
-  _animator: {fileID: 0}
+  _animator: {fileID: 3363569825978005817}
   _target: {fileID: 0}
   _playerLayerMask:
     serializedVersion: 2
@@ -3583,7 +3583,7 @@ Transform:
   m_GameObject: {fileID: 9009836040476327035}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.265, y: 1.905, z: 2.214}
+  m_LocalPosition: {x: 0.265, y: 1.905, z: 2.107}
   m_LocalScale: {x: 0.6666667, y: 0.6666667, z: 0.6666667}
   m_ConstrainProportionsScale: 0
   m_Children: []

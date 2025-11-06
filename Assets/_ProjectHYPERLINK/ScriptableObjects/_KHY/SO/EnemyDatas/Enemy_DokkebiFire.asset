@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
   m_Name: Enemy_DokkebiFire
   m_EditorClassIdentifier: 
-  _name: DokkebiFire
-  _prefab: {fileID: 8314872689418627326, guid: e679929056c67fb4f8e35b029e6fb5d0, type: 3}
+  _name: "\uB3C4\uAE68\uBE44\uBD88"
+  _enemyType: 0
   _maxHp: 100
   _moveSpeed: 5
   _atk: 5
