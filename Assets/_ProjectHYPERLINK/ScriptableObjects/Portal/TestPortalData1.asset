@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _portalName: "\uD3EC\uD0C8"
   _portalType: 0
-  _targetSceneName: TeleportScene
-  _targetSpawnPointName: Bathroom
+  _targetSceneName: Billage
+  _targetSpawnPointName: Enter
   _teleportLocationName: 
   _interactionRange: 2
   _autoActivate: 1
