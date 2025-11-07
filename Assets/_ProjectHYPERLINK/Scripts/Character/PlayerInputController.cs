@@ -9,9 +9,6 @@ using UnityEngine;
 /// 
 /// 키 바인딩:
 /// - Number 1: 레드 소다 사용
-/// 
-/// 최근 변경사항:
-/// - [FIX] 사망 상태 체크 추가 (HandleConsumableInput)
 /// </summary>
 public class PlayerInputController : MonoBehaviour
 {

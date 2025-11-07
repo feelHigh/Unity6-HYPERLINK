@@ -2,18 +2,20 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 포탈 시스템 (Diablo 3 스타일)
+/// 포탈 시스템
 /// 
 /// 기능:
 /// - 씬 간 전환 (Scene Transition)
 /// - 위치 간 텔레포트 (Portal-to-Portal)
 /// - IInteractable 구현으로 상호작용 시스템 통합
+/// - 퀘스트 완료 체크로 포탈 잠금/해제
 /// - 자동 작동 또는 수동 상호작용
 /// 
 /// 사용법:
 /// 1. GameObject에 Portal 컴포넌트 추가
 /// 2. PortalData ScriptableObject 생성 및 할당
-/// 3. Collider 컴포넌트 필수 (자동 Trigger 설정)
+/// 3. [선택] RequiredQuestID 설정 (퀘스트 완료 시에만 사용 가능)
+/// 4. Collider 컴포넌트 필수 (자동 Trigger 설정)
 /// 
 /// 커스텀 에디터:
 /// - 레벨 디자이너가 PortalData로 포탈 설정 관리
@@ -24,6 +26,10 @@ public class Portal : MonoBehaviour, IInteractable
     [Header("포탈 설정")]
     [Tooltip("포탈 데이터 (ScriptableObject)")]
     [SerializeField] private PortalData _portalData;
+
+    [Header("퀘스트 잠금 설정")]
+    [Tooltip("이 포탈을 사용하기 위해 완료해야 하는 퀘스트 ID (비어있으면 항상 사용 가능)")]
+    [SerializeField] private string _requiredQuestID = "";
 
     [Header("비주얼 (Optional)")]
     [Tooltip("포탈 이펙트 오브젝트")]
@@ -157,7 +163,19 @@ public class Portal : MonoBehaviour, IInteractable
             return false;
         }
 
-        return _portalData.IsValid();
+        if (!_portalData.IsValid())
+        {
+            return false;
+        }
+
+        // 퀘스트 완료 체크
+        if (!IsQuestRequirementMet())
+        {
+            Log($"퀘스트 미완료: {_requiredQuestID}");
+            return false;
+        }
+
+        return true;
     }
 
     public float GetInteractionRange()
@@ -172,7 +190,46 @@ public class Portal : MonoBehaviour, IInteractable
 
     public string GetInteractionName()
     {
+        // 퀘스트 미완료 시 잠김 표시
+        if (!string.IsNullOrEmpty(_requiredQuestID) && !IsQuestRequirementMet())
+        {
+            return $"{_portalData?.PortalName ?? "포탈"} (잠김)";
+        }
+
         return _portalData != null ? _portalData.PortalName : "포탈";
+    }
+
+    #endregion
+
+    #region 퀘스트 체크
+
+    /// <summary>
+    /// 퀘스트 요구사항 충족 여부 확인
+    /// </summary>
+    private bool IsQuestRequirementMet()
+    {
+        // 퀘스트 요구사항이 없으면 항상 사용 가능
+        if (string.IsNullOrEmpty(_requiredQuestID))
+        {
+            return true;
+        }
+
+        // QuestManager가 없으면 퀘스트 시스템이 비활성화된 것으로 간주
+        if (QuestManager.Instance == null)
+        {
+            LogWarning("QuestManager가 없습니다. 퀘스트 체크 건너뜀");
+            return true;
+        }
+
+        // 퀘스트 완료 여부 확인
+        bool isCompleted = QuestManager.Instance.IsQuestCompleted(_requiredQuestID);
+
+        if (!isCompleted)
+        {
+            Log($"필요 퀘스트 미완료: {_requiredQuestID}");
+        }
+
+        return isCompleted;
     }
 
     #endregion
@@ -187,6 +244,13 @@ public class Portal : MonoBehaviour, IInteractable
         if (_portalData == null || !_portalData.IsValid())
         {
             LogError("유효하지 않은 포탈 설정입니다");
+            return;
+        }
+
+        // 퀘스트 체크
+        if (!IsQuestRequirementMet())
+        {
+            LogWarning("퀘스트 요구사항 미충족");
             return;
         }
 
@@ -271,13 +335,17 @@ public class Portal : MonoBehaviour, IInteractable
     {
         if (_portalEffect != null && _portalData != null)
         {
-            _portalEffect.SetActive(_portalData.IsActive);
+            // 퀘스트 미완료 시 비활성화 표시
+            bool isUsable = _portalData.IsActive && IsQuestRequirementMet();
+            _portalEffect.SetActive(isUsable);
 
             // 색상 적용 (Material이 있는 경우)
             Renderer renderer = _portalEffect.GetComponent<Renderer>();
             if (renderer != null && renderer.material != null)
             {
-                renderer.material.color = _portalData.PortalColor;
+                // 퀘스트 미완료 시 회색으로 표시
+                Color targetColor = isUsable ? _portalData.PortalColor : Color.gray;
+                renderer.material.color = targetColor;
             }
         }
     }
@@ -341,8 +409,9 @@ public class Portal : MonoBehaviour, IInteractable
     {
         if (_portalData == null) return;
 
-        // 상호작용 범위 시각화
-        Gizmos.color = _portalData.IsActive ? Color.cyan : Color.gray;
+        // 퀘스트 미완료 시 빨간색으로 표시
+        bool isUsable = _portalData.IsActive && IsQuestRequirementMet();
+        Gizmos.color = isUsable ? Color.cyan : Color.red;
         Gizmos.DrawWireSphere(transform.position, _portalData.InteractionRange);
 
         // 포탈 방향 표시
@@ -360,9 +429,11 @@ public class Portal : MonoBehaviour, IInteractable
 
 #if UNITY_EDITOR
         // 디버그 정보 표시
+        string questInfo = string.IsNullOrEmpty(_requiredQuestID) ? "퀘스트 제한 없음" : $"필요 퀘스트: {_requiredQuestID}";
+
         UnityEditor.Handles.Label(
             transform.position + Vector3.up * 2f,
-            $"Portal: {_portalData.PortalName}\n{_portalData.GetDebugInfo()}"
+            $"Portal: {_portalData.PortalName}\n{_portalData.GetDebugInfo()}\n{questInfo}"
         );
 #endif
     }

@@ -6,6 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 통합 적 컨트롤러
 /// - 일반, 에픽, 보스 몬스터
+/// - 골드 보상 지급
 /// </summary>
 public class EnemyController : MonoBehaviour, IDamageable
 {
@@ -217,8 +218,23 @@ public class EnemyController : MonoBehaviour, IDamageable
         //아이템 드랍
         TryDropItem();
 
+        //퀘스트 시스템에 적 처치 알림
+        NotifyQuestSystem();
+
         //죽음 이벤트 발행
         OnDie?.Invoke();
+    }
+
+    /// <summary>
+    /// 퀘스트 시스템에 적 처치 알림
+    /// </summary>
+    void NotifyQuestSystem()
+    {
+        if (QuestManager.Instance != null)
+        {
+            string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            QuestManager.Instance.OnEnemyKilled(_enemyType, currentScene);
+        }
     }
 
     /// <summary>
@@ -267,21 +283,24 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     /// <summary>
     /// 보상 지급 함수 (공통)
+    /// 골드 보상 활성화
     /// </summary>
     void GiveRewards()
     {
-        //경험치
+        // 경험치
         ExperienceManager playerExpManager = FindFirstObjectByType<ExperienceManager>();
         if (playerExpManager != null)
         {
             playerExpManager.GainExperience(_expReward);
         }
-        //골드
-        //PlayerCombat player = _target.GetComponent<PlayerCombat>();
-        //if (player != null)
-        //{
-        //player.AddGold(_goldReward);
-        //}
+
+        // 골드
+        PlayerCharacter player = FindFirstObjectByType<PlayerCharacter>();
+        if (player != null && _goldReward > 0)
+        {
+            player.AddGold(_goldReward);
+            Debug.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
+        }
     }
 
     /// <summary>
