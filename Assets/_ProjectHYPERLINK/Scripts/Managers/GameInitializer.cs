@@ -10,12 +10,14 @@ using TMPro;
 /// - PlayerInitializationManager 통합
 /// - WaitForPlayerSpawn → PlayerInitializationManager.StartInitialization() 사용
 /// - InitializeSystemReferences 로직 → PlayerInitializationManager로 이동
+/// - [NEW] 퀘스트 시스템 초기화 통합
 /// - 초기화 프로세스 단순화
 /// 
 /// 역할:
 /// - TutorialTestScene 진입 시 실행
 /// - 캐릭터 데이터 로드
 /// - PlayerInitializationManager를 통한 시스템 초기화 조율
+/// - QuestManager 초기화 및 퀘스트 시작
 /// - 씬 전환 시 위치 저장
 /// - 로드 화면 제어
 /// 
@@ -26,13 +28,18 @@ using TMPro;
 /// 실행 순서:
 /// 1. Awake: 씬 전환 이벤트 등록
 /// 2. Start: 데이터 로드 및 PlayerInitializationManager 시작
-/// 3. 성공: 게임 시작
-/// 4. 실패: 캐릭터 선택 화면으로 복귀
+/// 3. [NEW] 퀘스트 시스템 초기화
+/// 4. 성공: 게임 시작
+/// 5. 실패: 캐릭터 선택 화면으로 복귀
 /// </summary>
 public class GameInitializer : MonoBehaviour
 {
     [Header("씬 설정")]
     [SerializeField] private string _characterSelectionScene = "CharacterSelectionScene";
+
+    [Header("퀘스트 설정")]
+    [Tooltip("게임 시작 시 자동으로 시작할 퀘스트 ID 목록")]
+    [SerializeField] private string[] _autoStartQuestIDs = new string[] { "tutorial_complete" };
 
     [Header("로딩 UI (Optional)")]
     [SerializeField] private GameObject _loadingPanel;
@@ -96,7 +103,11 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 4. PlayerInitializationManager를 통한 Player 초기화
+            // 4. 퀘스트 시스템 초기화
+            UpdateLoadingText("퀘스트 시스템 초기화 중...");
+            InitializeQuestSystem();
+
+            // 5. PlayerInitializationManager를 통한 Player 초기화
             UpdateLoadingText("플레이어 준비 중...");
 
             if (PlayerInitializationManager.Instance == null)
@@ -115,7 +126,7 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 5. 초기화 완료
+            // 6. 초기화 완료
             UpdateLoadingText("게임 시작!");
             Log("게임 초기화 완료!");
 
@@ -185,8 +196,87 @@ public class GameInitializer : MonoBehaviour
             return false;
         }
 
+        // QuestManager 확인
+        if (QuestManager.Instance == null)
+        {
+            LogError("QuestManager를 찾을 수 없습니다! QuestManager GameObject를 씬에 추가하세요.");
+            return false;
+        }
+
         Log("모든 게임 시스템 확인 완료");
         return true;
+    }
+
+    /// <summary>
+    /// 퀘스트 시스템 초기화
+    /// - 저장된 퀘스트 진행 상황 로드
+    /// - 자동 시작 퀘스트 활성화
+    /// </summary>
+    private void InitializeQuestSystem()
+    {
+        if (QuestManager.Instance == null)
+        {
+            LogError("QuestManager가 없습니다!");
+            return;
+        }
+
+        if (GameSessionManager.Instance == null)
+        {
+            LogError("GameSessionManager가 없습니다!");
+            return;
+        }
+
+        // 저장된 데이터로 퀘스트 시스템 초기화
+        CharacterSaveData saveData = GameSessionManager.Instance.CurrentCharacterData;
+        if (saveData != null)
+        {
+            QuestManager.Instance.Initialize(saveData);
+            Log("퀘스트 시스템 초기화 완료");
+
+            // 자동 시작 퀘스트 활성화
+            StartAutoQuests();
+        }
+        else
+        {
+            LogError("캐릭터 저장 데이터를 찾을 수 없습니다!");
+        }
+    }
+
+    /// <summary>
+    /// 자동 시작 퀘스트 활성화
+    /// - 이미 완료되지 않은 퀘스트만 시작
+    /// - 진행 중이 아닌 퀘스트만 시작
+    /// </summary>
+    private void StartAutoQuests()
+    {
+        if (_autoStartQuestIDs == null || _autoStartQuestIDs.Length == 0)
+        {
+            Log("자동 시작 퀘스트가 설정되지 않았습니다");
+            return;
+        }
+
+        foreach (string questID in _autoStartQuestIDs)
+        {
+            if (string.IsNullOrEmpty(questID))
+                continue;
+
+            // 이미 완료했거나 진행 중이면 건너뛰기
+            if (QuestManager.Instance.IsQuestCompleted(questID))
+            {
+                Log($"퀘스트 이미 완료됨: {questID}");
+                continue;
+            }
+
+            if (QuestManager.Instance.IsQuestActive(questID))
+            {
+                Log($"퀘스트 이미 진행 중: {questID}");
+                continue;
+            }
+
+            // 퀘스트 시작
+            QuestManager.Instance.StartQuest(questID);
+            Log($"자동 시작 퀘스트 활성화: {questID}");
+        }
     }
 
     /// <summary>
@@ -196,7 +286,7 @@ public class GameInitializer : MonoBehaviour
     private void OnSceneUnloaded(Scene scene)
     {
         // 현재 씬이 게임 씬이면 위치 저장
-        if (scene.name == "TutorialTestScene" ||
+        if (scene.name == "TutorialScene" ||
             scene.name == "ForestScene" ||
             scene.name == "CaveScene" ||
             scene.name == "BossArena")
