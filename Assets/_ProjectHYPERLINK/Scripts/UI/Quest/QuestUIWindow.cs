@@ -64,6 +64,7 @@ public class QuestUIWindow : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.LogWarning("Enable");
         SubscribeToQuestEvents();
         RefreshQuestList();
     }
@@ -97,7 +98,7 @@ public class QuestUIWindow : MonoBehaviour
             LogWarning("QuestManager를 찾을 수 없습니다!");
             return;
         }
-
+        Debug.LogWarning("구독");
         QuestManager.Instance.OnQuestStarted += OnQuestStarted;
         QuestManager.Instance.OnQuestProgressUpdated += OnQuestProgressUpdated;
         QuestManager.Instance.OnQuestCompleted += OnQuestCompleted;
@@ -144,6 +145,7 @@ public class QuestUIWindow : MonoBehaviour
             return;
         }
 
+        
         // UI 아이템 생성 또는 풀에서 가져오기
         QuestUIItem questItem = GetOrCreateQuestItem();
         questItem.Initialize(questData, questProgress);
@@ -307,6 +309,7 @@ public class QuestUIWindow : MonoBehaviour
             if (!item.gameObject.activeSelf)
             {
                 item.gameObject.SetActive(true);
+                
                 return item;
             }
         }

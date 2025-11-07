@@ -35,6 +35,11 @@ public class ItemVisualizeField : MonoBehaviour
         item.SetVisualField(this);
     }
 
+    public void RemoveItem(InventoryItemPrefab item)
+    {
+        _items.Remove(item);
+    }
+
     /// <summary>
     /// 드래그 시작 이벤트 중계
     /// 
