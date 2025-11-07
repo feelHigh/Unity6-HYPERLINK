@@ -363,7 +363,7 @@ public class QuestManager : MonoBehaviour
     /// <summary>
     /// 퀘스트 진행 상황 저장
     /// </summary>
-    private void SaveQuestProgress()
+    public void SaveQuestProgress()
     {
         if (GameSessionManager.Instance == null) return;
 
