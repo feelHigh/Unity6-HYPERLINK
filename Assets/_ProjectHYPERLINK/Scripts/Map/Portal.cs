@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 /// <summary>
-/// 포탈 시스템
+/// 포탈 시스템 (리팩토링됨 - 씬 전환 시 데이터 저장 기능 추가)
 /// 
 /// 기능:
-/// - 씬 간 전환 (Scene Transition)
+/// - 씬 간 전환 (Scene Transition) - 데이터 저장 포함
 /// - 위치 간 텔레포트 (Portal-to-Portal)
 /// - IInteractable 구현으로 상호작용 시스템 통합
 /// - 퀘스트 완료 체크로 포탈 잠금/해제
@@ -238,8 +239,9 @@ public class Portal : MonoBehaviour, IInteractable
 
     /// <summary>
     /// 포탈 활성화 (씬 전환 또는 텔레포트)
+    /// 변경: async void로 변경하여 비동기 씬 전환 지원
     /// </summary>
-    private void ActivatePortal(PlayerCharacter player)
+    private async void ActivatePortal(PlayerCharacter player)
     {
         if (_portalData == null || !_portalData.IsValid())
         {
@@ -259,7 +261,7 @@ public class Portal : MonoBehaviour, IInteractable
         switch (_portalData.Type)
         {
             case PortalType.SceneTransition:
-                ActivateSceneTransition();
+                await ActivateSceneTransition();
                 break;
 
             case PortalType.Teleport:
@@ -272,34 +274,89 @@ public class Portal : MonoBehaviour, IInteractable
     }
 
     /// <summary>
-    /// 씬 전환 모드
+    /// 씬 전환 모드 (비동기 처리)
+    /// 
+    /// 변경사항:
+    /// - 씬 전환 전 CharacterDataManager를 통한 전체 데이터 저장
+    /// - 저장 완료 대기 후 씬 전환
+    /// - 퀘스트 데이터 저장 포함
+    /// - 위치 정보 자동 업데이트
+    /// - 오류 처리 개선 (저장 실패 시 씬 전환 중단)
+    /// 
+    /// 데이터 저장 순서:
+    /// 1. 스폰 포인트 정보를 PlayerPrefs에 저장 (다음 씬에서 사용)
+    /// 2. CharacterDataManager를 통한 전체 게임 데이터 저장
+    ///    - 캐릭터 정보 (레벨, 경험치)
+    ///    - 스탯 (HP, 마나, 모든 스탯)
+    ///    - 장비
+    ///    - 인벤토리 (아이템, 골드)
+    ///    - 스킬 트리 및 스킬 슬롯
+    ///    - 위치 (현재 씬, 좌표)
+    /// 3. QuestManager를 통한 퀘스트 진행 상황 저장
+    /// 4. 저장 완료 후 씬 전환
     /// </summary>
-    private void ActivateSceneTransition()
+    private async Task ActivateSceneTransition()
     {
         string targetScene = _portalData.TargetSceneName;
         string spawnPoint = _portalData.TargetSpawnPointName;
 
-        Log($"씬 전환: {targetScene}" +
+        Log($"씬 전환 준비: {targetScene}" +
             (string.IsNullOrEmpty(spawnPoint) ? "" : $" -> {spawnPoint}"));
 
-        // PlayerSpawner에 위치 저장
-        if (PlayerSpawner.Instance != null)
-        {
-            PlayerSpawner.Instance.SavePlayerPosition();
-        }
+        // === 1단계: 씬 전환 정보 저장 ===
 
-        // 스폰 포인트 정보를 PlayerPrefs에 저장 (다음 씬에서 사용)
+        // 목표 씬과 스폰 포인트를 PlayerPrefs에 저장 (다음 씬에서 사용)
         if (!string.IsNullOrEmpty(spawnPoint))
         {
             PlayerPrefs.SetString("TargetSpawnPoint", spawnPoint);
-            PlayerPrefs.Save();
         }
         else
         {
             PlayerPrefs.DeleteKey("TargetSpawnPoint");
         }
 
-        // 씬 로드
+        PlayerPrefs.SetString("TargetScene", targetScene);
+        PlayerPrefs.Save();
+
+        Log("씬 전환 정보 저장 완료");
+
+        // === 2단계: 전체 게임 데이터 저장 ===
+
+        if (CharacterDataManager.Instance != null)
+        {
+            Log("캐릭터 데이터 저장 중...");
+
+            // 비동기 저장 시작 및 완료 대기
+            bool saveSuccess = await CharacterDataManager.Instance.CollectAndSaveData();
+
+            if (!saveSuccess)
+            {
+                LogError("데이터 저장 실패! 씬 전환을 중단합니다.");
+                _isActivating = false;
+                return;
+            }
+
+            Log("캐릭터 데이터 저장 완료");
+        }
+        else
+        {
+            LogError("CharacterDataManager를 찾을 수 없습니다! 데이터가 손실될 수 있습니다.");
+            // 사용자에게 경고 후 계속 진행할지 결정
+            // 현재는 경고만 출력하고 진행
+        }
+
+        // === 3단계: 퀘스트 데이터 저장 ===
+
+        if (QuestManager.Instance != null)
+        {
+            Log("퀘스트 데이터 저장 중...");
+            QuestManager.Instance.SaveQuestProgress();
+            Log("퀘스트 데이터 저장 완료");
+        }
+
+        // === 4단계: 씬 전환 실행 ===
+
+        Log($"모든 데이터 저장 완료. 씬 전환 시작: {targetScene}");
         SceneManager.LoadScene(targetScene);
     }
 
