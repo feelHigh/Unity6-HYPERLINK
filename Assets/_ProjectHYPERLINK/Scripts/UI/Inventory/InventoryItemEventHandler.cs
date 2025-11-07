@@ -15,7 +15,7 @@ public enum MousePos
     None,
     ItemInventory,
     EquipInventory,
-    Shop
+    Shop,
 }
 
 /// <summary>
@@ -47,6 +47,7 @@ public class InventoryItemEventHandler : MonoBehaviour
     [SerializeField] private ItemVisualizeField _itemVisualizeField;
     [SerializeField] private ItemInventory _inventory;
     [SerializeField] private EquipInventory _equipInventory;
+    [SerializeField] private ShopUI _shop;
 
     [Header("Prefab")]
     [SerializeField] private DraggingVisualizeItem _dragItem;
@@ -104,6 +105,9 @@ public class InventoryItemEventHandler : MonoBehaviour
                 break;
             case MousePos.EquipInventory:
                 EquipOnDrag();
+                break;
+            case MousePos.Shop:
+                _dragItem.ChangeColor(true);
                 break;
         }
     }
@@ -176,7 +180,7 @@ public class InventoryItemEventHandler : MonoBehaviour
                 {
                     _inventory.OnDrop(item);
                     giveItem = true;
-                    if (_ownerSlot is EquipSlot eslot)
+                    if (_ownerSlot is EquipSlot eslot1)
                     {
                         Debug.Log("[InventoryItemEventHandler] 장비 해제 후 인벤토리로 이동");
                         _equipInventory.UnEquipItem(item);
@@ -198,6 +202,21 @@ public class InventoryItemEventHandler : MonoBehaviour
                 {
                     Debug.LogWarning($"[InventoryItemEventHandler] 아이템 장착 실패: {item.Data.ItemName}");
                 }
+                break;
+            case MousePos.Shop:
+
+                if (_ownerSlot is EquipSlot eslot2)
+                {
+                    _equipInventory.UnEquipItem(item);
+                }
+                else if (_ownerSlot is InventorySlot islot)
+                {
+                    _inventory.PlaceItem(item.Data, islot, false);
+                }
+                giveItem = true;
+                _itemVisualizeField.RemoveItem(item);
+                _shop.Sell(item.Data);
+                Destroy(item.gameObject);
                 break;
         }
 
@@ -227,6 +246,21 @@ public class InventoryItemEventHandler : MonoBehaviour
     {
         if (_item == null) return;
         OnEndDrag(_item);
+    }
+
+    public bool Buy(ItemData item, PlayerCharacter player)
+    {
+        if (!player.HasGold(item.Gold))
+        {
+            return false;
+        }
+        if (!_inventory.GetItem(item))
+        {
+            return false;
+        }
+        player.RemoveGold(item.Gold);
+
+        return true;
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] List<ShopItem> _items = new List<ShopItem>();
     [SerializeField] ItemDropTableData _dropTableData;
     [SerializeField] PlayerCharacter _player;
-    bool _hasOpened = false;
+    [SerializeField] bool _hasOpened = false;
 
     public void Open(PlayerCharacter player)
     {
@@ -26,6 +26,7 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         foreach (var item in _items)
         {
             item.Initialize(this, ItemSpawner.Instance.SpawnItemData(_dropTableData));
+            Debug.LogError("아이템 생서");
         }
     }
 

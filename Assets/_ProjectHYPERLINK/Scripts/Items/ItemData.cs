@@ -71,6 +71,7 @@ public class ItemData : ScriptableObject
     public GameObject ItemModel => _itemModel;
     public Vector2Int GridSize => new Vector2Int(_gridSizeX, _gridSizeY);
     public int Gold => _gold;
+
     public CharacterStats Stats
     {
         get
@@ -102,6 +103,11 @@ public class ItemData : ScriptableObject
     public void SetName(string name)
     {
         _itemName = name;
+    }
+
+    public void SetGold(int gold)
+    {
+        _gold = gold;
     }
 
     /// <summary>
