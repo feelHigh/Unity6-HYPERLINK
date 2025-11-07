@@ -86,7 +86,7 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
         if (_retryCount >= _maxRetries)
         {
             LogError($"EquipmentManager를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
-            CancelInvoke(nameof(TryFindEquipmentManager));
+            //CancelInvoke(nameof(TryFindEquipmentManager));
         }
     }
 

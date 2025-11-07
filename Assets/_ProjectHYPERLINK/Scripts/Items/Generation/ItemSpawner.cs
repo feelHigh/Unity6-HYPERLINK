@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
-using System.Linq;
 
 /// <summary>
 /// 엠블렘 시스템 기반 절차적 아이템 생성
@@ -29,6 +27,8 @@ public class ItemSpawner : MonoBehaviour
     [Header("스탯 롤링 설정")]
     [SerializeField] private DropStatsAndRange[] _equipment_DropRanges;
     [SerializeField] private DropStatsAndRange[] _weapon_DropRanges;
+    [SerializeField] private int _minGold;
+    [SerializeField] private int _maxGold;
 
     [Header("아이템 프리팹")]
     [SerializeField] private Item _itemPrefab;
@@ -83,6 +83,38 @@ public class ItemSpawner : MonoBehaviour
         }
     }
 
+    public ItemData SpawnItemData(ItemDropTableData dropTable)
+    {
+        ItemData data = new ItemData();
+        List<ItemStat> stats = new List<ItemStat>();
+        ItemQuality quality = dropTable.RollItemQuality();
+        int rnd = Random.Range(0, 2);
+        if (rnd == 0)
+        {
+            data = _weaponTemplates[Random.Range(0, _weaponTemplates.Length)].CreateRuntimeCopy();
+            data.SetQuality(quality);
+            stats = GenerateStats(_weapon_DropRanges, GetStatCountForQuality(quality));
+        }
+        else
+        {
+            EquipmentType equip = GetRandomEquipmentType();
+            data = GetEquipmentTemplate(equip);
+
+            data.SetQuality(quality);
+            stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
+        }
+        data.SetProceduralStats(stats);
+
+        int gold = Random.Range(_minGold, _maxGold);
+        gold *= ((int)quality + 1);
+        data.SetGold(gold);
+
+        string generatedName = GenerateItemName(data.ItemName, quality, stats);
+        data.SetName(generatedName);
+        Debug.Log("아이템 나옴");
+        return data;
+    }
+
     /// <summary>
     /// 아이템 생성 (리팩토링)
     /// </summary>
@@ -90,7 +122,7 @@ public class ItemSpawner : MonoBehaviour
     {
         ItemData itemData = new ItemData();
         List<ItemStat> stats = new List<ItemStat>();
-
+        
         if (itemType == 0 && _itemPrefab != null && _weaponTemplates != null && _weaponTemplates.Length > 0)
         {
             // 무기 생성
@@ -123,7 +155,9 @@ public class ItemSpawner : MonoBehaviour
             Debug.LogWarning("[ItemSpawner] 아이템 생성 실패 - 프리팹 또는 템플릿 누락");
             return null;
         }
-
+        int gold = Random.Range(_minGold, _maxGold);
+        gold *= ((int)quality+1);
+        itemData.SetGold(gold);
         itemData.SetProceduralStats(stats);
 
         string generatedName = GenerateItemName(itemData.ItemName, quality, stats);
@@ -152,6 +186,10 @@ public class ItemSpawner : MonoBehaviour
 
         List<ItemStat> stats = GenerateStats(_equipment_DropRanges, GetStatCountForQuality(quality));
         itemData.SetProceduralStats(stats);
+
+        int gold = Random.Range(_minGold, _maxGold);
+        gold *= ((int)quality + 1);
+        itemData.SetGold(gold);
 
         string generatedName = GenerateItemName(itemData.ItemName, quality, stats);
         itemData.SetName(generatedName);

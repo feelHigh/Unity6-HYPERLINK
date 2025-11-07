@@ -28,6 +28,7 @@ public class ItemData : ScriptableObject
     [SerializeField] private string _itemName;
     [SerializeField] private string _description;
     [SerializeField] private Sprite _itemIcon;
+    [SerializeField] private int _gold;
 
     #endregion
 
@@ -69,6 +70,7 @@ public class ItemData : ScriptableObject
     public int RequiredLevel => _requiredLevel;
     public GameObject ItemModel => _itemModel;
     public Vector2Int GridSize => new Vector2Int(_gridSizeX, _gridSizeY);
+    public int Gold => _gold;
 
     public CharacterStats Stats
     {
@@ -101,6 +103,11 @@ public class ItemData : ScriptableObject
     public void SetName(string name)
     {
         _itemName = name;
+    }
+
+    public void SetGold(int gold)
+    {
+        _gold = gold;
     }
 
     /// <summary>
