@@ -14,7 +14,8 @@ public enum MousePos
 {
     None,
     ItemInventory,
-    EquipInventory
+    EquipInventory,
+    Shop
 }
 
 /// <summary>
