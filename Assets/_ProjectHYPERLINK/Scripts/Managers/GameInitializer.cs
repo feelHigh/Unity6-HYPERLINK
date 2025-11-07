@@ -17,7 +17,7 @@ using TMPro;
 /// - TutorialTestScene 진입 시 실행
 /// - 캐릭터 데이터 로드
 /// - PlayerInitializationManager를 통한 시스템 초기화 조율
-/// - [NEW] QuestManager 초기화 및 퀘스트 시작
+/// - QuestManager 초기화 및 퀘스트 시작
 /// - 씬 전환 시 위치 저장
 /// - 로드 화면 제어
 /// 
@@ -286,7 +286,7 @@ public class GameInitializer : MonoBehaviour
     private void OnSceneUnloaded(Scene scene)
     {
         // 현재 씬이 게임 씬이면 위치 저장
-        if (scene.name == "TutorialTestScene" ||
+        if (scene.name == "TutorialScene" ||
             scene.name == "ForestScene" ||
             scene.name == "CaveScene" ||
             scene.name == "BossArena")
