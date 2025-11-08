@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -15,9 +16,11 @@ using System.Collections.Generic;
 /// 의존성:
 /// - PlayerCharacter: 공격력 계산
 /// - PlayerStateController: 공격 가능 여부 확인
+/// - NavMeshAgent: 공격 중 이동 차단
 /// - Camera: 마우스 위치 계산
 /// </summary>
 [RequireComponent(typeof(PlayerCharacter))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class PlayerAttackController : MonoBehaviour
 {
     private static readonly int ATTACK_HASH = Animator.StringToHash("Attack");
@@ -29,6 +32,7 @@ public class PlayerAttackController : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private PlayerStateController _stateController;
     private Animator _animator;
+    private NavMeshAgent _agent;
 
     // 공격 상태
     private bool _isAttacking = false;
@@ -83,6 +87,7 @@ public class PlayerAttackController : MonoBehaviour
         _playerCharacter = GetComponent<PlayerCharacter>();
         _stateController = GetComponent<PlayerStateController>();
         _animator = GetComponent<Animator>();
+        _agent = GetComponent<NavMeshAgent>();
 
         if (_playerCharacter == null)
         {
@@ -97,6 +102,11 @@ public class PlayerAttackController : MonoBehaviour
         if (_animator == null)
         {
             Debug.LogError("[PlayerAttackController] Animator가 없습니다!");
+        }
+
+        if (_agent == null)
+        {
+            Debug.LogError("[PlayerAttackController] NavMeshAgent가 없습니다!");
         }
 
         // 기본값 저장
@@ -213,6 +223,15 @@ public class PlayerAttackController : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
         {
+            // NavMeshAgent 완전 정지 (이동 중 공격 방지)
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.velocity = Vector3.zero;
+                _agent.ResetPath();
+                _agent.isStopped = true;
+                Log("NavMeshAgent 정지");
+            }
+
             // 마우스 위치로 회전
             Vector3 targetDirection = (hit.point - transform.position).normalized;
             targetDirection.y = 0;
@@ -331,6 +350,13 @@ public class PlayerAttackController : MonoBehaviour
         if (_stateController != null)
         {
             _stateController.SetAttacking(false);
+        }
+
+        // NavMeshAgent 재활성화 (이동 가능)
+        if (_agent != null && _agent.isOnNavMesh)
+        {
+            _agent.isStopped = false;
+            Log("NavMeshAgent 재활성화");
         }
 
         OnAttackEnded?.Invoke();
