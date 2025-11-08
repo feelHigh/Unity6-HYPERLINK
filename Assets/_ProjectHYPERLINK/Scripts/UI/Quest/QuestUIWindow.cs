@@ -27,7 +27,6 @@ public class QuestUIWindow : MonoBehaviour
     [Header("UI 참조")]
     [SerializeField] private Transform _questItemContainer;
     [SerializeField] private QuestUIItem _questItemPrefab;
-    [SerializeField] private TextMeshProUGUI _headerText;
     [SerializeField] private GameObject _emptyMessageObject;
     [SerializeField] private TextMeshProUGUI _emptyMessageText;
 
@@ -129,12 +128,6 @@ public class QuestUIWindow : MonoBehaviour
     /// </summary>
     private void InitializeUI()
     {
-        // 헤더 텍스트 설정
-        if (_headerText != null)
-        {
-            _headerText.text = "활성 퀘스트";
-        }
-
         // 빈 메시지 설정
         if (_emptyMessageText != null)
         {

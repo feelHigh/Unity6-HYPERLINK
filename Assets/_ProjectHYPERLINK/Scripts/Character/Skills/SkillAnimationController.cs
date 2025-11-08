@@ -99,7 +99,7 @@ public class SkillAnimationController : MonoBehaviour
         CleanupAllHitAreaCoroutines();
         CleanupDashTween();
 
-        if (_navAgent != null && _navAgent.enabled)
+        if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
             _navAgent.updateRotation = true;
             _navAgent.isStopped = false;
@@ -120,7 +120,7 @@ public class SkillAnimationController : MonoBehaviour
 
         _currentSkill = skill;
 
-        if (_navAgent != null && _navAgent.enabled)
+        if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
@@ -150,7 +150,7 @@ public class SkillAnimationController : MonoBehaviour
         _isPerformingSkill = false;
         _currentSkill = null;
 
-        if (_navAgent != null && _navAgent.enabled)
+        if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
@@ -207,7 +207,7 @@ public class SkillAnimationController : MonoBehaviour
         _currentSkill = null;
         _skillCoroutine = null;
 
-        if (_navAgent != null && _navAgent.enabled)
+        if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
             _navAgent.updateRotation = true;
             _navAgent.isStopped = false;
