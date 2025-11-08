@@ -11,6 +11,10 @@ using DG.Tweening;
 /// - ApplyAllHitAreas() - 여러 hit area 동시 처리
 /// - ApplySingleHitArea() - 각 hit area별 독립 코루틴
 /// - 타이밍별로 다른 범위의 데미지 적용 가능
+/// 
+/// 리팩토링 업데이트:
+/// - PlayerAttackController 참조 추가
+/// - 데미지 계산 시 AttackDamage를 PlayerAttackController에서 가져옴
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -30,6 +34,7 @@ public class SkillAnimationController : MonoBehaviour
     private NavMeshAgent _navAgent;
     private PlayerCharacter _playerCharacter;
     private PlayerNavController _navController;
+    private PlayerAttackController _attackController; // ⭐ 추가됨
     private Camera _mainCamera;
 
     private bool _isPerformingSkill = false;
@@ -57,12 +62,19 @@ public class SkillAnimationController : MonoBehaviour
         _navAgent = GetComponent<NavMeshAgent>();
         _playerCharacter = GetComponent<PlayerCharacter>();
         _navController = GetComponent<PlayerNavController>();
+        _attackController = GetComponent<PlayerAttackController>(); // ⭐ 추가됨
         _mainCamera = Camera.main;
 
         if (_animator == null || _navAgent == null)
         {
             Debug.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
             enabled = false;
+        }
+
+        // ⭐ PlayerAttackController 존재 확인
+        if (_attackController == null)
+        {
+            Debug.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다! 스킬 데미지 계산이 정상적으로 작동하지 않을 수 있습니다.");
         }
     }
 
@@ -270,21 +282,16 @@ public class SkillAnimationController : MonoBehaviour
         {
             _currentDashTween.Kill();
             _currentDashTween = null;
+            Log("대시 트윈 정리");
         }
     }
 
     #endregion
 
-    #region 회전 제어
+    #region 마우스 방향 회전
 
-    /// <summary>
-    /// 마우스 위치 방향으로 캐릭터 회전
-    /// ⭐ 업데이트: 스킬 인디케이터 표시 추가
-    /// </summary>
     private void RotateTowardsMousePosition()
     {
-        if (_mainCamera == null) return;
-
         Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
@@ -422,12 +429,23 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 데미지 계산
 
+    /// <summary>
+    /// 스킬 데미지 계산
+    /// 
+    /// ⭐ 업데이트: PlayerAttackController에서 AttackDamage 가져옴
+    /// 
+    /// 공식: ((AttackDamage × SkillMultiplier) + SkillBaseDamage) × (1 + (MainStat × MainStatDamageIncrease))
+    /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
-        if (skill == null || _playerCharacter == null || _navController == null)
+        if (skill == null || _playerCharacter == null || _attackController == null)
+        {
+            Debug.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패: 필수 컴포넌트 누락");
             return 0f;
+        }
 
-        float attackDamage = _navController.AttackDamage;
+        // ⭐ 변경: _navController.AttackDamage → _attackController.AttackDamage
+        float attackDamage = _attackController.AttackDamage;
         int mainStat = _playerCharacter.GetMainStat();
 
         float damage = ((attackDamage * skill.SkillMultiplier) + skill.SkillBaseDamage)

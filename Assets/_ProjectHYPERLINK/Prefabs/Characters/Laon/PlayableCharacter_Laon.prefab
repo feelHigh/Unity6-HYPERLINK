@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1803515443096613692}
   - component: {fileID: 1080784757948748187}
   - component: {fileID: 1492089533889283871}
+  - component: {fileID: 6888478398968172481}
   - component: {fileID: 3735128981493473489}
   - component: {fileID: 6274837084202361495}
   - component: {fileID: 4529648162199723491}
@@ -138,19 +139,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 669ba5a3179caab479f408d82376553e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rotationThresholdAngle: 90
-  _velocityResetAngle: 180
-  _minimumMovementSpeed: 1
-  _currentAttackCooldown: 0
+  _rotationThresholdAngle: 45
+  _velocityResetAngle: 90
+  _minimumMovementSpeed: 2
   _animationDampTime: 0.1
-  _attackAnimationDuration: 1
-  _attackRange: 3
-  _attackAngle: 90
-  _attackDamage: 25
-  _attackSpeed: 1
-  _baseAttackVfxPrefab: {fileID: 0}
-  _vfxPositionOffset: {x: 0, y: 1, z: 1}
-  _vfxLifetime: 2
   _knockbackDuration: 0.3
   _knockbackObstacleLayer:
     serializedVersion: 2
@@ -164,6 +156,32 @@ MonoBehaviour:
     m_Bits: 64
   _enableDebugLogs: 1
   _visualizeKnockbackPath: 1
+--- !u!114 &6888478398968172481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8470624065522552731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64f1a1255cd9226499a494c9024fd240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _attackRange: 3
+  _attackAngle: 90
+  _attackDamage: 25
+  _attackSpeed: 1
+  _attackAnimationDuration: 1
+  _baseAttackVfxPrefab: {fileID: 0}
+  _vfxPositionOffset: {x: 0, y: 1, z: 1}
+  _vfxLifetime: 2
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  _currentAttackCooldownDisplay: 0
+  _enableDebugLogs: 1
+  _visualizeAttackRange: 1
 --- !u!114 &3735128981493473489
 MonoBehaviour:
   m_ObjectHideFlags: 0
