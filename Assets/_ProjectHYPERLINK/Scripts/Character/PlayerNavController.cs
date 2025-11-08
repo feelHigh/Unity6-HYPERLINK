@@ -25,6 +25,7 @@ public class PlayerNavController : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private PlayerStateController _stateController;
 
+    private bool _manualRotationThisFrame = false;
     private bool _isAttacking = false;
     private bool _isPerformingSkill = false;
     private bool _isDead = false;
@@ -38,6 +39,20 @@ public class PlayerNavController : MonoBehaviour
     // 기본 이동속도 및 쿨다운 저장
     private float _baseSpeed;
     private float _baseCooldown;
+
+    [Header("이동 반응성 설정")]
+    [Tooltip("방향 전환 각도 임계값 - 이 각도 이상 전환시에만 즉시 회전")]
+    [SerializeField] private float _rotationThresholdAngle = 45f;
+
+    [Tooltip("속도 리셋 각도 임계값 - 이 각도 이상시에만 속도 리셋")]
+    [SerializeField] private float _velocityResetAngle = 90f;
+
+    [Tooltip("최소 이동 속도 (애니메이션 연속성 유지용)")]
+    [SerializeField] private float _minimumMovementSpeed = 1f;
+
+    // 마지막 이동 방향 추적
+    private Vector3 _lastMovementDirection = Vector3.zero;
+    private bool _isCurrentlyMoving = false;
 
     // 넉백 디버그 시각화용
     private Vector3 _lastKnockbackStart;
@@ -65,6 +80,11 @@ public class PlayerNavController : MonoBehaviour
 
     [Tooltip("기본 공격 쿨다운 (초) - Attack Speed 스탯에 의해 감소됨")]
     [SerializeField] private float _attackSpeed = 1f;
+
+    [Header("기본 공격 VFX")]
+    [SerializeField] private GameObject _baseAttackVfxPrefab;
+    [SerializeField] private Vector3 _vfxPositionOffset = new Vector3(0f, 1f, 1f);
+    [SerializeField] private float _vfxLifetime = 2f;
 
     [Header("넉백 설정")]
     [SerializeField, Tooltip("넉백 이동 시간 (초)")]
@@ -240,23 +260,49 @@ public class PlayerNavController : MonoBehaviour
 
     private void Update()
     {
-        // 사망 상태면 아무것도 안 함
-        if (_isDead) return;
+        // 사망 또는 스킬 시전 중엔 업데이트 안함
+        if (_isDead || _isPerformingSkill)
+        {
+            return;
+        }
 
-        // 이동속도 업데이트 (스탯 + 상태이상)
-        UpdateMovementSpeed();
+        // Movement Speed 동적 업데이트
+        if (_playerCharacter != null && _agent != null)
+        {
+            CharacterStats stats = _playerCharacter.CurrentStats;
+            float targetSpeed = _baseSpeed + stats.MovementSpeed;
 
-        // 마우스 입력 처리
-        HandleMouseInput();
+            // 상태이상에 따른 속도 조정
+            if (_stateController != null)
+            {
+                if (_stateController.IsFrozen)
+                {
+                    targetSpeed = 0f;
+                }
+                else if (_stateController.IsRoot)
+                {
+                    targetSpeed = 0f;
+                }
+            }
 
-        // 애니메이터 업데이트
+            _agent.speed = targetSpeed;
+        }
+
+        // 이동 상태 추적
+        if (_agent != null && _agent.isOnNavMesh)
+        {
+            _isCurrentlyMoving = _agent.velocity.magnitude > 0.5f;
+            if (_isCurrentlyMoving && _agent.velocity.magnitude > 0.1f)
+            {
+                _lastMovementDirection = _agent.velocity.normalized;
+            }
+        }
+
+        // 애니메이션 업데이트
         UpdateAnimator();
 
-        // 타겟 추적
-        if (_currentTarget != null)
-        {
-            FollowTarget();
-        }
+        // 입력 처리
+        HandleMouseInput();
     }
 
     #endregion
@@ -323,10 +369,8 @@ public class PlayerNavController : MonoBehaviour
 
             if (interactable != null && interactable.CanInteract(_playerCharacter))
             {
-                // 상호작용 대상 저장
                 _pendingInteraction = interactable;
 
-                // 거리가 멀면 이동 후 상호작용
                 float distance = Vector3.Distance(transform.position, hit.transform.position);
                 if (distance > 2f)
                 {
@@ -339,7 +383,6 @@ public class PlayerNavController : MonoBehaviour
                 }
                 else
                 {
-                    // 가까우면 즉시 상호작용
                     interactable.Interact(_playerCharacter);
                     _pendingInteraction = null;
                     Log($"즉시 상호작용: {hit.transform.name}");
@@ -348,7 +391,7 @@ public class PlayerNavController : MonoBehaviour
             }
         }
 
-        // 2순위: 지면 클릭 → 이동
+        // 2순위: 지면 클릭 → 스마트 이동
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
         {
             _currentTarget = null;
@@ -361,14 +404,82 @@ public class PlayerNavController : MonoBehaviour
                 _pendingInteraction = null;
             }
 
-            _agent.SetDestination(hit.point);
+            // 스마트 이동 처리
+            ProcessSmartMovement(hit.point);
+
+            // 이동 인디케이터 표시
+            if (MousePositionIndicator.Instance != null)
+            {
+                MousePositionIndicator.Instance.ShowMoveIndicator(hit.point);
+            }
+
             Log($"이동 명령: {hit.point}");
         }
     }
 
     /// <summary>
+    /// 스마트 이동 처리
+    /// 방향 전환 각도에 따라 최적의 이동 방식 선택
+    /// </summary>
+    private void ProcessSmartMovement(Vector3 targetPoint)
+    {
+        if (_agent == null || !_agent.isOnNavMesh) return;
+
+        // 목표 방향 계산
+        Vector3 targetDirection = (targetPoint - transform.position).normalized;
+        targetDirection.y = 0;
+
+        if (targetDirection == Vector3.zero) return;
+
+        // 현재 이동 중인지 확인
+        bool isMoving = _agent.velocity.magnitude > 0.5f;
+        float currentSpeed = _agent.velocity.magnitude;
+
+        if (isMoving && _lastMovementDirection != Vector3.zero)
+        {
+            // ⭐ 이동 중 - 방향 전환 각도 계산
+            float directionAngle = Vector3.Angle(_lastMovementDirection, targetDirection);
+
+            Log($"방향 전환 각도: {directionAngle:F1}°, 현재 속도: {currentSpeed:F1}");
+
+            if (directionAngle < _rotationThresholdAngle)
+            {
+                // 작은 방향 전환 - 부드럽게 경로만 업데이트
+                _agent.SetDestination(targetPoint);
+                Log("→ 부드러운 경로 업데이트 (속도 유지)");
+            }
+            else if (directionAngle < _velocityResetAngle)
+            {
+                // 중간 방향 전환 - 속도 감소 없이 즉시 회전
+                transform.rotation = Quaternion.LookRotation(targetDirection);
+                _agent.SetDestination(targetPoint);
+                Log("→ 즉시 회전 (속도 유지)");
+            }
+            else
+            {
+                // 큰 방향 전환 - 최소 속도로 리셋 후 회전
+                _agent.velocity = targetDirection * _minimumMovementSpeed;
+                transform.rotation = Quaternion.LookRotation(targetDirection);
+                _agent.SetDestination(targetPoint);
+                Log("→ 큰 방향 전환 (최소 속도 유지)");
+            }
+        }
+        else
+        {
+            // ⭐ 정지 상태에서 시작 - 즉시 회전
+            _agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+            transform.rotation = Quaternion.LookRotation(targetDirection);
+            _agent.SetDestination(targetPoint);
+            Log("→ 정지 상태에서 시작");
+        }
+
+        // 마지막 방향 저장
+        _lastMovementDirection = targetDirection;
+    }
+
+    /// <summary>
     /// 우클릭 처리: 마우스 방향으로 회전 후 공격
-    /// 적이 없어도 헛스윙 허용 (애니메이션 + 쿨다운 적용)
     /// </summary>
     private void HandleRightClick()
     {
@@ -383,6 +494,18 @@ public class PlayerNavController : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
         {
+            // NavMeshAgent 완전 정지
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.velocity = Vector3.zero;
+                _agent.ResetPath();
+                _agent.isStopped = true;
+
+                // ⭐ 이동 상태 리셋
+                _isCurrentlyMoving = false;
+                _lastMovementDirection = Vector3.zero;
+            }
+
             // 마우스 위치로 회전
             Vector3 targetDirection = (hit.point - transform.position).normalized;
             targetDirection.y = 0;
@@ -390,6 +513,12 @@ public class PlayerNavController : MonoBehaviour
             if (targetDirection != Vector3.zero)
             {
                 transform.rotation = Quaternion.LookRotation(targetDirection);
+            }
+
+            // 공격 인디케이터 표시
+            if (MousePositionIndicator.Instance != null)
+            {
+                MousePositionIndicator.Instance.ShowAttackIndicator(hit.point);
             }
 
             // 전방 원뿔 범위 내 적 탐색
@@ -487,6 +616,9 @@ public class PlayerNavController : MonoBehaviour
 
         Log($"공격 시작! 적 {enemies.Count}명 범위 내");
 
+        // 기본 공격 VFX 생성
+        SpawnBaseAttackVFX();
+
         // 애니메이션 타이밍에 맞춰 데미지 적용
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
@@ -515,8 +647,13 @@ public class PlayerNavController : MonoBehaviour
         float remainingTime = _attackAnimationDuration - ATTACK_DAMAGE_TIMING;
         yield return new WaitForSeconds(remainingTime);
 
-
         _isAttacking = false;
+
+        // NavMeshAgent 재활성화
+        if (_agent != null && _agent.isOnNavMesh)
+        {
+            _agent.isStopped = false;
+        }
 
         // 쿨다운 시작
         yield return new WaitForSeconds(_currentAttackCooldown);
@@ -541,6 +678,43 @@ public class PlayerNavController : MonoBehaviour
         _currentAttackCooldown = Mathf.Max(_currentAttackCooldown, MIN_ATTACK_COOLDOWN);
 
         Debug.Log($"[Attack Speed] 쿨다운 업데이트: {_currentAttackCooldown:F2}초 (스탯: {attackSpeedStat:F2})");
+    }
+
+    /// <summary>
+    /// 기본 공격 VFX 생성
+    /// </summary>
+    private void SpawnBaseAttackVFX()
+    {
+        if (_baseAttackVfxPrefab == null)
+        {
+            Log("기본 공격 VFX 프리팹이 설정되지 않았습니다");
+            return;
+        }
+
+        Vector3 spawnPosition = transform.position + transform.TransformDirection(_vfxPositionOffset);
+        Quaternion spawnRotation = transform.rotation;
+
+        GameObject vfxInstance = Instantiate(_baseAttackVfxPrefab, spawnPosition, spawnRotation);
+
+        if (_vfxLifetime > 0)
+        {
+            Destroy(vfxInstance, _vfxLifetime);
+        }
+        else
+        {
+            ParticleSystem ps = vfxInstance.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                float duration = ps.main.duration + ps.main.startLifetime.constantMax;
+                Destroy(vfxInstance, duration);
+            }
+            else
+            {
+                Destroy(vfxInstance, 2f);
+            }
+        }
+
+        Log($"기본 공격 VFX 생성: {vfxInstance.name}");
     }
 
     /// <summary>

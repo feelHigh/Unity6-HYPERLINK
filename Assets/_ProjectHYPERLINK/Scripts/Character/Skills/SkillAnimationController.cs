@@ -277,6 +277,10 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 회전 제어
 
+    /// <summary>
+    /// 마우스 위치 방향으로 캐릭터 회전
+    /// ⭐ 업데이트: 스킬 인디케이터 표시 추가
+    /// </summary>
     private void RotateTowardsMousePosition()
     {
         if (_mainCamera == null) return;
@@ -292,6 +296,12 @@ public class SkillAnimationController : MonoBehaviour
             if (direction.sqrMagnitude > 0.01f)
             {
                 transform.rotation = Quaternion.LookRotation(direction);
+            }
+
+            // 스킬 인디케이터 표시
+            if (MousePositionIndicator.Instance != null)
+            {
+                MousePositionIndicator.Instance.ShowSkillIndicator(hit.point);
             }
         }
     }

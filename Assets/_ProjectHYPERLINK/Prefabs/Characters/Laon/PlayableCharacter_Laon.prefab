@@ -138,6 +138,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 669ba5a3179caab479f408d82376553e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _rotationThresholdAngle: 90
+  _velocityResetAngle: 180
+  _minimumMovementSpeed: 1
   _currentAttackCooldown: 0
   _animationDampTime: 0.1
   _attackAnimationDuration: 1
@@ -145,6 +148,9 @@ MonoBehaviour:
   _attackAngle: 90
   _attackDamage: 25
   _attackSpeed: 1
+  _baseAttackVfxPrefab: {fileID: 0}
+  _vfxPositionOffset: {x: 0, y: 1, z: 1}
+  _vfxLifetime: 2
   _knockbackDuration: 0.3
   _knockbackObstacleLayer:
     serializedVersion: 2
@@ -175,6 +181,7 @@ MonoBehaviour:
   _currentMana: 0
   _redSoda: 3
   _redSodaHealAmount: 50
+  _currentGold: 0
 --- !u!114 &6274837084202361495
 MonoBehaviour:
   m_ObjectHideFlags: 0
