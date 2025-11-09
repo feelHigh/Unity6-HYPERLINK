@@ -11,13 +11,7 @@ using System.Collections.Generic;
 /// - 적 탐색 (전방 원뿔 범위)
 /// - 데미지 계산 및 적용
 /// - 공격 쿨다운 관리
-/// - 공격 VFX 처리 (회전 오프셋 + 타이밍 지원)
-/// 
-/// 의존성:
-/// - PlayerCharacter: 공격력 계산
-/// - PlayerStateController: 공격 가능 여부 확인
-/// - NavMeshAgent: 공격 중 이동 차단
-/// - Camera: 마우스 위치 계산
+/// - 공격 VFX 처리
 /// </summary>
 [RequireComponent(typeof(PlayerCharacter))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -88,7 +82,7 @@ public class PlayerAttackController : MonoBehaviour
     // 이벤트
     public static event System.Action OnAttackStarted;
     public static event System.Action OnAttackEnded;
-    public static event System.Action<int> OnAttackTrigger; // 애니메이션 트리거용
+    public static event System.Action<int> OnAttackTrigger;
 
     #region 초기화
 
@@ -198,6 +192,9 @@ public class PlayerAttackController : MonoBehaviour
 
     /// <summary>
     /// 공격 가능 여부 확인
+    /// 
+    /// 추가된 체크:
+    /// - 스킬 실행 중인지 확인
     /// </summary>
     private bool CanAttack()
     {
@@ -211,6 +208,13 @@ public class PlayerAttackController : MonoBehaviour
         // 사망 상태
         if (_playerCharacter == null || !_playerCharacter.IsAlive)
         {
+            return false;
+        }
+
+        // 스킬 실행 중 체크 추가
+        if (_stateController != null && _stateController.IsPerformingSkill)
+        {
+            Log("스킬 실행 중이므로 기본 공격 불가");
             return false;
         }
 
@@ -300,7 +304,6 @@ public class PlayerAttackController : MonoBehaviour
 
     /// <summary>
     /// 다중 적 공격 실행
-    /// 데미지 계산 방식: PlayerCharacter에서 계산 후 EnemyController.TakeDamage(float) 호출
     /// </summary>
     private void PerformMultiAttack(List<EnemyController> enemies)
     {
@@ -315,10 +318,10 @@ public class PlayerAttackController : MonoBehaviour
         _isAttacking = true;
         _isOnCooldown = true;
 
-        // 공격 상태 설정 (이동 차단)
+        // 기본 공격 상태 설정
         if (_stateController != null)
         {
-            _stateController.SetAttacking(true);
+            _stateController.SetBaseAttacking(true);
         }
 
         // 공격 이벤트 발생
@@ -329,7 +332,7 @@ public class PlayerAttackController : MonoBehaviour
 
         Log($"공격 시작! 타겟: {enemies.Count}마리");
 
-        // VFX 생성 코루틴 시작 (플레이어 위치에 생성)
+        // VFX 생성 코루틴 시작
         StartCoroutine(SpawnAttackVFXCoroutine());
 
         // 애니메이션 재생 대기
@@ -344,7 +347,6 @@ public class PlayerAttackController : MonoBehaviour
             {
                 if (enemy != null && !enemy.IsDead)
                 {
-                    // 데미지 적용
                     enemy.TakeDamage(attackPower);
                     Log($"데미지 적용: {enemy.name} -> {attackPower:F1}");
                 }
@@ -358,12 +360,13 @@ public class PlayerAttackController : MonoBehaviour
         // 공격 종료
         _isAttacking = false;
 
+        // 기본 공격 상태 해제
         if (_stateController != null)
         {
-            _stateController.SetAttacking(false);
+            _stateController.SetBaseAttacking(false);
         }
 
-        // NavMeshAgent 재활성화 (이동 가능)
+        // NavMeshAgent 재활성화
         if (_agent != null && _agent.isOnNavMesh)
         {
             _agent.isStopped = false;
@@ -386,7 +389,7 @@ public class PlayerAttackController : MonoBehaviour
     /// </summary>
     private IEnumerator SpawnAttackVFXCoroutine()
     {
-        // VFX 생성 타이밍까지 대기 (애니메이션 진행률 기반)
+        // VFX 생성 타이밍까지 대기
         float delay = _attackAnimationDuration * _vfxSpawnTiming;
         yield return new WaitForSeconds(delay);
 
@@ -403,10 +406,10 @@ public class PlayerAttackController : MonoBehaviour
     {
         if (_baseAttackVfxPrefab == null) return;
 
-        // 위치 계산: 플레이어 위치 + 로컬 오프셋
+        // 위치 계산
         Vector3 vfxPosition = basePosition + transform.TransformDirection(_vfxPositionOffset);
 
-        // 회전 계산: 캐릭터 회전 + 회전 오프셋
+        // 회전 계산
         Quaternion vfxRotation = transform.rotation * Quaternion.Euler(_vfxRotationOffset);
 
         // VFX 생성
@@ -430,9 +433,6 @@ public class PlayerAttackController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 공격 범위 시각화 (Scene View에서 선택 시에만)
-    /// </summary>
     private void OnDrawGizmosSelected()
     {
         if (!_visualizeAttackRange || !Application.isPlaying) return;
@@ -450,9 +450,6 @@ public class PlayerAttackController : MonoBehaviour
         DrawEnemiesInCone();
     }
 
-    /// <summary>
-    /// 공격 원뿔 그리기
-    /// </summary>
     private void DrawAttackCone(Vector3 position)
     {
         Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
@@ -489,9 +486,6 @@ public class PlayerAttackController : MonoBehaviour
         Gizmos.DrawLine(position, position + rightBound);
     }
 
-    /// <summary>
-    /// 범위 내 적 시각화
-    /// </summary>
     private void DrawEnemiesInCone()
     {
         List<EnemyController> enemiesInCone = GetEnemiesInFrontCone();
@@ -517,7 +511,7 @@ public class PlayerAttackController : MonoBehaviour
         Debug.Log($"공격 중: {_isAttacking}");
         Debug.Log($"쿨다운 중: {_isOnCooldown}");
         Debug.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
-        Debug.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2} ({_vfxSpawnTiming * _attackAnimationDuration:F2}초)");
+        Debug.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2}");
 
         if (_playerCharacter != null)
         {
@@ -525,6 +519,11 @@ public class PlayerAttackController : MonoBehaviour
             float attackPower = _playerCharacter.GetAttackPower();
             Debug.Log($"공격 속도 스탯: {stats.AttackSpeed:F2}");
             Debug.Log($"최종 공격력: {attackPower:F1}");
+        }
+
+        if (_stateController != null)
+        {
+            Debug.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
         }
     }
 

@@ -6,15 +6,6 @@ using DG.Tweening;
 
 /// <summary>
 /// 스킬 애니메이션 컨트롤러
-/// 
-/// Hit Area 시스템 리팩토링 (다중 hit area 지원):
-/// - ApplyAllHitAreas() - 여러 hit area 동시 처리
-/// - ApplySingleHitArea() - 각 hit area별 독립 코루틴
-/// - 타이밍별로 다른 범위의 데미지 적용 가능
-/// 
-/// 리팩토링 업데이트:
-/// - PlayerAttackController 참조 추가
-/// - 데미지 계산 시 AttackDamage를 PlayerAttackController에서 가져옴
 /// </summary>
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -34,7 +25,8 @@ public class SkillAnimationController : MonoBehaviour
     private NavMeshAgent _navAgent;
     private PlayerCharacter _playerCharacter;
     private PlayerNavController _navController;
-    private PlayerAttackController _attackController; // ⭐ 추가됨
+    private PlayerAttackController _attackController;
+    private PlayerStateController _stateController; // ⭐ 추가
     private Camera _mainCamera;
 
     private bool _isPerformingSkill = false;
@@ -62,7 +54,8 @@ public class SkillAnimationController : MonoBehaviour
         _navAgent = GetComponent<NavMeshAgent>();
         _playerCharacter = GetComponent<PlayerCharacter>();
         _navController = GetComponent<PlayerNavController>();
-        _attackController = GetComponent<PlayerAttackController>(); // ⭐ 추가됨
+        _attackController = GetComponent<PlayerAttackController>();
+        _stateController = GetComponent<PlayerStateController>(); // ⭐ 추가
         _mainCamera = Camera.main;
 
         if (_animator == null || _navAgent == null)
@@ -71,10 +64,15 @@ public class SkillAnimationController : MonoBehaviour
             enabled = false;
         }
 
-        // ⭐ PlayerAttackController 존재 확인
         if (_attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다! 스킬 데미지 계산이 정상적으로 작동하지 않을 수 있습니다.");
+            Debug.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다!");
+        }
+
+        // StateController 확인
+        if (_stateController == null)
+        {
+            Debug.LogWarning("[SkillAnimationController] PlayerStateController가 없습니다!");
         }
     }
 
@@ -162,6 +160,12 @@ public class SkillAnimationController : MonoBehaviour
         _isPerformingSkill = false;
         _currentSkill = null;
 
+        // 스킬 상태 해제
+        if (_stateController != null)
+        {
+            _stateController.SetSkillPerforming(false);
+        }
+
         if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
             _navAgent.isStopped = true;
@@ -184,6 +188,9 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 스킬 실행 코루틴
 
+    /// <summary>
+    /// 스킬 실행 코루틴
+    /// </summary>
     private IEnumerator PerformSkillCoroutine(SkillData skill)
     {
         _isPerformingSkill = true;
@@ -196,10 +203,10 @@ public class SkillAnimationController : MonoBehaviour
 
         PlaySkillAnimation(skill);
 
-        // VFX 생성 - 다중 VFX 지원
+        // VFX 생성
         SpawnAllSkillVFX(skill);
 
-        // Hit Area 적용 - 다중 hit area 지원
+        // Hit Area 적용
         ApplyAllHitAreas(skill);
 
         // DOTween 대시
@@ -218,6 +225,12 @@ public class SkillAnimationController : MonoBehaviour
         _isPerformingSkill = false;
         _currentSkill = null;
         _skillCoroutine = null;
+
+        // 스킬 실행 상태 해제
+        if (_stateController != null)
+        {
+            _stateController.SetSkillPerforming(false);
+        }
 
         if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
         {
@@ -268,8 +281,8 @@ public class SkillAnimationController : MonoBehaviour
 
         if (didHit)
         {
-            float safeDistance = Mathf.Max(0f, hit.distance - buffer);
-            Log($"벽 감지! 대시 거리 조정: {requestedDistance:F2}m → {safeDistance:F2}m");
+            float safeDistance = Mathf.Max(0, hit.distance - buffer);
+            Log($"벽 감지: {hit.distance:F2}m → 안전 거리: {safeDistance:F2}m");
             return safeDistance;
         }
 
@@ -278,7 +291,7 @@ public class SkillAnimationController : MonoBehaviour
 
     private void CleanupDashTween()
     {
-        if (_currentDashTween != null)
+        if (_currentDashTween != null && _currentDashTween.IsActive())
         {
             _currentDashTween.Kill();
             _currentDashTween = null;
@@ -288,27 +301,22 @@ public class SkillAnimationController : MonoBehaviour
 
     #endregion
 
-    #region 마우스 방향 회전
+    #region 회전
 
     private void RotateTowardsMousePosition()
     {
         Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        if (Physics.Raycast(ray, out hit))
         {
-            Vector3 direction = hit.point - transform.position;
-            direction.y = 0;
+            Vector3 targetDirection = (hit.point - transform.position).normalized;
+            targetDirection.y = 0;
 
-            if (direction.sqrMagnitude > 0.01f)
+            if (targetDirection != Vector3.zero)
             {
-                transform.rotation = Quaternion.LookRotation(direction);
-            }
-
-            // 스킬 인디케이터 표시
-            if (MousePositionIndicator.Instance != null)
-            {
-                MousePositionIndicator.Instance.ShowSkillIndicator(hit.point);
+                transform.rotation = Quaternion.LookRotation(targetDirection);
+                Log($"마우스 방향 회전: {transform.eulerAngles.y:F1}°");
             }
         }
     }
@@ -338,11 +346,8 @@ public class SkillAnimationController : MonoBehaviour
 
     #endregion
 
-    #region Hit Area 처리 (다중 hit area 지원)
+    #region Hit Area 처리
 
-    /// <summary>
-    /// 모든 hit area 적용 (다중 hit area 지원)
-    /// </summary>
     private void ApplyAllHitAreas(SkillData skill)
     {
         HitAreaConfig[] hitAreaConfigs = skill.GetHitAreaConfigs();
@@ -370,9 +375,6 @@ public class SkillAnimationController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 단일 hit area 적용 코루틴
-    /// </summary>
     private IEnumerator ApplySingleHitArea(HitAreaConfig config, float delay, SkillData skill)
     {
         if (delay > 0)
@@ -397,7 +399,6 @@ public class SkillAnimationController : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            // IgnoreTags 체크
             if (config.ShouldIgnoreTag(hit.tag))
                 continue;
 
@@ -409,7 +410,7 @@ public class SkillAnimationController : MonoBehaviour
             }
         }
 
-        Log($"Hit Area 적용: {enemyCount}명 타격 (데미지: {finalDamage:F1}, 배율: {config.DamageMultiplier})");
+        Log($"Hit Area 적용: {enemyCount}명 타격 (데미지: {finalDamage:F1})");
     }
 
     private void CleanupAllHitAreaCoroutines()
@@ -429,22 +430,14 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 데미지 계산
 
-    /// <summary>
-    /// 스킬 데미지 계산
-    /// 
-    /// ⭐ 업데이트: PlayerAttackController에서 AttackDamage 가져옴
-    /// 
-    /// 공식: ((AttackDamage × SkillMultiplier) + SkillBaseDamage) × (1 + (MainStat × MainStatDamageIncrease))
-    /// </summary>
     private float CalculateSkillDamage(SkillData skill)
     {
         if (skill == null || _playerCharacter == null || _attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패: 필수 컴포넌트 누락");
+            Debug.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패");
             return 0f;
         }
 
-        // ⭐ 변경: _navController.AttackDamage → _attackController.AttackDamage
         float attackDamage = _attackController.AttackDamage;
         int mainStat = _playerCharacter.GetMainStat();
 
@@ -456,7 +449,7 @@ public class SkillAnimationController : MonoBehaviour
 
     #endregion
 
-    #region VFX 처리 (다중 VFX 지원)
+    #region VFX 처리
 
     private void SpawnAllSkillVFX(SkillData skill)
     {
@@ -560,7 +553,7 @@ public class SkillAnimationController : MonoBehaviour
             {
                 Gizmos.DrawWireSphere(centerPosition, config.SphereRadius);
             }
-            else // Box
+            else
             {
                 Matrix4x4 oldMatrix = Gizmos.matrix;
                 Quaternion boxRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
