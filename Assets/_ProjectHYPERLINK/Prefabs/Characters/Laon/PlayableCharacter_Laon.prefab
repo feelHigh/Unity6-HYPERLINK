@@ -177,7 +177,7 @@ MonoBehaviour:
   _vfxPositionOffset: {x: 0, y: 1, z: 0}
   _vfxRotationOffset: {x: 270, y: 180, z: 180}
   _vfxSpawnTiming: 0.225
-  _vfxLifetime: 2
+  _vfxLifetime: 0.4
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64

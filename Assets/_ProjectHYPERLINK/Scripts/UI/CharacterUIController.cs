@@ -8,12 +8,9 @@ using System.Collections.Generic;
 /// CanvasGroup으로 패널 가시성 제어
 /// 
 /// 키 바인딩:
-/// - C: 캐릭터 패널 토글
-/// - K: 스킬 트리 패널 토글
-/// - I: 인벤토리 패널 토글
-/// - Q: 퀘스트 UI 토글 (NEW)
-/// - Tab: 미니맵 토글
-/// - M: 맵 & 퀘스트 패널 토글
+/// - K: 스킬 트리 윈도우 토글
+/// - I: 인벤토리 윈도우 토글
+/// - U: 퀘스트 윈도우 토글
 /// - ESC: 모든 패널 닫기 / LoginScene 이동 옵션
 /// </summary>
 public class CharacterUIController : MonoBehaviour
@@ -61,6 +58,10 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image _experienceBar;
     [SerializeField] private TextMeshProUGUI _experienceText;
 
+    [Header("소비 아이템 표시")]
+    [Tooltip("레드 소다 개수 표시 텍스트")]
+    [SerializeField] private TextMeshProUGUI _redSodaText;
+
     [Header("스킬 슬롯")]
     [SerializeField] private List<SkillSlotUI> _skillSlots = new List<SkillSlotUI>();
 
@@ -72,6 +73,7 @@ public class CharacterUIController : MonoBehaviour
     private int _previousLevel;
     private int _previousExperience;
     private int _previousExperienceRequired;
+    private int _previousRedSoda;
 
     private bool _isInitialized = false;
     private int _retryCount = 0;
@@ -184,23 +186,31 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 이벤트 구독
+    /// </summary>
     private void SubscribeToEvents()
     {
         PlayerCharacter.OnHealthChanged += OnHealthChanged;
         PlayerCharacter.OnManaChanged += OnManaChanged;
         PlayerCharacter.OnStatsChanged += UpdateStatsDisplay;
         PlayerCharacter.OnSkillUnlocked += OnSkillUnlocked;
+        PlayerCharacter.OnRedSodaChanged += OnRedSodaChanged;
 
         ExperienceManager.OnExperienceChanged += OnExperienceChanged;
         ExperienceManager.OnLevelUp += OnLevelUp;
     }
 
+    /// <summary>
+    /// 이벤트 구독 해제
+    /// </summary>
     private void UnsubscribeFromEvents()
     {
         PlayerCharacter.OnHealthChanged -= OnHealthChanged;
         PlayerCharacter.OnManaChanged -= OnManaChanged;
         PlayerCharacter.OnStatsChanged -= UpdateStatsDisplay;
         PlayerCharacter.OnSkillUnlocked -= OnSkillUnlocked;
+        PlayerCharacter.OnRedSodaChanged -= OnRedSodaChanged;
 
         ExperienceManager.OnExperienceChanged -= OnExperienceChanged;
         ExperienceManager.OnLevelUp -= OnLevelUp;
@@ -314,6 +324,9 @@ public class CharacterUIController : MonoBehaviour
                Mathf.Approximately(a.CriticalDamage, b.CriticalDamage);
     }
 
+    /// <summary>
+    /// 강제 업데이트
+    /// </summary>
     private void ForceUpdateAll()
     {
         if (_playerCharacter == null || _experienceManager == null)
@@ -322,6 +335,7 @@ public class CharacterUIController : MonoBehaviour
         UpdateStatsDisplay(_playerCharacter.CurrentStats);
         OnHealthChanged(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
         OnManaChanged(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
+        OnRedSodaChanged(_playerCharacter.RedSoda); // ⭐ 추가
 
         int current = _experienceManager.CurrentExperience;
         int required = _experienceManager.ExperienceToNextLevel;
@@ -372,6 +386,34 @@ public class CharacterUIController : MonoBehaviour
     private void ShowSkillUnlockedNotification(SkillData skill)
     {
         Log($"[알림] {skill.SkillName}을(를) 언락했습니다! 스킬 슬롯으로 드래그하여 배치하세요.");
+    }
+
+    /// <summary>
+    /// 레드 소다 개수 변경 핸들러
+    /// 
+    /// 호출 시점:
+    /// - 플레이어가 레드 소다 사용 (Number 1 키)
+    /// - 레드 소다 획득
+    /// - 초기화 시
+    /// </summary>
+    private void OnRedSodaChanged(int count)
+    {
+        // 중복 업데이트 방지
+        if (count == _previousRedSoda)
+            return;
+
+        _previousRedSoda = count;
+
+        // UI 업데이트
+        if (_redSodaText != null)
+        {
+            _redSodaText.text = $"x{count}";
+            Log($"레드 소다 UI 업데이트: {count}개");
+        }
+        else
+        {
+            LogWarning("레드 소다 텍스트가 할당되지 않았습니다!");
+        }
     }
 
     private void RefreshSkillSlots()
