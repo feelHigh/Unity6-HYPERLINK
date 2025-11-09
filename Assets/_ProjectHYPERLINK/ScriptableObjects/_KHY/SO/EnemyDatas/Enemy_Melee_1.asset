@@ -10,17 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
-  m_Name: Enemy_Human_Female1
+  m_Name: Enemy_Melee_1
   m_EditorClassIdentifier: 
-  _name: "\uBE59\uC758\uB41C \uC5EC\uC790_1"
-  _enemyType: 0
+  _name: "\uADFC\uAC70\uB9AC1"
   _maxHp: 100
   _moveSpeed: 5
-  _atk: 10
+  _atk: 5
   _detectionRange: 8
   _chaseDistance: 10
   _basicAttackType: 0
-  _attackRange: 1
+  _attackRange: 2.5
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5

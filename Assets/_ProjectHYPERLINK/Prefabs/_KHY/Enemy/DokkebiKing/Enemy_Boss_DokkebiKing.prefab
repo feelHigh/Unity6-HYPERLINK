@@ -851,6 +851,7 @@ GameObject:
   - component: {fileID: 1428468943852515801}
   - component: {fileID: 5728921177153519391}
   - component: {fileID: 4957289201852418590}
+  - component: {fileID: 8730749822137525472}
   m_Layer: 11
   m_Name: Enemy_Boss_DokkebiKing
   m_TagString: Enemy
@@ -988,6 +989,83 @@ MonoBehaviour:
   _breathEffect: {fileID: 1486696693933490610, guid: 62655a68ce8728d478371a3dc863f4b2, type: 3}
   _breathSpawnPos: {fileID: 1223740560707285025}
   _curState: 0
+--- !u!114 &8730749822137525472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2074692294784645698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18b1f7fe0388a54f82fc7c48b0d6893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _controller: {fileID: 5728921177153519391}
+  _delay: 0
+  _isDisableAfterEffect: 0
+  _enableObjectControl: 0
+  _objectsToDisable: []
+  _objectsToSpawn: []
+  _spawnOffset: {x: 0, y: 0, z: 0}
+  _destroyAfterDuration: 0
+  _enableFadeOut: 0
+  _targetRenderers: []
+  _fadeDuration: 1
+  _fadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _isUsingShaderGraph: 0
+  _alphaPropertyName: alpha
+  _enablePositionChange: 0
+  _targetModel: {fileID: 0}
+  _targetPosition: {x: 0, y: -2, z: 0}
+  _moveDuration: 1
+  _moveCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2415285573330439751
 GameObject:
   m_ObjectHideFlags: 0

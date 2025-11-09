@@ -10,21 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
-  m_Name: Enemy_Eoduksini
+  m_Name: Enemy_Melee_0_Basic
   m_EditorClassIdentifier: 
-  _name: "\uC5B4\uB451\uC2DC\uB2C8"
-  _enemyType: 0
+  _name: "\uADFC\uAC70\uB9AC0"
   _maxHp: 100
   _moveSpeed: 5
   _atk: 10
   _detectionRange: 8
   _chaseDistance: 10
-  _basicAttackType: 1
-  _attackRange: 7
+  _basicAttackType: 0
+  _attackRange: 1
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5
-  _projectilePrefab: {fileID: 5140824982369331126, guid: 2a76628e37f590743be0e49f9cdbace8, type: 3}
+  _projectilePrefab: {fileID: 0}
   _projrctileSpeed: 12
   _canBeEpic: 1
   _epicHpMultiplier: 2
