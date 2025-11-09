@@ -173,13 +173,15 @@ MonoBehaviour:
   _attackDamage: 25
   _attackSpeed: 1
   _attackAnimationDuration: 1
-  _baseAttackVfxPrefab: {fileID: 0}
-  _vfxPositionOffset: {x: 0, y: 1, z: 1}
+  _baseAttackVfxPrefab: {fileID: 1130446560849736, guid: c4d564b5d4682ad46b8621f0fa6f40d9, type: 3}
+  _vfxPositionOffset: {x: 0, y: 1, z: 0}
+  _vfxRotationOffset: {x: 270, y: 180, z: 180}
+  _vfxSpawnTiming: 0.225
   _vfxLifetime: 2
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  _currentAttackCooldownDisplay: 0
+  _currentAttackCooldownDisplay: 0.75
   _enableDebugLogs: 1
   _visualizeAttackRange: 1
 --- !u!114 &3735128981493473489

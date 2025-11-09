@@ -11,7 +11,7 @@ using System.Collections.Generic;
 /// - 적 탐색 (전방 원뿔 범위)
 /// - 데미지 계산 및 적용
 /// - 공격 쿨다운 관리
-/// - 공격 VFX 처리
+/// - 공격 VFX 처리 (회전 오프셋 + 타이밍 지원)
 /// 
 /// 의존성:
 /// - PlayerCharacter: 공격력 계산
@@ -60,7 +60,18 @@ public class PlayerAttackController : MonoBehaviour
 
     [Header("기본 공격 VFX")]
     [SerializeField] private GameObject _baseAttackVfxPrefab;
+
+    [Tooltip("VFX 위치 오프셋 (로컬 좌표)")]
     [SerializeField] private Vector3 _vfxPositionOffset = new Vector3(0f, 1f, 1f);
+
+    [Tooltip("VFX 회전 오프셋 (오일러 각도)")]
+    [SerializeField] private Vector3 _vfxRotationOffset = Vector3.zero;
+
+    [Tooltip("VFX 생성 타이밍")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _vfxSpawnTiming = 0.5f;
+
+    [Tooltip("VFX 자동 제거 시간 (초)")]
     [SerializeField] private float _vfxLifetime = 2f;
 
     [Header("레이어 설정")]
@@ -318,6 +329,9 @@ public class PlayerAttackController : MonoBehaviour
 
         Log($"공격 시작! 타겟: {enemies.Count}마리");
 
+        // VFX 생성 코루틴 시작 (플레이어 위치에 생성)
+        StartCoroutine(SpawnAttackVFXCoroutine());
+
         // 애니메이션 재생 대기
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
@@ -333,9 +347,6 @@ public class PlayerAttackController : MonoBehaviour
                     // 데미지 적용
                     enemy.TakeDamage(attackPower);
                     Log($"데미지 적용: {enemy.name} -> {attackPower:F1}");
-
-                    // VFX 생성
-                    SpawnAttackVFX(enemy.transform.position);
                 }
             }
         }
@@ -371,15 +382,40 @@ public class PlayerAttackController : MonoBehaviour
     }
 
     /// <summary>
+    /// VFX 생성 코루틴 (타이밍 제어)
+    /// </summary>
+    private IEnumerator SpawnAttackVFXCoroutine()
+    {
+        // VFX 생성 타이밍까지 대기 (애니메이션 진행률 기반)
+        float delay = _attackAnimationDuration * _vfxSpawnTiming;
+        yield return new WaitForSeconds(delay);
+
+        // 플레이어 위치에 공격 VFX 생성
+        SpawnAttackVFX(transform.position);
+
+        Log($"VFX 생성 완료 (타이밍: {_vfxSpawnTiming:F2})");
+    }
+
+    /// <summary>
     /// 공격 VFX 생성
     /// </summary>
-    private void SpawnAttackVFX(Vector3 targetPosition)
+    private void SpawnAttackVFX(Vector3 basePosition)
     {
         if (_baseAttackVfxPrefab == null) return;
 
-        Vector3 vfxPosition = targetPosition + _vfxPositionOffset;
-        GameObject vfx = Instantiate(_baseAttackVfxPrefab, vfxPosition, Quaternion.identity);
+        // 위치 계산: 플레이어 위치 + 로컬 오프셋
+        Vector3 vfxPosition = basePosition + transform.TransformDirection(_vfxPositionOffset);
+
+        // 회전 계산: 캐릭터 회전 + 회전 오프셋
+        Quaternion vfxRotation = transform.rotation * Quaternion.Euler(_vfxRotationOffset);
+
+        // VFX 생성
+        GameObject vfx = Instantiate(_baseAttackVfxPrefab, vfxPosition, vfxRotation);
+
+        // 수명 후 제거
         Destroy(vfx, _vfxLifetime);
+
+        Log($"VFX 생성: 위치={vfxPosition}, 회전={_vfxRotationOffset}");
     }
 
     #endregion
@@ -480,6 +516,8 @@ public class PlayerAttackController : MonoBehaviour
         Debug.Log($"현재 쿨다운: {_currentAttackCooldown:F2}초");
         Debug.Log($"공격 중: {_isAttacking}");
         Debug.Log($"쿨다운 중: {_isOnCooldown}");
+        Debug.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
+        Debug.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2} ({_vfxSpawnTiming * _attackAnimationDuration:F2}초)");
 
         if (_playerCharacter != null)
         {
