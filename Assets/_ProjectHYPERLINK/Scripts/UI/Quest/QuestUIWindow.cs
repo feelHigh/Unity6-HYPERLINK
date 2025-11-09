@@ -11,16 +11,6 @@ using TMPro;
 /// - QuestManager 이벤트 구독
 /// - 퀘스트 진행 상황 실시간 업데이트
 /// - QuestUIItem 풀링 관리
-/// 
-/// Prefab 워크플로우 개선:
-/// - Application.isPlaying 체크로 에디터 안전성 확보
-/// - 런타임에만 QuestManager 접근
-/// - null 체크 강화
-/// 
-/// 통합:
-/// - GameCanvas의 자식으로 배치
-/// - CharacterUIController에서 Q 키로 토글
-/// - CanvasGroup으로 가시성 제어
 /// </summary>
 public class QuestUIWindow : MonoBehaviour
 {
@@ -39,21 +29,27 @@ public class QuestUIWindow : MonoBehaviour
     private List<QuestUIItem> _itemPool = new List<QuestUIItem>();
     private float _lastUpdateTime;
     private bool _isInitialized = false;
+    private CanvasGroup _canvasGroup;
 
     #region Unity Lifecycle
 
     private void Awake()
     {
-        // 에디터 모드에서는 초기화하지 않음
         if (!Application.isPlaying)
             return;
+
+        // CanvasGroup 찾기 (CharacterUIController가 제어)
+        _canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
+        {
+            Debug.LogWarning("[QuestUIWindow] CanvasGroup이 없습니다! CharacterUIController에서 제어하려면 필요합니다.");
+        }
 
         InitializeUI();
     }
 
     private void OnEnable()
     {
-        // 에디터 모드에서는 실행하지 않음
         if (!Application.isPlaying)
             return;
 
@@ -67,7 +63,6 @@ public class QuestUIWindow : MonoBehaviour
 
     private void OnDisable()
     {
-        // 에디터 모드에서는 실행하지 않음
         if (!Application.isPlaying)
             return;
 
@@ -76,7 +71,6 @@ public class QuestUIWindow : MonoBehaviour
 
     private void Start()
     {
-        // 에디터 모드에서는 실행하지 않음
         if (!Application.isPlaying)
             return;
 
@@ -102,12 +96,15 @@ public class QuestUIWindow : MonoBehaviour
 
     private void Update()
     {
-        // 에디터 모드에서는 실행하지 않음
         if (!Application.isPlaying)
             return;
 
         // 초기화되지 않았으면 실행하지 않음
         if (!_isInitialized)
+            return;
+
+        // CanvasGroup으로 가시성 확인 (CharacterUIController가 제어)
+        if (_canvasGroup != null && !CanvasGroupHelper.IsVisible(_canvasGroup))
             return;
 
         // 주기적으로 진행 상황 업데이트 (성능 최적화)

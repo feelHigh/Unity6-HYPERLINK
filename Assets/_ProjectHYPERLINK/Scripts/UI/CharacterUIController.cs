@@ -27,7 +27,7 @@ public class CharacterUIController : MonoBehaviour
     [SerializeField] private SkillActivationSystem _skillActivationSystem;
     [SerializeField] private ExperienceManager _experienceManager;
 
-    [Header("UI 패널 (CanvasGroup)")]
+    [Header("UI 패널 (CanvasGroup 필수)")]
     [Tooltip("Inventory GameObject의 CanvasGroup")]
     [SerializeField] private CanvasGroup _inventoryCanvasGroup;
     [Tooltip("SkillTree Panel의 CanvasGroup")]
@@ -37,14 +37,8 @@ public class CharacterUIController : MonoBehaviour
     [Tooltip("Settings Window의 CanvasGroup")]
     [SerializeField] private CanvasGroup _settingsCanvasGroup;
 
-    [Header("UI 패널 (GameObject)")]
+    [Header("추가 컴포넌트")]
     [SerializeField] private HealthManaBar _healthManaBar;
-    [SerializeField] private GameObject _inventoryPanel;
-    [SerializeField] private GameObject _skillTreePanel;
-    [SerializeField] private GameObject _questUIPanel;
-    [SerializeField] private GameObject _settingsPanel;
-
-    [Header("Settings Window")]
     [SerializeField] private SettingsWindow _settingsWindow;
 
     [Header("ESC 동작 설정")]
@@ -89,21 +83,22 @@ public class CharacterUIController : MonoBehaviour
 
     private void Awake()
     {
-        // CanvasGroup 방식: GameObject 활성, 가시성만 제어
-        SetPanelVisible(_skillTreeCanvasGroup, false);
-        SetPanelVisible(_inventoryCanvasGroup, false);
-        SetPanelVisible(_questUICanvasGroup, false);
-        SetPanelVisible(_settingsCanvasGroup, false);
+        // 모든 패널 초기화 (비활성화)
+        CanvasGroupHelper.SetVisible(_skillTreeCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_inventoryCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_questUICanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_settingsCanvasGroup, false);
 
-        // Fallback: CanvasGroup 없으면 기존 방식
-        if (_skillTreeCanvasGroup == null && _skillTreePanel != null)
-            _skillTreePanel.SetActive(false);
+        // CanvasGroup 검증
+        ValidateCanvasGroups();
+    }
 
-        if (_inventoryCanvasGroup == null && _inventoryPanel != null)
-            _inventoryPanel.SetActive(false);
-
-        if (_questUICanvasGroup == null && _questUIPanel != null)
-            _questUIPanel.SetActive(false);
+    private void ValidateCanvasGroups()
+    {
+        CanvasGroupHelper.Validate(_inventoryCanvasGroup, "Inventory");
+        CanvasGroupHelper.Validate(_skillTreeCanvasGroup, "SkillTree");
+        CanvasGroupHelper.Validate(_questUICanvasGroup, "QuestUI");
+        CanvasGroupHelper.Validate(_settingsCanvasGroup, "Settings");
     }
 
     private void OnEnable()
@@ -253,26 +248,23 @@ public class CharacterUIController : MonoBehaviour
 
     #endregion
 
-    #region CanvasGroup 헬퍼
+    #region UI 업데이트
 
-    private void SetPanelVisible(CanvasGroup canvasGroup, bool visible)
+    private void ForceUpdateAll()
     {
-        if (canvasGroup == null) return;
+        if (_playerCharacter == null || _experienceManager == null)
+            return;
 
-        canvasGroup.alpha = visible ? 1f : 0f;
-        canvasGroup.interactable = visible;
-        canvasGroup.blocksRaycasts = visible;
+        UpdateStatsDisplay(_playerCharacter.CurrentStats);
+        OnHealthChanged(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
+        OnManaChanged(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
+        OnRedSodaChanged(_playerCharacter.RedSoda);
+
+        int current = _experienceManager.CurrentExperience;
+        int required = _experienceManager.ExperienceToNextLevel;
+        int level = _experienceManager.CurrentLevel;
+        OnExperienceChanged(current, required, level);
     }
-
-    private bool IsPanelVisible(CanvasGroup canvasGroup)
-    {
-        if (canvasGroup == null) return false;
-        return canvasGroup.alpha > 0f;
-    }
-
-    #endregion
-
-    #region 이벤트 핸들러
 
     private void OnHealthChanged(float current, float max)
     {
@@ -281,6 +273,8 @@ public class CharacterUIController : MonoBehaviour
 
         _previousHealth = current;
         _previousMaxHealth = max;
+
+        // HealthManaBar는 자체적으로 PlayerCharacter.OnHealthChanged 이벤트 구독
     }
 
     private void OnManaChanged(float current, float max)
@@ -290,26 +284,31 @@ public class CharacterUIController : MonoBehaviour
 
         _previousMana = current;
         _previousMaxMana = max;
+
+        // HealthManaBar는 자체적으로 PlayerCharacter.OnManaChanged 이벤트 구독
     }
 
     private void UpdateStatsDisplay(CharacterStats stats)
     {
-        if (AreStatsEqual(stats, _previousStats))
+        if (stats == null)
+            return;
+
+        if (_previousStats != null && AreStatsEqual(stats, _previousStats))
             return;
 
         _previousStats = stats;
 
         if (_strengthText != null)
-            _strengthText.text = $"{stats.Strength}";
+            _strengthText.text = stats.Strength.ToString();
 
         if (_dexterityText != null)
-            _dexterityText.text = $"{stats.Dexterity}";
+            _dexterityText.text = stats.Dexterity.ToString();
 
         if (_intelligenceText != null)
-            _intelligenceText.text = $"{stats.Intelligence}";
+            _intelligenceText.text = stats.Intelligence.ToString();
 
         if (_vitalityText != null)
-            _vitalityText.text = $"{stats.Vitality}";
+            _vitalityText.text = stats.Vitality.ToString();
 
         if (_critChanceText != null)
             _critChanceText.text = $"{stats.CriticalChance:F1}%";
@@ -328,22 +327,6 @@ public class CharacterUIController : MonoBehaviour
                a.Vitality == b.Vitality &&
                Mathf.Approximately(a.CriticalChance, b.CriticalChance) &&
                Mathf.Approximately(a.CriticalDamage, b.CriticalDamage);
-    }
-
-    private void ForceUpdateAll()
-    {
-        if (_playerCharacter == null || _experienceManager == null)
-            return;
-
-        UpdateStatsDisplay(_playerCharacter.CurrentStats);
-        OnHealthChanged(_playerCharacter.CurrentHealth, _playerCharacter.MaxHealth);
-        OnManaChanged(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
-        OnRedSodaChanged(_playerCharacter.RedSoda);
-
-        int current = _experienceManager.CurrentExperience;
-        int required = _experienceManager.ExperienceToNextLevel;
-        int level = _experienceManager.CurrentLevel;
-        OnExperienceChanged(current, required, level);
     }
 
     private void OnExperienceChanged(int current, int required, int level)
@@ -401,13 +384,11 @@ public class CharacterUIController : MonoBehaviour
     /// </summary>
     private void OnRedSodaChanged(int count)
     {
-        // 중복 업데이트 방지
         if (count == _previousRedSoda)
             return;
 
         _previousRedSoda = count;
 
-        // UI 업데이트
         if (_redSodaText != null)
         {
             _redSodaText.text = $"x{count}";
@@ -459,109 +440,81 @@ public class CharacterUIController : MonoBehaviour
 
     public void ToggleInventoryPanel()
     {
-        if (_inventoryCanvasGroup != null)
+        if (_inventoryCanvasGroup == null)
         {
-            bool isVisible = IsPanelVisible(_inventoryCanvasGroup);
-
-            if (isVisible && ItemInventory.Instance != null)
-                ItemInventory.Instance.Close();
-
-            SetPanelVisible(_inventoryCanvasGroup, !isVisible);
-
-            Log($"인벤토리 패널 {(!isVisible ? "열림" : "닫힘")}");
+            LogWarning("인벤토리 CanvasGroup이 할당되지 않았습니다!");
+            return;
         }
-        else if (_inventoryPanel != null)
-        {
-            bool newState = !_inventoryPanel.activeSelf;
 
-            if (_inventoryPanel.activeSelf && ItemInventory.Instance != null)
-                ItemInventory.Instance.Close();
+        bool wasVisible = CanvasGroupHelper.IsVisible(_inventoryCanvasGroup);
 
-            _inventoryPanel.SetActive(newState);
+        if (wasVisible && ItemInventory.Instance != null)
+            ItemInventory.Instance.Close();
 
-            Log($"인벤토리 패널 {(newState ? "열림" : "닫힘")}");
-        }
-        else
-        {
-            LogWarning("인벤토리 패널이 할당되지 않았습니다!");
-        }
+        bool newState = CanvasGroupHelper.Toggle(_inventoryCanvasGroup);
+
+        Log($"인벤토리 패널 {(newState ? "열림" : "닫힘")}");
     }
 
     public void ToggleSkillTreePanel()
     {
-        if (_skillTreeCanvasGroup != null)
+        if (_skillTreeCanvasGroup == null)
         {
-            bool isVisible = IsPanelVisible(_skillTreeCanvasGroup);
-            SetPanelVisible(_skillTreeCanvasGroup, !isVisible);
-            Log($"스킬 트리 패널 {(!isVisible ? "열림" : "닫힘")}");
+            LogWarning("스킬 트리 CanvasGroup이 할당되지 않았습니다!");
+            return;
         }
-        else if (_skillTreePanel != null)
-        {
-            bool newState = !_skillTreePanel.activeSelf;
-            _skillTreePanel.SetActive(newState);
-            Log($"스킬 트리 패널 {(newState ? "열림" : "닫힘")}");
-        }
+
+        bool newState = CanvasGroupHelper.Toggle(_skillTreeCanvasGroup);
+        Log($"스킬 트리 패널 {(newState ? "열림" : "닫힘")}");
     }
 
     public void ToggleQuestUIPanel()
     {
-        if (_questUICanvasGroup != null)
+        if (_questUICanvasGroup == null)
         {
-            bool isVisible = IsPanelVisible(_questUICanvasGroup);
-            SetPanelVisible(_questUICanvasGroup, !isVisible);
-            Log($"퀘스트 UI {(!isVisible ? "열림" : "닫힘")}");
+            LogWarning("퀘스트 UI CanvasGroup이 할당되지 않았습니다!");
+            return;
         }
-        else if (_questUIPanel != null)
-        {
-            bool newState = !_questUIPanel.activeSelf;
-            _questUIPanel.SetActive(newState);
-            Log($"퀘스트 UI {(newState ? "열림" : "닫힘")}");
-        }
-        else
-        {
-            LogWarning("퀘스트 UI 패널이 할당되지 않았습니다!");
-        }
+
+        bool newState = CanvasGroupHelper.Toggle(_questUICanvasGroup);
+        Log($"퀘스트 UI {(newState ? "열림" : "닫힘")}");
     }
 
     /// <summary>
-    /// 설정 윈도우 토글 (신규)
+    /// 설정 윈도우 토글
     /// </summary>
     public void ToggleSettingsPanel()
     {
-        if (_settingsCanvasGroup != null && _settingsWindow != null)
+        if (_settingsCanvasGroup == null)
         {
-            bool isVisible = IsPanelVisible(_settingsCanvasGroup);
-
-            if (!isVisible)
-                _settingsWindow.Open();
-            else
-                _settingsWindow.Close();
-
-            SetPanelVisible(_settingsCanvasGroup, !isVisible);
-            Log($"설정 윈도우 {(!isVisible ? "열림" : "닫힘")}");
+            LogWarning("설정 CanvasGroup이 할당되지 않았습니다!");
+            return;
         }
+
+        if (_settingsWindow == null)
+        {
+            LogWarning("SettingsWindow 컴포넌트가 할당되지 않았습니다!");
+            return;
+        }
+
+        bool wasVisible = CanvasGroupHelper.IsVisible(_settingsCanvasGroup);
+
+        if (!wasVisible)
+            _settingsWindow.Open();
         else
-        {
-            LogWarning("설정 윈도우가 제대로 연결되지 않았습니다!");
-        }
+            _settingsWindow.Close();
+
+        Log($"설정 윈도우 {(!wasVisible ? "열림" : "닫힘")}");
     }
 
     private void HandleEscape()
     {
         bool anyPanelOpen = false;
 
-        if (IsPanelVisible(_inventoryCanvasGroup)) anyPanelOpen = true;
-        if (IsPanelVisible(_skillTreeCanvasGroup)) anyPanelOpen = true;
-        if (IsPanelVisible(_questUICanvasGroup)) anyPanelOpen = true;
-        if (IsPanelVisible(_settingsCanvasGroup)) anyPanelOpen = true;
-
-        if (!anyPanelOpen)
-        {
-            if (_inventoryPanel != null && _inventoryPanel.activeSelf) anyPanelOpen = true;
-            if (_skillTreePanel != null && _skillTreePanel.activeSelf) anyPanelOpen = true;
-            if (_questUIPanel != null && _questUIPanel.activeSelf) anyPanelOpen = true;
-            if (_settingsPanel != null && _settingsPanel.activeSelf) anyPanelOpen = true;
-        }
+        if (CanvasGroupHelper.IsVisible(_inventoryCanvasGroup)) anyPanelOpen = true;
+        if (CanvasGroupHelper.IsVisible(_skillTreeCanvasGroup)) anyPanelOpen = true;
+        if (CanvasGroupHelper.IsVisible(_questUICanvasGroup)) anyPanelOpen = true;
+        if (CanvasGroupHelper.IsVisible(_settingsCanvasGroup)) anyPanelOpen = true;
 
         if (anyPanelOpen)
         {
@@ -575,17 +528,14 @@ public class CharacterUIController : MonoBehaviour
 
     public void CloseAllPanels()
     {
-        SetPanelVisible(_inventoryCanvasGroup, false);
-        SetPanelVisible(_skillTreeCanvasGroup, false);
-        SetPanelVisible(_questUICanvasGroup, false);
-        SetPanelVisible(_settingsCanvasGroup, false);
-
-        if (_inventoryPanel != null) _inventoryPanel.SetActive(false);
-        if (_skillTreePanel != null) _skillTreePanel.SetActive(false);
-        if (_questUIPanel != null) _questUIPanel.SetActive(false);
+        CanvasGroupHelper.SetVisible(_inventoryCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_skillTreeCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_questUICanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_settingsCanvasGroup, false);
 
         // SettingsWindow 명시적 닫기
-        if (_settingsWindow != null) _settingsWindow.Close();
+        if (_settingsWindow != null)
+            _settingsWindow.Close();
 
         Log("모든 패널 닫기");
     }

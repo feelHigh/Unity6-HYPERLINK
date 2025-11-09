@@ -8,6 +8,7 @@ using System.Collections;
 /// 
 /// CanvasGroup 패턴 사용
 /// SettingsManager 초기화 순서 대응
+/// 모든 패널 CanvasGroup으로 관리
 /// </summary>
 public class SettingsWindow : MonoBehaviour
 {
@@ -20,12 +21,12 @@ public class SettingsWindow : MonoBehaviour
 
     #endregion
 
-    #region UI 참조 - Panels
+    #region UI 참조 - Panels (CanvasGroup 필수)
 
-    [Header("패널")]
-    [SerializeField] private GameObject _videoPanel;
-    [SerializeField] private GameObject _audioPanel;
-    [SerializeField] private GameObject _gamePanel;
+    [Header("패널 (CanvasGroup)")]
+    [SerializeField] private CanvasGroup _videoCanvasGroup;
+    [SerializeField] private CanvasGroup _audioCanvasGroup;
+    [SerializeField] private CanvasGroup _gameCanvasGroup;
 
     #endregion
 
@@ -78,7 +79,6 @@ public class SettingsWindow : MonoBehaviour
 
     private void Awake()
     {
-        // 에디터 모드에서는 실행하지 않음
         if (!Application.isPlaying)
             return;
 
@@ -88,7 +88,17 @@ public class SettingsWindow : MonoBehaviour
             Debug.LogError("[SettingsWindow] CanvasGroup이 없습니다!");
         }
 
-        SetVisible(false);
+        CanvasGroupHelper.SetVisible(_canvasGroup, false);
+
+        // 내부 패널 CanvasGroup 검증
+        ValidatePanelCanvasGroups();
+    }
+
+    private void ValidatePanelCanvasGroups()
+    {
+        CanvasGroupHelper.Validate(_videoCanvasGroup, "Video Panel");
+        CanvasGroupHelper.Validate(_audioCanvasGroup, "Audio Panel");
+        CanvasGroupHelper.Validate(_gameCanvasGroup, "Game Panel");
     }
 
     private void Start()
@@ -219,25 +229,6 @@ public class SettingsWindow : MonoBehaviour
 
     #endregion
 
-    #region CanvasGroup 가시성 제어
-
-    private void SetVisible(bool visible)
-    {
-        if (_canvasGroup == null) return;
-
-        _canvasGroup.alpha = visible ? 1f : 0f;
-        _canvasGroup.interactable = visible;
-        _canvasGroup.blocksRaycasts = visible;
-    }
-
-    public bool IsVisible()
-    {
-        if (_canvasGroup == null) return false;
-        return _canvasGroup.alpha > 0f;
-    }
-
-    #endregion
-
     #region 윈도우 열기/닫기
 
     public void Open()
@@ -248,7 +239,7 @@ public class SettingsWindow : MonoBehaviour
             return;
         }
 
-        SetVisible(true);
+        CanvasGroupHelper.SetVisible(_canvasGroup, true);
 
         _tempSettings = SettingsManager.Instance.AppliedSettings.Clone();
         LoadSettingsToUI();
@@ -259,8 +250,13 @@ public class SettingsWindow : MonoBehaviour
 
     public void Close()
     {
-        SetVisible(false);
+        CanvasGroupHelper.SetVisible(_canvasGroup, false);
         Debug.Log("[SettingsWindow] 윈도우 닫힘");
+    }
+
+    public bool IsVisible()
+    {
+        return CanvasGroupHelper.IsVisible(_canvasGroup);
     }
 
     #endregion
@@ -276,20 +272,22 @@ public class SettingsWindow : MonoBehaviour
 
     private void ShowPanel(PanelType panelType)
     {
-        if (_videoPanel != null) _videoPanel.SetActive(false);
-        if (_audioPanel != null) _audioPanel.SetActive(false);
-        if (_gamePanel != null) _gamePanel.SetActive(false);
+        // 모든 패널 숨기기
+        CanvasGroupHelper.SetVisible(_videoCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_audioCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_gameCanvasGroup, false);
 
+        // 선택된 패널만 표시
         switch (panelType)
         {
             case PanelType.Video:
-                if (_videoPanel != null) _videoPanel.SetActive(true);
+                CanvasGroupHelper.SetVisible(_videoCanvasGroup, true);
                 break;
             case PanelType.Audio:
-                if (_audioPanel != null) _audioPanel.SetActive(true);
+                CanvasGroupHelper.SetVisible(_audioCanvasGroup, true);
                 break;
             case PanelType.Game:
-                if (_gamePanel != null) _gamePanel.SetActive(true);
+                CanvasGroupHelper.SetVisible(_gameCanvasGroup, true);
                 break;
         }
     }
@@ -428,6 +426,15 @@ public class SettingsWindow : MonoBehaviour
 
         if (_videoTabButton == null)
             Debug.LogWarning("[SettingsWindow] Video Tab Button이 할당되지 않았습니다!");
+
+        if (_videoCanvasGroup == null)
+            Debug.LogWarning("[SettingsWindow] Video CanvasGroup이 할당되지 않았습니다!");
+
+        if (_audioCanvasGroup == null)
+            Debug.LogWarning("[SettingsWindow] Audio CanvasGroup이 할당되지 않았습니다!");
+
+        if (_gameCanvasGroup == null)
+            Debug.LogWarning("[SettingsWindow] Game CanvasGroup이 할당되지 않았습니다!");
     }
 #endif
 
