@@ -183,6 +183,13 @@ public class PlayerAttackController : MonoBehaviour
         // 우클릭: 공격
         if (Input.GetMouseButtonDown(1))
         {
+            // UI 클릭 체크
+            if (InputHelper.IsPointerOverUI())
+            {
+                Log("UI 클릭 감지 - 공격 취소");
+                return;
+            }
+
             if (CanAttack())
             {
                 HandleRightClick();
