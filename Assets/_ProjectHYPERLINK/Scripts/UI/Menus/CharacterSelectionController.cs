@@ -51,7 +51,7 @@ public class CharacterSelectionController : MonoBehaviour
     [SerializeField] private Button _errorOkButton;
 
     [Header("씬 설정")]
-    [SerializeField] private string _gameScene = "TutorialTestScene";
+    [SerializeField] private string _gameScene = "TheFirstStage";
 
     [Header("캐릭터 기본 스탯 (Unity 에디터 설정)")]
     [SerializeField] private CharacterStats _laonBaseStats;   // Laon(Warrior) 기본 스탯
