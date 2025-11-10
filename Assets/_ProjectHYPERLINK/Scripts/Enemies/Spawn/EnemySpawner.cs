@@ -43,12 +43,12 @@ public class EnemySpawner : MonoBehaviour
         _group.AddComponent<EnemyGroup>();
 
         //스폰할 몬스터 목록 준비
-        List<(EnemyData data, GameObject prefab)> enemiesToSpawn = new List<(EnemyData, GameObject)>();
+        List<(EnemyData data, GameObject prefab, string name)> enemiesToSpawn = new List<(EnemyData, GameObject, string)>();
         foreach (var info in _data.spawnList)
         {
             for (int i = 0; i < info.count; i++)
             {
-                enemiesToSpawn.Add((info.enemyData, info.prefab));
+                enemiesToSpawn.Add((info.enemyData, info.prefab, info.enemyName));
             }
         }
 
@@ -79,6 +79,7 @@ public class EnemySpawner : MonoBehaviour
             var spawnEntry = enemiesToSpawn[i];
             EnemyData data = spawnEntry.data;
             GameObject prefab = spawnEntry.prefab;
+            string name = spawnEntry.name;
 
             //위치 설정
             Vector3 ranPos = transform.position + Random.insideUnitSphere * _spawnRadius;
@@ -104,11 +105,11 @@ public class EnemySpawner : MonoBehaviour
             //적 초기화
             if (isEpic)
             {
-                enemy.InitializeEpic(data, specialAttack, _data.dropTable, _data.dropChance);
+                enemy.InitializeEpic(data, specialAttack, spawnEntry.name, _data.dropTable, _data.dropChance);
             }
             else
             {
-                enemy.InitializeNormal(data, _data.dropTable, _data.dropChance);
+                enemy.InitializeNormal(data, spawnEntry.name, _data.dropTable, _data.dropChance);
             }
         }
 

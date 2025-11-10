@@ -35,8 +35,6 @@ public class PlayerInitializationManager : MonoBehaviour
     [SerializeField] private float _dataLoadTimeout = 5f;      // 데이터 로드 대기 시간
 
     // 초기화 상태
-    private bool _isPlayerSpawned = false;
-    private bool _isPlayerInitialized = false;
     private bool _areAllSystemsReady = false;
 
     // Player 참조
@@ -158,7 +156,6 @@ public class PlayerInitializationManager : MonoBehaviour
 
                 if (_playerObject != null)
                 {
-                    _isPlayerSpawned = true;
                     Log($"Phase 1 완료: Player 스폰됨 ({_playerObject.name})");
 
                     // Phase 1 이벤트 발생
@@ -203,7 +200,6 @@ public class PlayerInitializationManager : MonoBehaviour
             return false;
         }
 
-        _isPlayerInitialized = true;
         Log("Phase 2 완료: PlayerCharacter 초기화됨");
 
         // Phase 2 이벤트 발생

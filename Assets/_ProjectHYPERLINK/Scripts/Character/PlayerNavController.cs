@@ -1,23 +1,22 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
-/// 플레이어 마우스 컨트롤 시스템
+/// 플레이어 네비게이션 및 이동 컨트롤러
 /// 
-/// 좌클릭: 이동 & 상호작용
-/// 우클릭: 회전 & 전방 원뿔 범위 공격
+/// 역할:
+/// - 좌클릭 이동 및 상호작용
+/// - NavMeshAgent 기반 이동 제어
+/// - 애니메이션 업데이트
+/// - 넉백 받기 (방어 로직)
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
 public class PlayerNavController : MonoBehaviour
 {
     private static readonly int SPEED_HASH = Animator.StringToHash("Speed");
-    private static readonly int ATTACK_HASH = Animator.StringToHash("Attack");
-    private const float ATTACK_DAMAGE_TIMING = 0.5f;
-    private const float MIN_ATTACK_COOLDOWN = 0.1f; // 최소 쿨다운 제한
 
     private NavMeshAgent _agent;
     private Animator _animator;
@@ -25,19 +24,29 @@ public class PlayerNavController : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private PlayerStateController _stateController;
 
-    private bool _isAttacking = false;
     private bool _isPerformingSkill = false;
     private bool _isDead = false;
-    private Transform _currentTarget = null;
-    private bool _isOnCooldown = false;
 
     // 상호작용 시스템
     private IInteractable _pendingInteraction;
     private Coroutine _interactionCoroutine;
 
-    // 기본 이동속도 및 쿨다운 저장
+    // 기본 이동속도 저장
     private float _baseSpeed;
-    private float _baseCooldown;
+
+    [Header("이동 반응성 설정")]
+    [Tooltip("방향 전환 각도 임계값 - 이 각도 이상 전환시에만 즉시 회전")]
+    [SerializeField] private float _rotationThresholdAngle = 45f;
+
+    [Tooltip("속도 리셋 각도 임계값 - 이 각도 이상시에만 속도 리셋")]
+    [SerializeField] private float _velocityResetAngle = 90f;
+
+    [Tooltip("최소 이동 속도 (애니메이션 연속성 유지용)")]
+    [SerializeField] private float _minimumMovementSpeed = 1f;
+
+    // 마지막 이동 방향 추적
+    private Vector3 _lastMovementDirection = Vector3.zero;
+    private bool _isCurrentlyMoving = false;
 
     // 넉백 디버그 시각화용
     private Vector3 _lastKnockbackStart;
@@ -45,33 +54,15 @@ public class PlayerNavController : MonoBehaviour
     private Vector3 _lastKnockbackIdealEnd;
     private bool _lastKnockbackHitWall;
 
-    [Header("런타임 정보")]
-    [SerializeField, Tooltip("현재 적용된 공격 쿨다운 (읽기 전용)")]
-    private float _currentAttackCooldown;
-
     [Header("애니메이션 설정")]
     [SerializeField] private float _animationDampTime = 0.1f;
-    [SerializeField] private float _attackAnimationDuration = 1.0f;
-
-    [Header("전투 설정")]
-    [Tooltip("공격 범위 (미터)")]
-    [SerializeField] private float _attackRange = 3f;
-
-    [Tooltip("공격 각도 (전방 원뿔 범위, 90도 = 전방 1/4 원)")]
-    [SerializeField] private float _attackAngle = 90f;
-
-    [SerializeField] private float _attackDamage = 25f;
-    public float AttackDamage => _attackDamage;
-
-    [Tooltip("기본 공격 쿨다운 (초) - Attack Speed 스탯에 의해 감소됨")]
-    [SerializeField] private float _attackSpeed = 1f;
 
     [Header("넉백 설정")]
     [SerializeField, Tooltip("넉백 이동 시간 (초)")]
     private float _knockbackDuration = 0.3f;
 
     [SerializeField, Tooltip("벽 충돌 감지 레이어 (Ground, Wall, Obstacle 등)")]
-    private LayerMask _knockbackObstacleLayer = ~0; // 모든 레이어
+    private LayerMask _knockbackObstacleLayer = ~0;
 
     [SerializeField, Tooltip("벽과의 최소 안전 거리 (미터)")]
     private float _knockbackWallBuffer = 0.5f;
@@ -111,10 +102,8 @@ public class PlayerNavController : MonoBehaviour
 
         // 기본값 저장
         _baseSpeed = _agent.speed;
-        _baseCooldown = _attackSpeed;
-        _currentAttackCooldown = _baseCooldown;
 
-        Debug.Log($"[PlayerNavController] Awake - Base Speed: {_baseSpeed}, Base Cooldown: {_baseCooldown:F2}초");
+        Debug.Log($"[PlayerNavController] Awake - Base Speed: {_baseSpeed}");
     }
 
     private void Start()
@@ -127,8 +116,6 @@ public class PlayerNavController : MonoBehaviour
             CharacterStats initialStats = _playerCharacter.CurrentStats;
             Debug.Log($"[PlayerNavController] Start - 초기 스탯 적용");
             Debug.Log($"  Movement Speed: {initialStats.MovementSpeed:F2}");
-            Debug.Log($"  Attack Speed: {initialStats.AttackSpeed:F2}");
-            UpdateAttackCooldown(initialStats.AttackSpeed);
         }
         else
         {
@@ -140,18 +127,20 @@ public class PlayerNavController : MonoBehaviour
     {
         // PlayerCharacter 이벤트 구독
         PlayerCharacter.OnPlayerDead += HandlePlayerDead;
-        PlayerCharacter.OnStatsChanged += HandleStatsChanged;
 
         // SkillActivationSystem 이벤트 구독
         SkillActivationSystem.OnSkillExecuted += HandleSkillExecuted;
+
+        // PlayerAttackController 이벤트 구독 (애니메이션 트리거용)
+        PlayerAttackController.OnAttackTrigger += HandleAttackAnimationTrigger;
     }
 
     private void OnDisable()
     {
         // 이벤트 구독 해제
         PlayerCharacter.OnPlayerDead -= HandlePlayerDead;
-        PlayerCharacter.OnStatsChanged -= HandleStatsChanged;
         SkillActivationSystem.OnSkillExecuted -= HandleSkillExecuted;
+        PlayerAttackController.OnAttackTrigger -= HandleAttackAnimationTrigger;
     }
 
     #endregion
@@ -164,7 +153,6 @@ public class PlayerNavController : MonoBehaviour
     private void HandlePlayerDead()
     {
         _isDead = true;
-        _isAttacking = false;
 
         if (_agent != null && _agent.enabled)
         {
@@ -175,25 +163,10 @@ public class PlayerNavController : MonoBehaviour
         // 실행 중인 코루틴 정지
         StopAllCoroutines();
 
-        _isAttacking = false;
-        _currentTarget = null;
         _pendingInteraction = null;
         _interactionCoroutine = null;
-        
+
         Log("플레이어 사망 - 모든 행동 중지");
-    }
-
-    /// <summary>
-    /// 스탯 변경 핸들러
-    /// Movement Speed와 Attack Speed 업데이트
-    /// </summary>
-    private void HandleStatsChanged(CharacterStats newStats)
-    {
-        // Attack Speed 갱신
-        UpdateAttackCooldown(newStats.AttackSpeed);
-
-        // Movement Speed는 Update()에서 지속적으로 갱신됨
-        Log($"스탯 변경: MS={newStats.MovementSpeed:F2}, AS={newStats.AttackSpeed:F2}");
     }
 
     /// <summary>
@@ -203,9 +176,7 @@ public class PlayerNavController : MonoBehaviour
     {
         _isPerformingSkill = true;
 
-        // 스킬 실행 중 이동/공격 취소
-        _currentTarget = null;
-
+        // 스킬 실행 중 이동 취소
         if (_interactionCoroutine != null)
         {
             StopCoroutine(_interactionCoroutine);
@@ -215,6 +186,18 @@ public class PlayerNavController : MonoBehaviour
 
         // 스킬 애니메이션이 끝날 때까지 대기
         StartCoroutine(ResetSkillFlag(1.5f));
+    }
+
+    /// <summary>
+    /// 공격 애니메이션 트리거 핸들러 (PlayerAttackController로부터)
+    /// </summary>
+    private void HandleAttackAnimationTrigger(int animationHash)
+    {
+        if (_animator != null)
+        {
+            _animator.SetTrigger(animationHash);
+            Log("공격 애니메이션 트리거");
+        }
     }
 
     /// <summary>
@@ -240,23 +223,49 @@ public class PlayerNavController : MonoBehaviour
 
     private void Update()
     {
-        // 사망 상태면 아무것도 안 함
-        if (_isDead) return;
+        // 사망 또는 스킬 시전 중엔 업데이트 안함
+        if (_isDead || _isPerformingSkill)
+        {
+            return;
+        }
 
-        // 이동속도 업데이트 (스탯 + 상태이상)
-        UpdateMovementSpeed();
+        // Movement Speed 동적 업데이트
+        if (_playerCharacter != null && _agent != null)
+        {
+            CharacterStats stats = _playerCharacter.CurrentStats;
+            float targetSpeed = _baseSpeed + stats.MovementSpeed;
 
-        // 마우스 입력 처리
-        HandleMouseInput();
+            // 상태이상에 따른 속도 조정
+            if (_stateController != null)
+            {
+                if (_stateController.IsFrozen)
+                {
+                    targetSpeed = 0f;
+                }
+                else if (_stateController.IsRoot)
+                {
+                    targetSpeed = 0f;
+                }
+            }
 
-        // 애니메이터 업데이트
+            _agent.speed = targetSpeed;
+        }
+
+        // 이동 상태 추적
+        if (_agent != null && _agent.isOnNavMesh)
+        {
+            _isCurrentlyMoving = _agent.velocity.magnitude > 0.5f;
+            if (_isCurrentlyMoving && _agent.velocity.magnitude > 0.1f)
+            {
+                _lastMovementDirection = _agent.velocity.normalized;
+            }
+        }
+
+        // 애니메이션 업데이트
         UpdateAnimator();
 
-        // 타겟 추적
-        if (_currentTarget != null)
-        {
-            FollowTarget();
-        }
+        // 입력 처리
+        HandleMouseInput();
     }
 
     #endregion
@@ -264,16 +273,14 @@ public class PlayerNavController : MonoBehaviour
     #region 입력 처리
 
     /// <summary>
-    /// 마우스 입력 처리 (좌클릭: 이동, 우클릭: 공격)
+    /// 마우스 입력 처리 (좌클릭: 이동)
     /// 
     /// 속박(Root) 상태 주의사항:
-    /// - 좌클릭과 우클릭을 독립적으로 처리
     /// - 좌클릭: CanMove 체크 → 속박 시 차단
-    /// - 우클릭: CanAttack 체크만 → 속박 시 허용
     /// </summary>
     private void HandleMouseInput()
     {
-        // 스킬 시전 중에는 이동/공격 불가
+        // 스킬 시전 중에는 이동 불가
         if (_isPerformingSkill)
         {
             return;
@@ -290,20 +297,6 @@ public class PlayerNavController : MonoBehaviour
             else
             {
                 Log($"이동 불가 상태: Frozen={_stateController.IsFrozen}, Root={_stateController.IsRoot}, Stunned={_stateController.IsStunned}, Attacking={_stateController.IsAttacking}");
-            }
-        }
-
-        // 우클릭: 공격 (속박 상태에서도 가능)
-        if (Input.GetMouseButtonDown(1))
-        {
-            // 공격 가능 여부 체크 (빙결/넉다운만 차단, 속박은 허용)
-            if (_stateController == null || _stateController.CanAttack)
-            {
-                HandleRightClick();
-            }
-            else
-            {
-                Log($"공격 불가 상태: Frozen={_stateController.IsFrozen}, Stunned={_stateController.IsStunned}");
             }
         }
     }
@@ -323,10 +316,8 @@ public class PlayerNavController : MonoBehaviour
 
             if (interactable != null && interactable.CanInteract(_playerCharacter))
             {
-                // 상호작용 대상 저장
                 _pendingInteraction = interactable;
 
-                // 거리가 멀면 이동 후 상호작용
                 float distance = Vector3.Distance(transform.position, hit.transform.position);
                 if (distance > 2f)
                 {
@@ -339,7 +330,6 @@ public class PlayerNavController : MonoBehaviour
                 }
                 else
                 {
-                    // 가까우면 즉시 상호작용
                     interactable.Interact(_playerCharacter);
                     _pendingInteraction = null;
                     Log($"즉시 상호작용: {hit.transform.name}");
@@ -348,10 +338,9 @@ public class PlayerNavController : MonoBehaviour
             }
         }
 
-        // 2순위: 지면 클릭 → 이동
+        // 2순위: 지면 클릭 → 스마트 이동
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
         {
-            _currentTarget = null;
             _pendingInteraction = null;
 
             if (_interactionCoroutine != null)
@@ -361,43 +350,79 @@ public class PlayerNavController : MonoBehaviour
                 _pendingInteraction = null;
             }
 
-            _agent.SetDestination(hit.point);
+            // 스마트 이동 처리
+            ProcessSmartMovement(hit.point);
+
+            // 이동 인디케이터 표시
+            if (MousePositionIndicator.Instance != null)
+            {
+                MousePositionIndicator.Instance.ShowMoveIndicator(hit.point);
+            }
+
             Log($"이동 명령: {hit.point}");
         }
     }
 
     /// <summary>
-    /// 우클릭 처리: 마우스 방향으로 회전 후 공격
-    /// 적이 없어도 헛스윙 허용 (애니메이션 + 쿨다운 적용)
+    /// 스마트 이동 처리
+    /// 방향 전환 각도에 따라 최적의 이동 방식 선택
     /// </summary>
-    private void HandleRightClick()
+    private void ProcessSmartMovement(Vector3 targetPoint)
     {
-        if (_isAttacking || _isOnCooldown)
+        if (_agent == null || !_agent.isOnNavMesh) return;
+
+        // 목표 방향 계산
+        Vector3 targetDirection = (targetPoint - transform.position).normalized;
+        targetDirection.y = 0;
+
+        if (targetDirection == Vector3.zero) return;
+
+        // 현재 이동 중인지 확인
+        bool isMoving = _agent.velocity.magnitude > 0.5f;
+        float currentSpeed = _agent.velocity.magnitude;
+
+        if (isMoving && _lastMovementDirection != Vector3.zero)
         {
-            Log("공격 중이거나 쿨다운 상태");
-            return;
-        }
+            // ★ 이동 중 - 방향 전환 각도 계산
+            float directionAngle = Vector3.Angle(_lastMovementDirection, targetDirection);
 
-        Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
+            Log($"방향 전환 각도: {directionAngle:F1}°, 현재 속도: {currentSpeed:F1}");
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
-        {
-            // 마우스 위치로 회전
-            Vector3 targetDirection = (hit.point - transform.position).normalized;
-            targetDirection.y = 0;
-
-            if (targetDirection != Vector3.zero)
+            if (directionAngle < _rotationThresholdAngle)
             {
-                transform.rotation = Quaternion.LookRotation(targetDirection);
+                // 작은 방향 전환 - 부드럽게 경로만 업데이트
+                _agent.SetDestination(targetPoint);
+                Log("→ 부드러운 경로 업데이트 (속도 유지)");
             }
-
-            // 전방 원뿔 범위 내 적 탐색
-            List<EnemyController> enemies = GetEnemiesInFrontCone();
-
-            // 적이 없어도 헛스윙 허용
-            PerformMultiAttack(enemies);
+            else if (directionAngle < _velocityResetAngle)
+            {
+                // 중간 방향 전환 - 회전 후 최소 속도로 시작
+                _agent.velocity = targetDirection * _minimumMovementSpeed;
+                transform.rotation = Quaternion.LookRotation(targetDirection);
+                _agent.SetDestination(targetPoint);
+                Log("→ 중간 방향 전환 (회전 + 최소 속도)");
+            }
+            else
+            {
+                // 큰 방향 전환 - 속도 리셋 후 재시작
+                _agent.velocity = targetDirection * _minimumMovementSpeed;
+                transform.rotation = Quaternion.LookRotation(targetDirection);
+                _agent.SetDestination(targetPoint);
+                Log("→ 큰 방향 전환 (최소 속도 유지)");
+            }
         }
+        else
+        {
+            // ★ 정지 상태에서 시작 - 즉시 회전
+            _agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+            transform.rotation = Quaternion.LookRotation(targetDirection);
+            _agent.SetDestination(targetPoint);
+            Log("→ 정지 상태에서 시작");
+        }
+
+        // 마지막 방향 저장
+        _lastMovementDirection = targetDirection;
     }
 
     /// <summary>
@@ -429,318 +454,133 @@ public class PlayerNavController : MonoBehaviour
 
     #endregion
 
-    #region 전투
+    #region 넉백 시스템
 
     /// <summary>
-    /// 전방 원뿔 범위 내 적 탐색
+    /// 넉백 적용 (외부에서 호출)
     /// </summary>
-    private List<EnemyController> GetEnemiesInFrontCone()
+    public void ApplyKnockback(float power, Vector3 direction)
     {
-        List<EnemyController> result = new List<EnemyController>();
-
-        Collider[] hits = Physics.OverlapSphere(transform.position, _attackRange);
-
-        foreach (Collider hit in hits)
+        if (_agent == null || !_agent.isOnNavMesh)
         {
-            EnemyController enemy = hit.GetComponent<EnemyController>();
-
-            if (enemy != null)
-            {
-                Vector3 directionToEnemy = (enemy.transform.position - transform.position).normalized;
-                float angle = Vector3.Angle(transform.forward, directionToEnemy);
-
-                if (angle <= _attackAngle / 2f)
-                {
-                    result.Add(enemy);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 다중 적 공격 실행
-    /// 데미지 계산 방식: PlayerCharacter에서 계산 후 EnemyController.TakeDamage(float) 호출
-    /// </summary>
-    private void PerformMultiAttack(List<EnemyController> enemies)
-    {
-        StartCoroutine(AttackCoroutine(enemies));
-    }
-
-    /// <summary>
-    /// 공격 코루틴
-    /// </summary>
-    private IEnumerator AttackCoroutine(List<EnemyController> enemies)
-    {
-        _isAttacking = true;
-        _isOnCooldown = true;
-
-        // 공격 상태 설정 (이동 차단)
-        if (_stateController != null)
-        {
-            _stateController.SetAttacking(true);
-        }
-
-        // 공격 애니메이션 재생
-        _animator.SetTrigger(ATTACK_HASH);
-
-        Log($"공격 시작! 적 {enemies.Count}명 범위 내");
-
-        // 애니메이션 타이밍에 맞춰 데미지 적용
-        yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
-
-        // 데미지 적용
-        if (_playerCharacter != null)
-        {
-            float attackPower = _playerCharacter.GetAttackPower();
-
-            foreach (EnemyController enemy in enemies)
-            {
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(attackPower);
-                    Log($"  → {enemy.name}에게 {attackPower:F1} 데미지");
-                }
-            }
-        }
-
-        // 공격 상태 해제 (이동 가능)
-        if (_stateController != null)
-        {
-            _stateController.SetAttacking(false);
-        }
-
-        // 애니메이션 종료 대기
-        float remainingTime = _attackAnimationDuration - ATTACK_DAMAGE_TIMING;
-        yield return new WaitForSeconds(remainingTime);
-
-
-        _isAttacking = false;
-
-        // 쿨다운 시작
-        yield return new WaitForSeconds(_currentAttackCooldown);
-        _isOnCooldown = false;
-
-        Log("공격 쿨다운 완료");
-    }
-
-    /// <summary>
-    /// 공격 쿨다운 업데이트 (Attack Speed 스탯 기반)
-    /// AttackSpeed를 absolute 감소값으로 처리
-    /// 
-    /// 공식: 최종 쿨다운 = 기본 쿨다운 - AttackSpeed (최소 0.1초)
-    /// 예시: Dex 5 → Attack Speed 0.25 → Cooldown = 1.0 - 0.25 = 0.75초
-    /// </summary>
-    private void UpdateAttackCooldown(float attackSpeedStat)
-    {
-        // Absolute 감소 방식
-        _currentAttackCooldown = _baseCooldown - attackSpeedStat;
-
-        // 최소 쿨다운 제한 (너무 빠른 공격 방지)
-        _currentAttackCooldown = Mathf.Max(_currentAttackCooldown, MIN_ATTACK_COOLDOWN);
-
-        Debug.Log($"[Attack Speed] 쿨다운 업데이트: {_currentAttackCooldown:F2}초 (스탯: {attackSpeedStat:F2})");
-    }
-
-    /// <summary>
-    /// 타겟 추적
-    /// </summary>
-    private void FollowTarget()
-    {
-        if (_currentTarget == null)
-        {
+            Debug.LogWarning("[PlayerNavController] Agent가 NavMesh 위에 없어 넉백 적용 실패");
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, _currentTarget.position);
+        // 방향 정규화 (수평 방향만)
+        direction.y = 0;
+        direction.Normalize();
 
-        if (distance > _attackRange)
-        {
-            _agent.SetDestination(_currentTarget.position);
-        }
-        else
-        {
-            _agent.isStopped = true;
-        }
+        StartCoroutine(KnockbackCoroutine(power, direction));
     }
 
-    #endregion
-
-    #region 이동속도 관리
-
     /// <summary>
-    /// 이동속도 업데이트 (스탯 기반 + 상태이상 배율)
-    /// 
-    /// 공식: 최종 속도 = (기본속도 + MovementSpeed) × 상태배율
-    /// 예시: Dex 5 → Movement Speed 0.5 → Speed = (5 + 0.5) × 1 = 5.5
+    /// 넉백 코루틴
     /// </summary>
-    private void UpdateMovementSpeed()
+    private IEnumerator KnockbackCoroutine(float power, Vector3 direction)
     {
-        if (_agent == null || _playerCharacter == null || _stateController == null) return;
+        Vector3 startPosition = transform.position;
+        Vector3 idealEndPosition = startPosition + (direction * power);
 
-        CharacterStats stats = _playerCharacter.CurrentStats;
+        // 디버그용 변수 저장
+        _lastKnockbackStart = startPosition;
+        _lastKnockbackIdealEnd = idealEndPosition;
+        _lastKnockbackHitWall = false;
 
-        // Absolute 가산 방식
-        float baseSpeedWithStat = _baseSpeed + stats.MovementSpeed;
+        // 벽 충돌 체크 및 안전 위치 계산
+        Vector3 safeEndPosition = CalculateSafeKnockbackPosition(startPosition, direction, power);
 
-        // 상태이상 배율 (둔화, 빙결 등)
-        float stateMultiplier = _stateController.GetMovementSpeedMultiplier();
+        // 실제로 벽에 막혔는지 확인
+        float distanceToIdeal = Vector3.Distance(idealEndPosition, safeEndPosition);
+        if (distanceToIdeal > 0.1f)
+        {
+            _lastKnockbackHitWall = true;
+            Log($"넉백 벽 충돌 감지! 거리 조정: {power:F2}m → {Vector3.Distance(startPosition, safeEndPosition):F2}m");
+        }
 
-        // 최종 이동속도 = (기본속도 + 스탯) × 상태배율
-        _agent.speed = baseSpeedWithStat * stateMultiplier;
-    }
+        _lastKnockbackEnd = safeEndPosition;
 
-    #endregion
+        // NavMesh 검증
+        if (!IsPositionOnNavMesh(safeEndPosition, out Vector3 validPosition))
+        {
+            Log("경고: 넉백 목표가 NavMesh 밖. 유효한 위치로 보정");
+            safeEndPosition = validPosition;
+            _lastKnockbackEnd = safeEndPosition;
+        }
 
-    #region 상태이상 효과
-
-    /// <summary>
-    /// 강제 정지 (빙결/속박 시 호출)
-    /// </summary>
-    public void ForceStop()
-    {
-        if (_agent != null && _agent.enabled)
+        // NavMeshAgent 일시 정지
+        if (_agent.isOnNavMesh)
         {
             _agent.isStopped = true;
             _agent.ResetPath();
         }
 
-        _currentTarget = null;
-
-        if (_interactionCoroutine != null)
-        {
-            StopCoroutine(_interactionCoroutine);
-            _interactionCoroutine = null;
-            _pendingInteraction = null;
-        }
-
-        Log("강제 정지");
-    }
-
-    /// <summary>
-    /// 넉백 적용
-    /// </summary>
-    public void ApplyKnockback(float knockbackPower, Vector3 direction)
-    {
-        if (_isDead || _agent == null) return;
-
-        StartCoroutine(KnockbackCoroutine(knockbackPower, direction));
-    }
-
-    /// <summary>
-    /// 넉백 코루틴 (벽 충돌 감지)
-    /// - Raycast/SphereCast로 벽 충돌 사전 감지
-    /// - 벽 감지 시 안전한 거리로 자동 조정
-    /// - NavMesh 유효성 검증
-    /// - 디버그 시각화 추가
-    /// </summary>
-    private IEnumerator KnockbackCoroutine(float power, Vector3 direction)
-    {
-        // NavMeshAgent 일시 정지
-        bool wasEnabled = _agent.enabled;
-        if (wasEnabled)
-        {
-            _agent.enabled = false;
-        }
-
-        // 넉백 방향 계산 (수평만)
-        Vector3 knockbackDirection = direction.normalized;
-        knockbackDirection.y = 0;
-
-        Vector3 startPosition = transform.position;
-        Vector3 idealTargetPosition = startPosition + (knockbackDirection * power);
-
-        // === 핵심: 벽 충돌 검사 ===
-        Vector3 finalTargetPosition = CalculateSafeKnockbackPosition(
-            startPosition,
-            knockbackDirection,
-            power
-        );
-
-        // === NavMesh 검증 ===
-        if (!IsPositionOnNavMesh(finalTargetPosition, out Vector3 validPosition))
-        {
-            finalTargetPosition = validPosition;
-            Log($"넉백: NavMesh 밖 감지, 유효한 위치로 보정 ({validPosition})");
-        }
-
-        // 실제 이동 거리 계산
-        float actualDistance = Vector3.Distance(startPosition, finalTargetPosition);
-
-        // 디버그 시각화용 저장
-        _lastKnockbackStart = startPosition;
-        _lastKnockbackEnd = finalTargetPosition;
-        _lastKnockbackIdealEnd = idealTargetPosition;
-        _lastKnockbackHitWall = (finalTargetPosition != idealTargetPosition);
-
         // DOTween으로 부드러운 넉백
-        transform.DOMove(finalTargetPosition, _knockbackDuration)
-            .SetEase(Ease.OutQuad);
+        float elapsedTime = 0f;
 
-        yield return new WaitForSeconds(_knockbackDuration);
+        while (elapsedTime < _knockbackDuration)
+        {
+            float t = elapsedTime / _knockbackDuration;
+            transform.position = Vector3.Lerp(startPosition, safeEndPosition, t);
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // 최종 위치 설정
+        transform.position = safeEndPosition;
 
         // NavMeshAgent 재활성화
-        if (wasEnabled && !_isDead)
+        if (_agent.isOnNavMesh)
         {
-            _agent.enabled = true;
+            _agent.isStopped = false;
         }
 
-        Log($"넉백 완료: {actualDistance:F2}m 이동 (요청: {power}m)");
+        Log($"넉백 완료: {startPosition} → {safeEndPosition}");
     }
 
     /// <summary>
-    /// 안전한 넉백 위치 계산
+    /// 벽 충돌을 고려한 안전한 넉백 위치 계산
     /// 
-    /// Raycast/SphereCast로 벽 충돌 감지하고,
-    /// 충돌 시 벽 앞까지만 이동하도록 거리 조정
+    /// SphereCast (권장) 또는 Raycast를 사용하여 경로상 장애물 감지
+    /// 플레이어 반지름을 고려하여 벽과의 안전 거리 확보
     /// </summary>
     private Vector3 CalculateSafeKnockbackPosition(Vector3 start, Vector3 direction, float distance)
     {
         RaycastHit hit;
-        bool didHit = false;
+        bool hitWall = false;
 
         if (_useSphereCast)
         {
-            // SphereCast: 플레이어의 캡슐 형태를 고려한 정확한 충돌 검사
-            didHit = Physics.SphereCast(
-                start,
+            // SphereCast: 플레이어 크기를 고려한 정확한 충돌 검사
+            hitWall = Physics.SphereCast(
+                start + Vector3.up * _playerRadius,
                 _playerRadius,
                 direction,
                 out hit,
                 distance,
                 _knockbackObstacleLayer
             );
-
-            if (_enableDebugLogs && didHit)
-            {
-                Debug.Log($"[SphereCast] 충돌 감지: {hit.collider.name} at {hit.distance:F2}m");
-            }
         }
         else
         {
-            // Raycast: 빠르지만 단순한 선형 충돌 검사
-            didHit = Physics.Raycast(
+            // Raycast: 가벼운 충돌 검사
+            hitWall = Physics.Raycast(
                 start,
                 direction,
                 out hit,
                 distance,
                 _knockbackObstacleLayer
             );
-
-            if (_enableDebugLogs && didHit)
-            {
-                Debug.Log($"[Raycast] 충돌 감지: {hit.collider.name} at {hit.distance:F2}m");
-            }
         }
 
-        if (didHit)
+        if (hitWall)
         {
-            // 벽 감지: 충돌 지점에서 안전 버퍼만큼 떨어진 위치
+            // 벽 감지: 안전 거리 확보
             float safeDistance = Mathf.Max(0f, hit.distance - _knockbackWallBuffer);
             Vector3 safePosition = start + (direction * safeDistance);
 
-            Log($"넉백 벽 충돌 감지! {hit.collider.name} - 거리 조정: {distance:F2}m → {safeDistance:F2}m");
+            Log($"벽 충돌 감지: {hit.collider.name} - 거리 조정: {distance:F2}m → {safeDistance:F2}m");
 
             return safePosition;
         }
@@ -778,6 +618,21 @@ public class PlayerNavController : MonoBehaviour
         validPosition = transform.position;
         Log("경고: NavMesh를 찾을 수 없음, 현재 위치 유지");
         return false;
+    }
+
+    /// <summary>
+    /// 강제 정지 (외부에서 호출)
+    /// </summary>
+    public void ForceStop()
+    {
+        if (_agent != null && _agent.isOnNavMesh)
+        {
+            _agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+            _agent.isStopped = true;
+            _isCurrentlyMoving = false;
+            _lastMovementDirection = Vector3.zero;
+        }
     }
 
     #endregion
@@ -893,54 +748,6 @@ public class PlayerNavController : MonoBehaviour
         }
     }
 
-    [ContextMenu("Debug: Print Attack Cooldown Info")]
-    private void DebugPrintCooldownInfo()
-    {
-        Debug.Log("===== Attack Cooldown 정보 =====");
-        Debug.Log($"기본 쿨다운 (_baseCooldown): {_baseCooldown:F2}초");
-        Debug.Log($"현재 쿨다운 (_currentAttackCooldown): {_currentAttackCooldown:F2}초");
-        Debug.Log($"Inspector 설정값 (_attackSpeed): {_attackSpeed:F2}초");
-
-        if (_playerCharacter != null)
-        {
-            CharacterStats stats = _playerCharacter.CurrentStats;
-            Debug.Log($"Attack Speed 스탯: {stats.AttackSpeed:F2}");
-            Debug.Log($"Dexterity: {stats.Dexterity}");
-
-            float expectedCooldown = _baseCooldown - stats.AttackSpeed;
-            expectedCooldown = Mathf.Max(expectedCooldown, MIN_ATTACK_COOLDOWN);
-            Debug.Log($"예상 쿨다운: {expectedCooldown:F2}초");
-        }
-        else
-        {
-            Debug.LogWarning("PlayerCharacter가 null입니다!");
-        }
-    }
-
-    [ContextMenu("Debug: Print Damage Info")]
-    private void DebugPrintDamageInfo()
-    {
-        Debug.Log("===== Attack Damage 정보 =====");
-        Debug.Log($"기본 데미지 (_attackDamage): {_attackDamage:F1} [폴백 용도]");
-
-        if (_playerCharacter != null)
-        {
-            CharacterClass charClass = _playerCharacter.CharacterClass;
-            int mainStat = _playerCharacter.GetMainStat();
-            float attackPower = _playerCharacter.GetAttackPower();
-            string attackType = _playerCharacter.IsPhysicalAttacker() ? "물리" : "마법";
-
-            Debug.Log($"캐릭터 클래스: {charClass}");
-            Debug.Log($"주요 스탯: {mainStat}");
-            Debug.Log($"공격 타입: {attackType}");
-            Debug.Log($"최종 공격력: {attackPower:F1}");
-        }
-        else
-        {
-            Debug.LogWarning("PlayerCharacter가 null입니다!");
-        }
-    }
-
     [ContextMenu("Debug: Test Knockback (Forward 3m)")]
     private void DebugTestKnockback()
     {
@@ -951,84 +758,6 @@ public class PlayerNavController : MonoBehaviour
     private void DebugTestKnockbackBackward()
     {
         ApplyKnockback(4f, -transform.forward);
-    }
-
-    /// <summary>
-    /// 공격 범위 시각화 (Scene View에서 선택 시에만)
-    /// </summary>
-    private void OnDrawGizmosSelected()
-    {
-        if (!Application.isPlaying) return;
-
-        Vector3 position = transform.position;
-
-        // 공격 범위 구체
-        Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
-        Gizmos.DrawWireSphere(position, _attackRange);
-
-        // 공격 원뿔
-        DrawAttackCone(position);
-
-        // 범위 내 적
-        DrawEnemiesInCone();
-    }
-
-    /// <summary>
-    /// 공격 원뿔 그리기
-    /// </summary>
-    private void DrawAttackCone(Vector3 position)
-    {
-        Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
-
-        Vector3 forward = transform.forward * _attackRange;
-        int segments = 20;
-        float angleStep = _attackAngle / segments;
-
-        Vector3 prevPoint = position + Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
-
-        for (int i = 0; i <= segments; i++)
-        {
-            float angle = -_attackAngle / 2f + (angleStep * i);
-            Vector3 direction = Quaternion.Euler(0, angle, 0) * forward;
-            Vector3 point = position + direction;
-
-            Gizmos.DrawLine(prevPoint, point);
-
-            if (i % 5 == 0)
-            {
-                Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
-                Gizmos.DrawLine(position, point);
-                Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
-            }
-
-            prevPoint = point;
-        }
-
-        // 원뿔 경계선
-        Gizmos.color = Color.yellow;
-        Vector3 leftBound = Quaternion.Euler(0, -_attackAngle / 2f, 0) * forward;
-        Vector3 rightBound = Quaternion.Euler(0, _attackAngle / 2f, 0) * forward;
-        Gizmos.DrawLine(position, position + leftBound);
-        Gizmos.DrawLine(position, position + rightBound);
-    }
-
-    /// <summary>
-    /// 범위 내 적 시각화
-    /// </summary>
-    private void DrawEnemiesInCone()
-    {
-        List<EnemyController> enemiesInCone = GetEnemiesInFrontCone();
-
-        foreach (EnemyController enemy in enemiesInCone)
-        {
-            if (enemy == null) continue;
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, enemy.transform.position);
-
-            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
-            Gizmos.DrawSphere(enemy.transform.position, 0.5f);
-        }
     }
 
     #endregion

@@ -52,7 +52,10 @@ public class GameInitializer : MonoBehaviour
         "TutorialScene",
         "ForestScene",
         "CaveScene",
-        "BossArena"
+        "BossArena",
+        "TheFirstStage",
+        "Billage",
+        "TestScene1",
     };
 
     [Header("퀘스트 설정")]

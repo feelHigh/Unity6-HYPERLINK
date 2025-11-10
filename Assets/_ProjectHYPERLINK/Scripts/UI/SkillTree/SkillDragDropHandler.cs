@@ -26,7 +26,7 @@ public class SkillDragDropHandler : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = FindObjectOfType<SkillDragDropHandler>();
+                _instance = FindFirstObjectByType<SkillDragDropHandler>();
                 if (_instance == null)
                 {
                     GameObject go = new GameObject("SkillDragDropHandler");
@@ -106,7 +106,7 @@ public class SkillDragDropHandler : MonoBehaviour
             _dragVisual = GetComponentInChildren<DraggingVisualizeSkill>(true);
             if (_dragVisual == null)
             {
-                _dragVisual = FindObjectOfType<DraggingVisualizeSkill>(true);
+                _dragVisual = FindFirstObjectByType<DraggingVisualizeSkill>(FindObjectsInactive.Include);
             }
         }
 
@@ -311,7 +311,7 @@ public class SkillDragDropHandler : MonoBehaviour
 
         ClearDragState();
     }
-    
+
     public void CancelDrag()
     {
         ClearDragState();

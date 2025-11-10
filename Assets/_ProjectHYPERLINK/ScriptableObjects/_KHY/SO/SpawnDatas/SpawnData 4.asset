@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnList:
   - enemyData: {fileID: 11400000, guid: 4e564ac51e7d83c4499fa0488e26884b, type: 2}
-    count: 1
-  - enemyData: {fileID: 11400000, guid: 0eca62852cda29a4fb3619264a0d6e49, type: 2}
-    count: 1
+    prefab: {fileID: 8314872689418627326, guid: e679929056c67fb4f8e35b029e6fb5d0, type: 3}
+    enemyName: "\uD29C\uD1A0\uB9AC\uC5BC_\uB3C4\uAE68\uBE44\uBD88"
+    count: 2
   dropTable: {fileID: 11400000, guid: 133c38302c09e85469fb086cce38cb2b, type: 2}
   dropChance: 0.5
