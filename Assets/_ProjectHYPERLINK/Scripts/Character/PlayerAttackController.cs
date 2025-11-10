@@ -12,6 +12,7 @@ using System.Collections.Generic;
 /// - 데미지 계산 및 적용
 /// - 공격 쿨다운 관리
 /// - 공격 VFX 처리
+/// - 적 히트 VFX 처리
 /// </summary>
 [RequireComponent(typeof(PlayerCharacter))]
 [RequireComponent(typeof(NavMeshAgent))]
@@ -53,7 +54,11 @@ public class PlayerAttackController : MonoBehaviour
     [SerializeField] private float _attackAnimationDuration = 1.0f;
 
     [Header("기본 공격 VFX")]
+    [Tooltip("플레이어 위치에 표시할 공격 VFX")]
     [SerializeField] private GameObject _baseAttackVfxPrefab;
+
+    [Tooltip("적이 맞았을 때 표시할 히트 VFX")]
+    [SerializeField] private GameObject _baseAttackEnemyHitVfx;
 
     [Tooltip("VFX 위치 오프셋 (로컬 좌표)")]
     [SerializeField] private Vector3 _vfxPositionOffset = new Vector3(0f, 1f, 1f);
@@ -183,6 +188,13 @@ public class PlayerAttackController : MonoBehaviour
         // 우클릭: 공격
         if (Input.GetMouseButtonDown(1))
         {
+            // UI 클릭 체크
+            if (InputHelper.IsPointerOverUI())
+            {
+                Log("UI 클릭 감지 - 공격 취소");
+                return;
+            }
+
             if (CanAttack())
             {
                 HandleRightClick();
@@ -338,7 +350,7 @@ public class PlayerAttackController : MonoBehaviour
         // 애니메이션 재생 대기
         yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
 
-        // 데미지 적용
+        // 데미지 적용 (AttackInfo 사용)
         if (_playerCharacter != null)
         {
             float attackPower = _playerCharacter.GetAttackPower();
@@ -347,7 +359,14 @@ public class PlayerAttackController : MonoBehaviour
             {
                 if (enemy != null && !enemy.IsDead)
                 {
-                    enemy.TakeDamage(attackPower);
+                    // AttackInfo를 사용한 데미지 적용
+                    AttackInfo attackInfo = AttackInfo.CreatePlayerBaseAttack(
+                        attackPower,
+                        enemy.transform.position,
+                        _baseAttackEnemyHitVfx  // 적 히트 VFX 전달
+                    );
+
+                    enemy.TakeDamage(attackInfo);
                     Log($"데미지 적용: {enemy.name} -> {attackPower:F1}");
                 }
             }

@@ -26,7 +26,7 @@ public class SkillAnimationController : MonoBehaviour
     private PlayerCharacter _playerCharacter;
     private PlayerNavController _navController;
     private PlayerAttackController _attackController;
-    private PlayerStateController _stateController; // ⭐ 추가
+    private PlayerStateController _stateController;
     private Camera _mainCamera;
 
     private bool _isPerformingSkill = false;
@@ -405,7 +405,15 @@ public class SkillAnimationController : MonoBehaviour
             EnemyController enemy = hit.GetComponent<EnemyController>();
             if (enemy != null)
             {
-                enemy.TakeDamage(finalDamage);
+                // ✅ 수정: AttackInfo 생성 및 전달
+                Vector3 hitPosition = enemy.transform.position + Vector3.up * 1f;
+                AttackInfo attackInfo = AttackInfo.CreatePlayerSkill(
+                    finalDamage,
+                    hitPosition,
+                    skill.EnemyHitVfx
+                );
+
+                enemy.TakeDamage(attackInfo);
                 enemyCount++;
             }
         }

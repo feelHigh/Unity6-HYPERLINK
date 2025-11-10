@@ -54,13 +54,14 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
     #region IDamageable Implementation
 
+    /// <summary>
+    /// 단순 데미지만 받기 (하위 호환성)
+    /// </summary>
     public void TakeDamage(float damage)
     {
         if (_playerCharacter != null)
         {
             _playerCharacter.TakeDamage(damage);
-
-            // 일반 피격 시 히트 스턴 적용
             ApplyHitStun();
         }
         else
@@ -69,14 +70,62 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
     }
 
+    /// <summary>
+    /// AttackInfo와 함께 데미지 받기 (히트 VFX 포함)
+    /// </summary>
+    public void TakeDamage(AttackInfo attackInfo)
+    {
+        if (_playerCharacter != null && IsAlive())
+        {
+            // 데미지 적용
+            _playerCharacter.TakeDamage(attackInfo.Damage);
+
+            Debug.Log($"[PlayerCombat] {attackInfo.Type} 공격 받음: {attackInfo.Damage:F1} 데미지");
+
+            // 히트 VFX 생성
+            if (attackInfo.HitVfxPrefab != null)
+            {
+                SpawnHitVFX(attackInfo.HitVfxPrefab, attackInfo.HitPosition);
+            }
+
+            // 히트 스턴 적용
+            ApplyHitStun();
+        }
+    }
+
+    /// <summary>
+    /// 히트 VFX 생성
+    /// </summary>
+    private void SpawnHitVFX(GameObject vfxPrefab, Vector3 position)
+    {
+        if (vfxPrefab == null)
+        {
+            Debug.LogWarning("[PlayerCombat] VFX 프리팹이 null입니다.");
+            return;
+        }
+
+        GameObject vfx = Instantiate(vfxPrefab, position, Quaternion.identity);
+
+        ParticleSystem ps = vfx.GetComponent<ParticleSystem>();
+        if (ps != null)
+        {
+            float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+            Destroy(vfx, lifetime);
+        }
+        else
+        {
+            Destroy(vfx, 3f);
+        }
+
+        Debug.Log($"[PlayerCombat] 히트 VFX 생성: {vfxPrefab.name}");
+    }
+
     public void Die()
     {
         Debug.Log("[PlayerCombat] 플레이어 사망!");
 
-        // 모든 상태이상 효과 정리
         CleanupAllEffects();
 
-        // 상태 초기화
         if (_stateController != null)
         {
             _stateController.ResetAllStates();
@@ -98,7 +147,6 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     {
         if (_playerCharacter == null || !IsAlive()) return;
 
-        // 공격자 위치 저장 (넉백 방향 계산용)
         _lastAttackerPosition = attackerPosition;
 
         Debug.Log($"[PlayerCombat] 특수 공격 받음: {attack.Type}");
@@ -114,7 +162,6 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _currentHitEffect = Instantiate(attack.HitEffect, transform.position, Quaternion.identity);
         }
 
-        // 기존 디버프 정리 (새 디버프 적용 전)
         CleanupCurrentDebuff();
 
         // 속성별 상태이상 적용
@@ -142,16 +189,10 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
     #region 상태이상 코루틴
 
-    /// <summary>
-    /// 화상 효과
-    /// - 즉시 5% 피해
-    /// - 5초 동안 1초마다 1% 피해
-    /// </summary>
     private IEnumerator BurnCoroutine(SpecialAttackBase attack)
     {
         Debug.Log("[상태이상] 화상 시작");
 
-        // 화상 이펙트 생성
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
         float maxHp = _playerCharacter.MaxHealth;
@@ -159,48 +200,81 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         float tick = attack.DotTickInterval;
         float timer = 0f;
 
-        // 지속 데미지
-        while (timer < attack.DotDuration && IsAlive())
+        while (timer < attack.DotDuration)
         {
             yield return new WaitForSeconds(tick);
-            TakeDamage(dotDamage);
-            Debug.Log($"[화상] DoT 피해: {dotDamage:F1}");
             timer += tick;
+
+            if (!IsAlive()) break;
+
+            _playerCharacter.TakeDamage(dotDamage);
+            Debug.Log($"[화상] DoT 데미지: {dotDamage:F1}");
         }
 
         CleanupDebuffEffect();
         Debug.Log("[상태이상] 화상 종료");
     }
 
-    /// <summary>
-    /// 빙결 효과
-    /// - 즉시 15% 피해
-    /// - 3초 빙결 (이동/공격/스킬 불가)
-    /// - 2초 둔화 (이동속도 50% 감소)
-    /// </summary>
     private IEnumerator FreezeCoroutine(SpecialAttackBase attack)
     {
         Debug.Log("[상태이상] 빙결 시작");
 
-        // 빙결 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
+        _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
 
-        // 빙결 상태 적용
         if (_stateController != null)
         {
             _stateController.SetFreeze(true);
         }
 
-        // NavMeshAgent 정지
-        if (_navController != null)
-        {
-            _navController.ForceStop();
-        }
-
-        // 빙결 대기
         yield return new WaitForSeconds(attack.FreezeDuration);
 
-        // 빙결 해제
+        if (_stateController != null)
+        {
+            _stateController.SetFreeze(false);
+        }
+
+        CleanupDebuffEffect();
+        CleanupAdditionalEffect();
+
+        float slowPercent = attack.SlowPercent;
+        float slowDuration = attack.SlowDuration;
+
+        if (slowDuration > 0 && slowPercent > 0)
+        {
+            if (_stateController != null)
+            {
+                _stateController.SetSlow(true, slowPercent);
+            }
+
+            Debug.Log($"[둔화] {slowPercent:F0}% 감소, {slowDuration}초");
+
+            yield return new WaitForSeconds(slowDuration);
+
+            if (_stateController != null)
+            {
+                _stateController.SetSlow(false, 0f);
+            }
+
+            Debug.Log("[둔화] 종료");
+        }
+
+        Debug.Log("[상태이상] 빙결 종료");
+    }
+
+    private IEnumerator BlindCoroutine(SpecialAttackBase attack)
+    {
+        Debug.Log("[상태이상] 시야 방해 시작");
+
+        _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
+
+        if (_stateController != null)
+        {
+            _stateController.SetFreeze(true);
+        }
+
+        yield return new WaitForSeconds(attack.BlindDuration);
+
         if (_stateController != null)
         {
             _stateController.SetFreeze(false);
@@ -208,96 +282,50 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         CleanupDebuffEffect();
 
-        // 둔화 효과로 전환
-        _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
-
-        if (_stateController != null)
+        // 침묵 효과 (수정: SetSilence 사용)
+        if (attack.SilenceDuration > 0)
         {
-            _stateController.SetSlow(true, attack.SlowPercent);
+            _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
+
+            if (_stateController != null)
+            {
+                _stateController.SetSilence(true);
+            }
+
+            Debug.Log($"[침묵] {attack.SilenceDuration}초");
+
+            yield return new WaitForSeconds(attack.SilenceDuration);
+
+            if (_stateController != null)
+            {
+                _stateController.SetSilence(false);
+            }
+
+            CleanupAdditionalEffect();
+            Debug.Log("[침묵] 종료");
         }
 
-        Debug.Log($"[빙결] 둔화 시작 ({attack.SlowPercent}%)");
-
-        // 둔화 대기
-        yield return new WaitForSeconds(attack.SlowDuration);
-
-        // 둔화 해제
-        if (_stateController != null)
-        {
-            _stateController.SetSlow(false, 0f);
-        }
-
-        CleanupAdditionalEffect();
-        Debug.Log("[상태이상] 빙결 종료");
+        Debug.Log("[상태이상] 시야 방해 종료");
     }
 
-    /// <summary>
-    /// 실명 효과
-    /// - 즉시 10% 피해
-    /// - 4초 침묵 (스킬 사용 불가)
-    /// </summary>
-    private IEnumerator BlindCoroutine(SpecialAttackBase attack)
-    {
-        Debug.Log("[상태이상] 실명 시작");
-
-        // 실명 이펙트
-        _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
-
-        // 침묵 상태 적용
-        if (_stateController != null)
-        {
-            _stateController.SetSilence(true);
-        }
-
-        Debug.Log($"[실명] 침묵 적용 ({attack.SilenceDuration}초)");
-
-        // TODO: 시야 감소 효과 (카메라 PostProcessing 연동)
-        // 예: CameraEffects.SetVignetteIntensity(0.8f);
-
-        // 침묵 대기
-        yield return new WaitForSeconds(attack.SilenceDuration);
-
-        // 침묵 해제
-        if (_stateController != null)
-        {
-            _stateController.SetSilence(false);
-        }
-
-        CleanupDebuffEffect();
-        Debug.Log("[상태이상] 실명 종료");
-    }
-
-    /// <summary>
-    /// 속박 효과
-    /// - 즉시 10% 피해
-    /// - 3초 속박 (이동 불가, 공격/스킬 가능)
-    /// - 5초 방어력 30% 감소
-    /// </summary>
     private IEnumerator RootCoroutine(SpecialAttackBase attack)
     {
         Debug.Log("[상태이상] 속박 시작");
 
-        // 속박 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 속박 상태 적용
         if (_stateController != null)
         {
             _stateController.SetRoot(true);
         }
 
-        // NavMeshAgent 정지
         if (_navController != null)
         {
             _navController.ForceStop();
         }
 
-        Debug.Log($"[속박] 이동 불가 ({attack.RootDuration}초)");
-
-        // 속박 대기
         yield return new WaitForSeconds(attack.RootDuration);
 
-        // 속박 해제
         if (_stateController != null)
         {
             _stateController.SetRoot(false);
@@ -305,63 +333,56 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         CleanupDebuffEffect();
 
-        // 방어력 약화로 전환
-        _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
+        // 약화 효과
+        float debuffPercent = attack.DefenseDebuffPercent;
+        float debuffDuration = attack.DefenseDebuffDuration;
 
-        if (_stateController != null)
+        if (debuffDuration > 0 && debuffPercent > 0)
         {
-            _stateController.SetWeaken(true, attack.DefenseDebuffPercent);
+            _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
+
+            if (_stateController != null)
+            {
+                _stateController.SetWeaken(true, debuffPercent);
+            }
+
+            Debug.Log($"[약화] 방어력 {debuffPercent:F0}% 감소, {debuffDuration}초");
+
+            yield return new WaitForSeconds(debuffDuration);
+
+            if (_stateController != null)
+            {
+                _stateController.SetWeaken(false, 0f);
+            }
+
+            CleanupAdditionalEffect();
+            Debug.Log("[약화] 종료");
         }
 
-        Debug.Log($"[속박] 방어력 감소 ({attack.DefenseDebuffPercent}%)");
-
-        // 약화 대기
-        yield return new WaitForSeconds(attack.DefenseDebuffDuration);
-
-        // 약화 해제
-        if (_stateController != null)
-        {
-            _stateController.SetWeaken(false, 0f);
-        }
-
-        CleanupAdditionalEffect();
         Debug.Log("[상태이상] 속박 종료");
     }
 
-    /// <summary>
-    /// 넉백 효과
-    /// - 즉시 15% 피해
-    /// - 4미터 밀려남
-    /// - 1초 넉다운 (이동/공격/스킬 불가)
-    /// </summary>
     private IEnumerator KnockbackCoroutine(SpecialAttackBase attack)
     {
         Debug.Log("[상태이상] 넉백 시작");
 
-        // 넉다운 이펙트
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
-        // 넉백 적용 (공격자 방향으로)
-        if (_navController != null)
-        {
-            // 넉백 방향 계산: 공격자 → 플레이어
-            Vector3 knockbackDir = (transform.position - _lastAttackerPosition).normalized;
-            knockbackDir.y = 0; // 수평 방향만
-            _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
-        }
-
-        // 넉다운 상태 적용
         if (_stateController != null)
         {
             _stateController.SetKnockState(true);
         }
 
-        Debug.Log($"[넉백] 넉다운 ({attack.StunDuration}초)");
+        Vector3 knockbackDir = (transform.position - _lastAttackerPosition).normalized;
+        knockbackDir.y = 0;
 
-        // 넉다운 대기
+        if (_navController != null)
+        {
+            _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
+        }
+
         yield return new WaitForSeconds(attack.StunDuration);
 
-        // 넉다운 해제
         if (_stateController != null)
         {
             _stateController.SetKnockState(false);
@@ -371,106 +392,43 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         Debug.Log("[상태이상] 넉백 종료");
     }
 
+    #endregion
 
-    /// <summary>
-    /// 히트 스턴 적용 (일반 피격)
-    /// - 짧은 시간 동안 모든 행동 불가
-    /// </summary>
+    #region 히트 스턴
+
     private void ApplyHitStun()
     {
-        // 이미 히트 스턴 중이거나 더 강한 상태이상 중이면 무시
-        if (_hitStunCoroutine != null) return;
-        if (_stateController != null && (_stateController.IsFrozen || _stateController.IsStunned)) return;
+        if (_stateController == null) return;
 
-        // 히트 스턴 코루틴 시작
+        if (_hitStunCoroutine != null)
+        {
+            StopCoroutine(_hitStunCoroutine);
+        }
+
         _hitStunCoroutine = StartCoroutine(HitStunCoroutine());
     }
 
-    /// <summary>
-    /// 히트 스턴 코루틴
-    /// </summary>
     private IEnumerator HitStunCoroutine()
     {
-        Debug.Log($"[히트 스턴] 시작 ({_hitStunDuration}초)");
+        _stateController.SetHitStun(true);
 
-        // 히트 스턴 상태 적용
-        if (_stateController != null)
-        {
-            _stateController.SetHitStun(true);
-        }
-
-        // NavMeshAgent 정지
-        if (_navController != null)
-        {
-            _navController.ForceStop();
-        }
-
-        // 히트 스턴 대기
         yield return new WaitForSeconds(_hitStunDuration);
 
-        // 히트 스턴 해제
-        if (_stateController != null)
-        {
-            _stateController.SetHitStun(false);
-        }
-
+        _stateController.SetHitStun(false);
         _hitStunCoroutine = null;
-        Debug.Log("[히트 스턴] 종료");
     }
 
     #endregion
 
-    #region 이펙트 관리
+    #region 이펙트 정리
 
-    /// <summary>
-    /// 디버프 이펙트 생성
-    /// </summary>
     private GameObject SpawnDebuffEffect(GameObject effectPrefab)
     {
-        if (effectPrefab != null)
-        {
-            return Instantiate(effectPrefab, transform);
-        }
-        return null;
+        if (effectPrefab == null) return null;
+
+        return Instantiate(effectPrefab, transform.position, Quaternion.identity, transform);
     }
 
-    /// <summary>
-    /// 현재 디버프 효과 정리
-    /// </summary>
-    private void CleanupCurrentDebuff()
-    {
-        if (_currentDebuffCoroutine != null)
-        {
-            StopCoroutine(_currentDebuffCoroutine);
-            _currentDebuffCoroutine = null;
-        }
-
-        CleanupHitEffect();
-        CleanupDebuffEffect();
-        CleanupAdditionalEffect();
-
-        // 모든 상태 해제
-        if (_stateController != null)
-        {
-            _stateController.ResetAllStates();
-        }
-    }
-
-    /// <summary>
-    /// 피격 이펙트 오브젝트 제거
-    /// </summary>
-    private void CleanupHitEffect()
-    {
-        if (_currentHitEffect != null)
-        {
-            Destroy(_currentHitEffect);
-            _currentHitEffect = null;
-        }
-    }
-
-    /// <summary>
-    /// 디버프 이펙트 오브젝트 제거
-    /// </summary>
     private void CleanupDebuffEffect()
     {
         if (_currentDebuffEffect != null)
@@ -480,9 +438,6 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
     }
 
-    /// <summary>
-    /// 추가 디버프 이펙트 오브젝트 제거
-    /// </summary>
     private void CleanupAdditionalEffect()
     {
         if (_currentAdditionalEffect != null)
@@ -492,14 +447,32 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
     }
 
-    /// <summary>
-    /// 모든 상태이상 효과 정리 (사망 시 호출)
-    /// </summary>
+    private void CleanupHitEffect()
+    {
+        if (_currentHitEffect != null)
+        {
+            Destroy(_currentHitEffect);
+            _currentHitEffect = null;
+        }
+    }
+
+    private void CleanupCurrentDebuff()
+    {
+        if (_currentDebuffCoroutine != null)
+        {
+            StopCoroutine(_currentDebuffCoroutine);
+            _currentDebuffCoroutine = null;
+        }
+
+        CleanupDebuffEffect();
+        CleanupAdditionalEffect();
+        CleanupHitEffect();
+    }
+
     private void CleanupAllEffects()
     {
         CleanupCurrentDebuff();
 
-        // 히트 스턴 코루틴 정지
         if (_hitStunCoroutine != null)
         {
             StopCoroutine(_hitStunCoroutine);
@@ -509,20 +482,28 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
     #endregion
 
-    #region 디버그
+    #region 골드
 
-    [ContextMenu("Test: Fire Attack")]
-    private void TestFireAttack()
+    private int _currentGold = 0;
+    public int CurrentGold => _currentGold;
+
+    public void AddGold(int amount)
     {
-        // 테스트용 Fire 공격 생성 필요
-        Debug.Log("Fire Attack 테스트를 위해 SA_Fire ScriptableObject를 연결하세요");
+        _currentGold += amount;
+        Debug.Log($"[PlayerCombat] 골드 획득: +{amount} (총: {_currentGold})");
     }
 
-    [ContextMenu("Test: Clear All Debuffs")]
-    private void TestClearDebuffs()
+    public bool SpendGold(int amount)
     {
-        CleanupCurrentDebuff();
-        Debug.Log("모든 디버프 정리 완료");
+        if (_currentGold >= amount)
+        {
+            _currentGold -= amount;
+            Debug.Log($"[PlayerCombat] 골드 사용: -{amount} (남은 골드: {_currentGold})");
+            return true;
+        }
+
+        Debug.Log($"[PlayerCombat] 골드 부족: 필요={amount}, 현재={_currentGold}");
+        return false;
     }
 
     #endregion

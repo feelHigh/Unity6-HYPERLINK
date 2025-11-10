@@ -8,6 +8,7 @@ using DG.Tweening;
 /// - 다중 VFX 지원 (VfxConfig[])
 /// - 다중 Hit Area 지원 (HitAreaConfig[])
 /// - 각 hit area는 독립적인 타이밍과 범위 설정 가능
+/// - 적 히트 VFX 지원 (EnemyHitVfx)
 /// </summary>
 [CreateAssetMenu(fileName = "SkillData", menuName = "Character/Skill Data")]
 public class SkillData : ScriptableObject
@@ -71,6 +72,10 @@ public class SkillData : ScriptableObject
     [Tooltip("여러 VFX를 독립적으로 설정 가능")]
     [SerializeField] private VfxConfig[] _vfxConfigs = new VfxConfig[0];
 
+    [Header("히트 VFX")]
+    [Tooltip("스킬이 적에게 맞았을 때 표시할 VFX")]
+    [SerializeField] private GameObject _enemyHitVfx;
+
     #endregion
 
     #region 애니메이션 설정
@@ -125,6 +130,7 @@ public class SkillData : ScriptableObject
     public bool CheckWallCollision => _checkWallCollision;
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
+    public GameObject EnemyHitVfx => _enemyHitVfx;
 
     /// <summary>
     /// Hit Area 설정 목록 가져오기
