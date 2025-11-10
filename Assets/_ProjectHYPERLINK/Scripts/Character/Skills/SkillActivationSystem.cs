@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 /// <summary>
 /// 스킬 활성화 시스템
@@ -259,7 +260,7 @@ public class SkillActivationSystem : MonoBehaviour
                 break;
 
             case SkillType.Ranged:
-                ExecuteRangedSkill(skill, damage);
+                ExecuteRangedSkill(skill);
                 OnSkillExecuted?.Invoke(skill);
                 break;
 
@@ -279,29 +280,34 @@ public class SkillActivationSystem : MonoBehaviour
     /// <summary>
     /// 원거리 스킬 실행
     /// </summary>
-    private void ExecuteRangedSkill(SkillData skill, float damage)
+    private void ExecuteRangedSkill(SkillData skill)
     {
         if (skill.ProjectilePrefab == null)
         {
-            Debug.LogError($"[{skill.SkillName}] 투사체 프리팹이 설정되지 않았습니다!");
+            Debug.LogError($"[{skill.SkillName}] 투사체 프리팹이 없습니다!");
             return;
         }
 
-        Vector3 spawnOffset = transform.forward * 1f + Vector3.up * 1.5f;
-        Vector3 spawnPosition = transform.position + spawnOffset;
+        // 발사 위치
+        Vector3 spawnPosition = transform.position + Vector3.up * 1.5f;
 
-        GameObject projectileObj = Instantiate(
-            skill.ProjectilePrefab,
-            spawnPosition,
-            transform.rotation
-        );
+        // 발사 방향
+        Vector3 direction = transform.forward;
 
+        // 투사체 생성
+        GameObject projectileObj = Instantiate(skill.ProjectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
+
+        // 데미지 계산
+        float damage = CalculateSkillDamage(skill);
+
+        // 히트 VFX 전달
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
-            projectile.Initialize(damage, skill.Range, _playerCharacter);
-            Debug.Log($"[{skill.SkillName}] 투사체 발사! 데미지: {damage:F1}");
+            projectile.Initialize(damage, skill.Range, _playerCharacter, skill.EnemyHitVfx);
         }
+
+        Debug.Log($"[{skill.SkillName}] 투사체 발사 완료");
     }
 
     #endregion

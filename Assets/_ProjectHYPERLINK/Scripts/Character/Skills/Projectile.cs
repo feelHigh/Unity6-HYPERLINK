@@ -1,27 +1,16 @@
 using UnityEngine;
 
 /// <summary>
-/// 스킬 투사체 시스템 (신규 파일)
+/// 스킬 투사체 시스템
 /// 
 /// 목적:
 /// - 원거리 스킬의 투사체 이동 및 충돌 처리
 /// - 데미지 적용 및 시각 효과
 /// - 범위 제한 및 자동 파괴
 /// 
-/// 사용 흐름:
-/// 1. SkillActivationSystem이 투사체 프리팹 인스턴스화
-/// 2. Initialize()로 데미지, 범위, 발사자 설정
-/// 3. Update()에서 전진 이동
-/// 4. OnTriggerEnter()에서 적 충돌 감지
-/// 5. 데미지 적용 후 파괴
-/// 6. 최대 범위 도달 시 자동 파괴
-/// 
-/// 프리팹 설정:
-/// - GameObject + Sphere Mesh
-/// - Rigidbody (Is Kinematic = true)
-/// - Sphere Collider (Is Trigger = true)
-/// - Projectile 스크립트
-/// - Trail Renderer (선택)
+/// 변경사항:
+/// - AttackInfo를 사용한 데미지 전달
+/// - 히트 VFX 지원
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
@@ -40,6 +29,7 @@ public class Projectile : MonoBehaviour
 
     // 런타임 데이터
     private float _damage;
+    private GameObject _hitVfx;
     private float _maxRange;
     private PlayerCharacter _owner;
     private Vector3 _startPosition;
@@ -74,24 +64,17 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 투사체 초기화
-    /// 
-    /// SkillActivationSystem.ExecuteRangedSkill()에서 호출
-    /// 
-    /// Parameters:
-    ///     damage: 투사체 데미지 (스킬 계산 완료된 값)
-    ///     maxRange: 최대 비행 거리 (스킬의 Range)
-    ///     owner: 발사한 캐릭터 (자가 피해 방지용)
-    ///     
-    /// 사용 예:
-    /// GameObject proj = Instantiate(projectilePrefab, spawnPos, rotation);
-    /// Projectile script = proj.GetComponent<Projectile>();
-    /// script.Initialize(150f, 20f, playerCharacter);
     /// </summary>
-    public void Initialize(float damage, float maxRange, PlayerCharacter owner)
+    /// <param name="damage">데미지 양</param>
+    /// <param name="maxRange">최대 비행 거리</param>
+    /// <param name="owner">발사한 캐릭터</param>
+    /// <param name="hitVfx">적 히트 VFX 프리팹 (선택)</param>
+    public void Initialize(float damage, float maxRange, PlayerCharacter owner, GameObject hitVfx = null)
     {
         _damage = damage;
         _maxRange = maxRange;
         _owner = owner;
+        _hitVfx = hitVfx;
         _startPosition = transform.position;
         _isInitialized = true;
 
@@ -116,11 +99,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 투사체 전진 이동
-    /// 
-    /// Rigidbody.MovePosition 사용:
-    /// - Transform.Translate보다 안정적
-    /// - 물리 엔진과 호환
-    /// - 프레임 독립적
     /// </summary>
     private void MoveForward()
     {
@@ -130,10 +108,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 최대 사거리 체크
-    /// 
-    /// 사거리 초과 시:
-    /// - 투사체 파괴
-    /// - 이펙트 없음 (공중에서 소멸)
     /// </summary>
     private void CheckRange()
     {
@@ -151,19 +125,7 @@ public class Projectile : MonoBehaviour
     #region 충돌 처리
 
     /// <summary>
-    /// 적 충돌 처리
-    /// 
-    /// 트리거 조건:
-    /// - Is Trigger = true
-    /// - 상대 Collider도 활성화
-    /// - 둘 중 하나는 Rigidbody 필요
-    /// 
-    /// 처리 순서:
-    /// 1. Enemy 컴포넌트 확인
-    /// 2. 자가 피해 방지 (owner 체크)
-    /// 3. 데미지 적용
-    /// 4. 히트 이펙트 생성
-    /// 5. 관통 처리 또는 파괴
+    /// 적 충돌 처리 - AttackInfo 사용
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
@@ -175,15 +137,16 @@ public class Projectile : MonoBehaviour
         if (enemy == null)
             return;
 
-        // 자가 피해 방지 (필요시)
-        // if (other.GetComponent<PlayerCharacter>() == _owner)
-        //     return;
-
-        // 데미지 적용
-        enemy.TakeDamage(_damage);
+        // AttackInfo를 사용한 데미지 적용
+        AttackInfo attackInfo = AttackInfo.CreatePlayerSkill(
+            _damage,
+            other.ClosestPoint(transform.position),
+            _hitVfx
+        );
+        enemy.TakeDamage(attackInfo);
         Debug.Log($"투사체 명중: {enemy.name}에게 {_damage} 데미지");
 
-        // 히트 이펙트
+        // 히트 이펙트 (기본 이펙트)
         SpawnHitEffect(other.ClosestPoint(transform.position));
 
         // 관통 처리
@@ -192,16 +155,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 관통 처리
-    /// 
-    /// 관통 로직:
-    /// - _maxPierceCount = 0: 첫 충돌 시 파괴
-    /// - _maxPierceCount = 1: 1회 관통 후 파괴
-    /// - _maxPierceCount = 2: 2회 관통 후 파괴
-    /// 
-    /// 사용 예:
-    /// - 일반 화살: maxPierceCount = 0
-    /// - 관통 화살: maxPierceCount = 2
-    /// - 레이저: maxPierceCount = 999 (무한 관통)
     /// </summary>
     private void HandlePiercing()
     {
@@ -220,14 +173,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 히트 이펙트 생성
-    /// 
-    /// Parameters:
-    ///     position: 이펙트 생성 위치 (충돌 지점)
-    ///     
-    /// 이펙트 설정:
-    /// - 파티클 시스템
-    /// - Auto-destroy (재생 완료 후 자동 파괴)
-    /// - 3초 후 강제 파괴 (안전장치)
     /// </summary>
     private void SpawnHitEffect(Vector3 position)
     {
@@ -251,14 +196,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// 투사체 파괴
-    /// 
-    /// Parameters:
-    ///     showEffect: 파괴 이펙트 표시 여부
-    ///     
-    /// 처리 과정:
-    /// 1. Trail Renderer 정리 (있으면)
-    /// 2. 파괴 이펙트 (선택)
-    /// 3. GameObject 파괴
     /// </summary>
     private void DestroyProjectile(bool showEffect)
     {
@@ -285,10 +222,6 @@ public class Projectile : MonoBehaviour
 
     /// <summary>
     /// Gizmo 시각화
-    /// 
-    /// Scene 뷰 표시:
-    /// - 초록색 선: 투사체 이동 방향
-    /// - 노란색 구: 최대 사거리 도달 지점
     /// </summary>
     private void OnDrawGizmos()
     {

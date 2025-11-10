@@ -27,6 +27,10 @@ public class EnemyData : ScriptableObject
     [SerializeField] GameObject _projectilePrefab;  //발사체 프리팹
     [SerializeField] float _projrctileSpeed = 12f;  //발사체 속도
 
+    [Header("----- 히트 VFX -----")]
+    [Tooltip("기본 공격이 플레이어에게 맞았을 때 표시할 VFX")]
+    [SerializeField] GameObject _baseAttackHitVfx;
+
     [Header("----- 에픽 몬스터 스탯 배수 -----")]
     [SerializeField] bool _canBeEpic;
     [SerializeField] float _epicHpMultiplier;   //체력 배수
@@ -48,6 +52,7 @@ public class EnemyData : ScriptableObject
     public int RewardGold => _rewardGold;
     public GameObject ProjectilePrefab => _projectilePrefab;
     public float ProjectileSpeed => _projrctileSpeed;
+    public GameObject BaseAttackHitVfx => _baseAttackHitVfx;
 
     // - 에픽 프로퍼티 - //
     public bool CanBeEpic => _canBeEpic;

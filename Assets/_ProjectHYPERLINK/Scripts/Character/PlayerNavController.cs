@@ -277,6 +277,10 @@ public class PlayerNavController : MonoBehaviour
     /// 
     /// 속박(Root) 상태 주의사항:
     /// - 좌클릭: CanMove 체크 → 속박 시 차단
+    /// 
+    /// UI 처리 로직:
+    /// - UI 위 클릭 시 이동 방지
+    /// - InputHelper.IsPointerOverUI() 사용
     /// </summary>
     private void HandleMouseInput()
     {
@@ -289,6 +293,13 @@ public class PlayerNavController : MonoBehaviour
         // 좌클릭: 이동 & 상호작용 (속박 상태에서는 불가)
         if (Input.GetMouseButtonDown(0))
         {
+            // UI 클릭 체크 - UI 위에서는 이동 하지 않음
+            if (InputHelper.IsPointerOverUI())
+            {
+                Log("UI 클릭 감지 - 이동 취소");
+                return;
+            }
+
             // 이동 가능 여부 체크 (빙결/속박/넉다운)
             if (_stateController == null || _stateController.CanMove)
             {
@@ -383,7 +394,7 @@ public class PlayerNavController : MonoBehaviour
 
         if (isMoving && _lastMovementDirection != Vector3.zero)
         {
-            // ★ 이동 중 - 방향 전환 각도 계산
+            // 이동 중 - 방향 전환 각도 계산
             float directionAngle = Vector3.Angle(_lastMovementDirection, targetDirection);
 
             Log($"방향 전환 각도: {directionAngle:F1}°, 현재 속도: {currentSpeed:F1}");
@@ -398,114 +409,112 @@ public class PlayerNavController : MonoBehaviour
             {
                 // 중간 방향 전환 - 회전 후 최소 속도로 시작
                 _agent.velocity = targetDirection * _minimumMovementSpeed;
-                transform.rotation = Quaternion.LookRotation(targetDirection);
                 _agent.SetDestination(targetPoint);
-                Log("→ 중간 방향 전환 (회전 + 최소 속도)");
+                Log("→ 방향 전환 (최소 속도 시작)");
             }
             else
             {
-                // 큰 방향 전환 - 속도 리셋 후 재시작
-                _agent.velocity = targetDirection * _minimumMovementSpeed;
-                transform.rotation = Quaternion.LookRotation(targetDirection);
+                // 큰 방향 전환 - 완전 정지 후 재시작
+                _agent.velocity = Vector3.zero;
                 _agent.SetDestination(targetPoint);
-                Log("→ 큰 방향 전환 (최소 속도 유지)");
+                Log("→ 완전 정지 후 재시작");
             }
         }
         else
         {
-            // ★ 정지 상태에서 시작 - 즉시 회전
-            _agent.velocity = Vector3.zero;
-            _agent.ResetPath();
-            transform.rotation = Quaternion.LookRotation(targetDirection);
+            // 이동 중 아님 - 일반 목적지 설정
             _agent.SetDestination(targetPoint);
-            Log("→ 정지 상태에서 시작");
+            Log("→ 새로운 이동 시작");
         }
-
-        // 마지막 방향 저장
-        _lastMovementDirection = targetDirection;
     }
 
     /// <summary>
-    /// 상호작용을 위한 이동
+    /// 상호작용 대상으로 이동 코루틴
     /// </summary>
     private IEnumerator MoveToInteract(Transform target)
     {
-        float interactionRange = 2f;
-        _agent.SetDestination(target.position);
-
-        while (Vector3.Distance(transform.position, target.position) > interactionRange)
+        if (_agent == null || target == null)
         {
+            yield break;
+        }
+
+        // 상호작용 거리 내로 이동
+        while (Vector3.Distance(transform.position, target.position) > 2f)
+        {
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.SetDestination(target.position);
+            }
             yield return null;
         }
 
-        _agent.isStopped = true;
-
         // 상호작용 실행
-        if (_pendingInteraction != null && _pendingInteraction.CanInteract(_playerCharacter))
+        if (_pendingInteraction != null)
         {
             _pendingInteraction.Interact(_playerCharacter);
-            Log($"상호작용 완료: {target.name}");
+            _pendingInteraction = null;
         }
 
-        _pendingInteraction = null;
         _interactionCoroutine = null;
-        _agent.isStopped = false;
     }
 
     #endregion
 
-    #region 넉백 시스템
+    #region 넉백
 
     /// <summary>
-    /// 넉백 적용 (외부에서 호출)
+    /// 넉백 힘 적용
+    /// 
+    /// 기능:
+    /// - 벽 충돌 감지 (SphereCast/Raycast)
+    /// - NavMesh 검증
+    /// - DOTween으로 부드러운 이동
+    /// 
+    /// 사용법: ApplyKnockback(3f, -transform.forward);
     /// </summary>
-    public void ApplyKnockback(float power, Vector3 direction)
+    public void ApplyKnockback(float distance, Vector3 direction)
     {
         if (_agent == null || !_agent.isOnNavMesh)
         {
-            Debug.LogWarning("[PlayerNavController] Agent가 NavMesh 위에 없어 넉백 적용 실패");
+            Log("경고: 넉백 적용 불가 (NavMesh 위에 없음)");
             return;
         }
 
-        // 방향 정규화 (수평 방향만)
         direction.y = 0;
         direction.Normalize();
 
-        StartCoroutine(KnockbackCoroutine(power, direction));
+        if (direction == Vector3.zero)
+        {
+            Log("경고: 잘못된 넉백 방향 (영벡터)");
+            return;
+        }
+
+        StartCoroutine(ApplyKnockbackCoroutine(distance, direction));
     }
 
     /// <summary>
     /// 넉백 코루틴
     /// </summary>
-    private IEnumerator KnockbackCoroutine(float power, Vector3 direction)
+    private IEnumerator ApplyKnockbackCoroutine(float distance, Vector3 direction)
     {
         Vector3 startPosition = transform.position;
-        Vector3 idealEndPosition = startPosition + (direction * power);
+        Vector3 idealEndPosition = startPosition + (direction * distance);
 
-        // 디버그용 변수 저장
+        // 안전한 종료 위치 계산 (벽 충돌 고려)
+        Vector3 safeEndPosition = CalculateSafeKnockbackPosition(startPosition, direction, distance);
+
+        // 디버그 시각화용 저장
         _lastKnockbackStart = startPosition;
-        _lastKnockbackIdealEnd = idealEndPosition;
-        _lastKnockbackHitWall = false;
-
-        // 벽 충돌 체크 및 안전 위치 계산
-        Vector3 safeEndPosition = CalculateSafeKnockbackPosition(startPosition, direction, power);
-
-        // 실제로 벽에 막혔는지 확인
-        float distanceToIdeal = Vector3.Distance(idealEndPosition, safeEndPosition);
-        if (distanceToIdeal > 0.1f)
-        {
-            _lastKnockbackHitWall = true;
-            Log($"넉백 벽 충돌 감지! 거리 조정: {power:F2}m → {Vector3.Distance(startPosition, safeEndPosition):F2}m");
-        }
-
         _lastKnockbackEnd = safeEndPosition;
+        _lastKnockbackIdealEnd = idealEndPosition;
+        _lastKnockbackHitWall = (safeEndPosition != idealEndPosition);
 
         // NavMesh 검증
-        if (!IsPositionOnNavMesh(safeEndPosition, out Vector3 validPosition))
+        Vector3 validPosition;
+        if (!IsPositionOnNavMesh(safeEndPosition, out validPosition))
         {
-            Log("경고: 넉백 목표가 NavMesh 밖. 유효한 위치로 보정");
+            Log($"경고: 조정된 위치가 NavMesh 밖, 가장 가까운 유효 위치 사용");
             safeEndPosition = validPosition;
-            _lastKnockbackEnd = safeEndPosition;
         }
 
         // NavMeshAgent 일시 정지
