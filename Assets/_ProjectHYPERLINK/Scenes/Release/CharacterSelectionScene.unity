@@ -2021,7 +2021,7 @@ MonoBehaviour:
   _errorPanel: {fileID: 1207231394}
   _errorText: {fileID: 955117820}
   _errorOkButton: {fileID: 0}
-  _gameScene: TutorialScene
+  _gameScene: TestScene1
   _laonBaseStats: {fileID: 11400000, guid: df6cce04975362f4297ad7e2e83d99b7, type: 2}
   _sianBaseStats: {fileID: 0}
   _yujinBaseStats: {fileID: 0}

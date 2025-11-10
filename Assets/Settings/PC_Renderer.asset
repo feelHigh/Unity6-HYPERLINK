@@ -64,7 +64,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: Render Feature - Outline Transparent
+  m_Name: Render Feature  Outline Transparent
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
@@ -107,11 +107,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: Render Feature - Outline Opaque
+  m_Name: Render Feature  Outline Opaque
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    passTag: Render Feature - Outline Opaque
+    passTag: Render Feature  Outline Opaque
     Event: 300
     filterSettings:
       RenderQueueType: 0
@@ -159,9 +159,9 @@ MonoBehaviour:
     AfterOpaque: 0
     Source: 1
     NormalSamples: 1
-    Intensity: 0.4
+    Intensity: 13.8
     DirectLightingStrength: 0.25
-    Radius: 0.3
+    Radius: 0.99
     Samples: 1
     BlurQuality: 0
     Falloff: 100

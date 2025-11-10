@@ -10,6 +10,9 @@ public class SpawnInfo
     [Tooltip("사용할 적 프리팹")]
     public GameObject prefab;
 
+    [Tooltip("적 이름")]
+    public string enemyName;    //비워두면 프리팹의 기본 이름 사용
+
     [Tooltip("스폰할 개수")]
     public int count = 1;
 }

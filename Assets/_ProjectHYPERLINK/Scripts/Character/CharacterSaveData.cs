@@ -117,7 +117,7 @@ public class CharacterSaveData
     [Serializable]
     public class PositionData
     {
-        public string scene = "TutorialScene";
+        public string scene = "TheFirstStage";
         public float x;
         public float y;
         public float z;
