@@ -6,6 +6,10 @@ using UnityEngine;
 /// 사용처:
 /// 근거리 공격 : 무기/타격 부위에 부착 (Animation Event로 제어)
 /// 원거리 공격 : 발사체 프리팹에 부착 (생성 시 자동 활성화)
+/// 
+/// 변경사항:
+/// - AttackInfo를 사용한 데미지 전달
+/// - 히트 VFX 지원
 /// </summary>
 public class TargetDetector : MonoBehaviour
 {
@@ -13,6 +17,7 @@ public class TargetDetector : MonoBehaviour
     [SerializeField] Collider _detectorColl;            //감지 콜라이더
 
     float _damage;
+    GameObject _hitVfx;
     SpecialAttackBase _specialAttack;
 
     private void Awake()
@@ -28,20 +33,23 @@ public class TargetDetector : MonoBehaviour
     /// <summary>
     /// 일반 공격 초기화
     /// </summary>
-    /// <param name="damage"></param>
-    public void Initialize(float damage)
+    /// <param name="damage">데미지 양</param>
+    /// <param name="hitVfx">히트 VFX 프리팹 (선택)</param>
+    public void Initialize(float damage, GameObject hitVfx = null)
     {
         _damage = damage;
+        _hitVfx = hitVfx;
         _specialAttack = null;
     }
 
     /// <summary>
     /// 특수 공격 초기화
     /// </summary>
-    /// <param name="specialAttack"></param>
+    /// <param name="specialAttack">특수 공격 데이터</param>
     public void InitializeSA(SpecialAttackBase specialAttack)
     {
         _damage = 0;
+        _hitVfx = null;
         _specialAttack = specialAttack;
     }
 
@@ -91,10 +99,15 @@ public class TargetDetector : MonoBehaviour
 
                     Debug.Log("[TergetDetector] 특수 공격!");
                 }
-                //없으면 그냥 일반 공격
+                //없으면 그냥 일반 공격 (AttackInfo 사용)
                 else
                 {
-                    player.TakeDamage(_damage);
+                    AttackInfo attackInfo = AttackInfo.CreateEnemyBaseAttack(
+                        _damage,
+                        other.transform.position,
+                        _hitVfx
+                    );
+                    player.TakeDamage(attackInfo);
 
                     Debug.Log("[TergetDetector] 기본 공격!");
                 }

@@ -6,5 +6,15 @@ using UnityEngine;
 /// </summary>
 public interface IDamageable
 {
+    /// <summary>
+    /// 기본 데미지 처리 (하위 호환성 유지)
+    /// </summary>
+    /// <param name="damage">데미지 양</param>
     void TakeDamage(float damage);
+
+    /// <summary>
+    /// 공격 정보를 포함한 데미지 처리 (히트 VFX 지원)
+    /// </summary>
+    /// <param name="attackInfo">공격 정보 (타입, 데미지, VFX 포함)</param>
+    void TakeDamage(AttackInfo attackInfo);
 }

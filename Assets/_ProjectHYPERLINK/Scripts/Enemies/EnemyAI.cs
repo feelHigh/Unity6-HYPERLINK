@@ -98,9 +98,10 @@ public class EnemyAI : MonoBehaviour
             _agent.stoppingDistance = targetStoppingDistance;
         }
 
+        // 히트 VFX 프리팹 전달
         if (_basicAttack == BasicAttackType.Melee && _meleeDetector != null)
         {
-            _meleeDetector.Initialize(_controller.Atk);
+            _meleeDetector.Initialize(_controller.Atk, _data.BaseAttackHitVfx);
         }
     }
 
@@ -422,25 +423,24 @@ public class EnemyAI : MonoBehaviour
     {
         if (_target == null) return;
 
-        //발사 지점이 null이면 기본 발사 지점 구하기
-        Vector3 spawnPos = _projectileFirePos != null ? _projectileFirePos.position :
-            transform.position + Vector3.up * _heightOffset;
+        Vector3 spawnPos = _projectileFirePos != null ?
+            _projectileFirePos.position : transform.position + Vector3.up * _heightOffset;
 
-        //목표 지점
-        Vector3 targetPos = _target.position + Vector3.up * _heightOffset;
+        Vector3 direction = (_target.position - spawnPos).normalized;
 
-        //방향 구하기
-        Vector3 dir = (targetPos - spawnPos).normalized;
+        GameObject projectile = Instantiate(_data.ProjectilePrefab, spawnPos, Quaternion.LookRotation(direction));
 
-        Quaternion spawnRot = Quaternion.LookRotation(dir, Vector3.up);
-
-        //발사체 생성 및 초기화
-        GameObject projectileGO = Instantiate(_data.ProjectilePrefab, spawnPos, spawnRot);
-
-        EnemyProjectile projectile = projectileGO.GetComponent<EnemyProjectile>();
-        if (projectile != null)
+        EnemyProjectile ep = projectile.GetComponent<EnemyProjectile>();
+        if (ep != null)
         {
-            projectile.Initialize(_data.ProjectileSpeed, _controller.Atk, _data.AttackRange);
+            ep.Initialize(_data.ProjectileSpeed, _controller.Atk, _data.AttackRange);
+        }
+
+        // TargetDetector 초기화 시 히트 VFX 전달
+        TargetDetector detector = projectile.GetComponent<TargetDetector>();
+        if (detector != null)
+        {
+            detector.Initialize(_controller.Atk, _data.BaseAttackHitVfx);
         }
     }
 

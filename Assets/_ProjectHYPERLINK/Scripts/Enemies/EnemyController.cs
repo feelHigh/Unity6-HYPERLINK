@@ -7,6 +7,10 @@ using UnityEngine;
 /// 통합 적 컨트롤러
 /// - 일반, 에픽, 보스 몬스터
 /// - 골드 보상 지급
+/// 
+/// 변경사항:
+/// - AttackInfo 오버로드 추가
+/// - 히트 VFX 생성 기능 추가
 /// </summary>
 public class EnemyController : MonoBehaviour, IDamageable
 {
@@ -75,7 +79,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 일반 적을 초기화하는 함수
     /// </summary>
-    public void InitializeNormal(EnemyData data,string customName, ItemDropTableData dropTable, float dropChance)
+    public void InitializeNormal(EnemyData data, string customName, ItemDropTableData dropTable, float dropChance)
     {
         _enemyData = data;
         _enemyType = EnemyType.Normal;
@@ -112,7 +116,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 에픽 적을 초기화하는 함수
     /// </summary>
-    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack,string customName, ItemDropTableData dropTable, float dropChance)
+    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack, string customName, ItemDropTableData dropTable, float dropChance)
     {
         _enemyData = data;
         _enemyType = EnemyType.Epic;
@@ -191,9 +195,9 @@ public class EnemyController : MonoBehaviour, IDamageable
     }
 
     /// <summary>
-    /// 데미지 받는 함수 (공통)
+    /// 데미지 받는 함수 (공통) - 기본 버전 (하위 호환성)
     /// </summary>
-    /// <param name="damage"></param>
+    /// <param name="damage">데미지 양</param>
     public void TakeDamage(float damage)
     {
         //현재 상태가 죽음 상태면 리턴
@@ -211,6 +215,48 @@ public class EnemyController : MonoBehaviour, IDamageable
         {
             Die();
         }
+    }
+
+    /// <summary>
+    /// 데미지 받는 함수 (AttackInfo 오버로드) - 히트 VFX 지원
+    /// </summary>
+    /// <param name="attackInfo">공격 정보 (타입, 데미지, VFX 포함)</param>
+    public void TakeDamage(AttackInfo attackInfo)
+    {
+        //현재 상태가 죽음 상태면 리턴
+        if (_curHp <= 0) return;
+
+        //현재 체력을 데미지 만큼 감소
+        _curHp -= attackInfo.Damage;
+        _curHp = Mathf.Max(_curHp, 0);
+
+        //히트 VFX 생성
+        if (attackInfo.HitVfxPrefab != null)
+        {
+            SpawnHitVFX(attackInfo.HitVfxPrefab, attackInfo.HitPosition);
+        }
+
+        //피격 애니메이션 이벤트 발행
+        OnHit?.Invoke();
+
+        //현재 체력이 0보다 작거나 같으면
+        if (_curHp <= 0)
+        {
+            Die();
+        }
+    }
+
+    /// <summary>
+    /// 히트 VFX 생성
+    /// </summary>
+    /// <param name="vfxPrefab">VFX 프리팹</param>
+    /// <param name="position">생성 위치</param>
+    private void SpawnHitVFX(GameObject vfxPrefab, Vector3 position)
+    {
+        if (vfxPrefab == null) return;
+
+        GameObject vfx = Instantiate(vfxPrefab, position, Quaternion.identity);
+        Destroy(vfx, 2f); // 2초 후 자동 제거
     }
 
     /// <summary>
