@@ -52,8 +52,9 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
 
     /// <summary>
     /// 데이터 제거 및 아이템 제거 함수
+    /// 부모 클래스의 RemoveData()를 의도적으로 숨김 (EquipSlot은 추가로 _itemPrefab도 제거해야 함)
     /// </summary>
-    public void RemoveData()
+    public new void RemoveData()
     {
         _hasItem = false;
         _data = null;
