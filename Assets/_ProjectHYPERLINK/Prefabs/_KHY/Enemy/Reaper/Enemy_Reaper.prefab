@@ -2259,6 +2259,7 @@ GameObject:
   - component: {fileID: 7262634281151457019}
   - component: {fileID: -806775960856583898}
   - component: {fileID: -2150248777518290356}
+  - component: {fileID: 2390483532133278383}
   m_Layer: 11
   m_Name: Enemy_Reaper
   m_TagString: Enemy
@@ -2362,6 +2363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e50379ace2cce3b4b984999cde4ea76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _enemyName: "\uC800\uC2B9\uC0AC\uC790"
   _enemyType: 0
   _enemyData: {fileID: 0}
   _bossData: {fileID: 0}
@@ -2397,6 +2399,86 @@ MonoBehaviour:
   _meleeDetector: {fileID: 5937616446120435411}
   _projectileFirePos: {fileID: 0}
   _heightOffset: 1.1
+--- !u!114 &2390483532133278383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7428713037589431689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18b1f7fe0388a54f82fc7c48b0d6893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _controller: {fileID: -806775960856583898}
+  _startDelay: 2
+  _middleDelay: 0
+  _disableAfterEffect: 1
+  _disableDuration: 1
+  _enableObjectControl: 0
+  _objectsToDisable: []
+  _objectsToSpawn: []
+  _spawnOffset: {x: 0, y: 0, z: 0}
+  _destroyAfterDuration: 0
+  _enableFadeOut: 0
+  _disableShadows: 0
+  _targetRenderers: []
+  _fadeDuration: 1
+  _fadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _shaderGraphPropertyName: _Alpha
+  _enablePositionChange: 1
+  _isUsingLocalPosition: 0
+  _targetModel: {fileID: 317545457524703518}
+  _positionOffset: {x: 0, y: -1, z: 0}
+  _moveDuration: 2
+  _moveCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.000091552734
+      value: 0.0014457703
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.999794
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8217616503447588779
 GameObject:
   m_ObjectHideFlags: 0

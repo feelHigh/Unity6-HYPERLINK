@@ -465,6 +465,7 @@ GameObject:
   - component: {fileID: 6686947072017730056}
   - component: {fileID: 8094236093037867607}
   - component: {fileID: 4947353065973579577}
+  - component: {fileID: 3365392054059066939}
   m_Layer: 11
   m_Name: Enemy_Human_Bodyguard1
   m_TagString: Enemy
@@ -572,6 +573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e50379ace2cce3b4b984999cde4ea76a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _enemyName: "\uBE59\uC758\uB41C \uBCF4\uB514\uAC00\uB4DC1"
   _enemyType: 0
   _enemyData: {fileID: 0}
   _bossData: {fileID: 0}
@@ -607,6 +609,85 @@ MonoBehaviour:
   _meleeDetector: {fileID: 8398267240819206181}
   _projectileFirePos: {fileID: 0}
   _heightOffset: 1.1
+--- !u!114 &3365392054059066939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1610941678409685151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18b1f7fe0388a54f82fc7c48b0d6893, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _controller: {fileID: 8094236093037867607}
+  _startDelay: 1.5
+  _middleDelay: 0
+  _disableAfterEffect: 0
+  _disableDuration: 0
+  _enableObjectControl: 1
+  _objectsToDisable:
+  - {fileID: 4415302852677071191}
+  _objectsToSpawn: []
+  _spawnOffset: {x: 0, y: 0, z: 0}
+  _destroyAfterDuration: 0
+  _enableFadeOut: 0
+  _targetRenderers: []
+  _fadeDuration: 1
+  _fadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _shaderGraphPropertyName: _Alpha
+  _enablePositionChange: 0
+  _targetModel: {fileID: 0}
+  _targetPosition: {x: 0, y: -2, z: 0}
+  _moveDuration: 1
+  _moveCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1687686956237674409
 GameObject:
   m_ObjectHideFlags: 0
@@ -3221,6 +3302,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+--- !u!1 &4415302852677071191 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4056215239200377803, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}
+  m_PrefabInstance: {fileID: 363908429724875420}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8502993634096375154 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8290123477075992558, guid: 12cce39e4fe73744c9f2330ebd2f60cf, type: 3}

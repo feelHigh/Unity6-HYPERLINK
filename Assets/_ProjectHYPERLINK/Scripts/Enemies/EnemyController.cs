@@ -10,8 +10,9 @@ using UnityEngine;
 /// </summary>
 public class EnemyController : MonoBehaviour, IDamageable
 {
-    [Header("----- 적 타입 -----")]
-    [SerializeField] EnemyType _enemyType;
+    [Header("----- 적 기본 정보 -----")]
+    [SerializeField] string _enemyName;     //적 고유(기본) 이름 (null 가능)
+    [SerializeField] EnemyType _enemyType;  //적 타입
 
     [Header("----- 데이터 -----")]
     [SerializeField] EnemyData _enemyData;  //일반/에픽 데이터 (런타임 불러오기)
@@ -35,13 +36,14 @@ public class EnemyController : MonoBehaviour, IDamageable
     public event Action OnInitialized;      //초기화 완료 이벤트
     public event Action OnHit;              //피격 이벤트
     public event Action OnDie;              //죽음 이벤트
+    public static event Action<EnemyController> OnBossSpawned;  //보스 스폰 완료 이벤트
 
     // 현재 상태 스탯 //
     float _maxHp;           //최대 체력
     float _curHp;           //현재 체력
     float _atk;             //공격력
-    float _moveSpeed;
-    bool _isDead = false;
+    float _moveSpeed;       //이동 속도
+    bool _isDead = false;   //사망 플래그
 
     // 보상 //
     int _expReward;         //보상 경험치
@@ -49,6 +51,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
 
     // 프로퍼티 //
+    public string EnemyName => _enemyName;
     public EnemyData EnemyData => _enemyData;
     public BossData BossData => _bossData;
     public EnemyGroup Group => _group;
@@ -63,7 +66,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        if (_enemyType == EnemyType.Boss)
+        if (_enemyType == EnemyType.Boss && _bossData != null)
         {
             InitializeBoss();
         }
@@ -72,11 +75,21 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 일반 적을 초기화하는 함수
     /// </summary>
-    public void InitializeNormal(EnemyData data, ItemDropTableData dropTable, float dropChance)
+    public void InitializeNormal(EnemyData data,string customName, ItemDropTableData dropTable, float dropChance)
     {
         _enemyData = data;
-        _enemyType = _enemyData.EnemyType;
+        _enemyType = EnemyType.Normal;
         _group = transform.parent?.GetComponent<EnemyGroup>();
+
+        //커스텀 이름이 있으면 사용, 없으면 프리팹 이름, 없으면 데이터 이름 사용
+        if (!string.IsNullOrEmpty(customName))
+        {
+            _enemyName = customName;
+        }
+        else if (string.IsNullOrEmpty(_enemyName))
+        {
+            _enemyName = _enemyData.Name;
+        }
 
         //드랍 설정
         _dropTable = dropTable;
@@ -99,12 +112,22 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <summary>
     /// 에픽 적을 초기화하는 함수
     /// </summary>
-    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack, ItemDropTableData dropTable, float dropChance)
+    public void InitializeEpic(EnemyData data, SpecialAttackBase specialAttack,string customName, ItemDropTableData dropTable, float dropChance)
     {
         _enemyData = data;
-        _enemyType = _enemyData.EnemyType;
+        _enemyType = EnemyType.Epic;
         _group = transform.parent?.GetComponent<EnemyGroup>();
         _specialAttack = specialAttack;
+
+        //커스텀 이름이 있으면 사용, 없으면 데이터 이름 사용
+        if (!string.IsNullOrEmpty(customName))
+        {
+            _enemyName = customName;
+        }
+        else if (!string.IsNullOrEmpty(_enemyData.Name))
+        {
+            _enemyName = _enemyData.Name;
+        }
 
         //드랍 설정
         _dropTable = dropTable;
@@ -141,6 +164,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             return;
         }
 
+        _enemyName = _bossData.BossName;
         _enemyType = EnemyType.Boss;
 
         /*
@@ -161,6 +185,9 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //초기화 완료 이벤트 발행
         OnInitialized?.Invoke();
+        OnBossSpawned?.Invoke(this);
+
+        Debug.Log("[EnemyController.Boss] 보스 초기화 완료!");
     }
 
     /// <summary>
