@@ -27,6 +27,7 @@ public class MapGenerator : MonoBehaviour
         GenerateMap();
         Bake();
     }
+
     public void Initialize()
     {
 
@@ -57,7 +58,7 @@ public class MapGenerator : MonoBehaviour
             TeleportPoint point = new TeleportPoint();
             point.PortalToPoint(portal);
 
-            _playerSpawner._teleportPoints.Add(point);
+            //_playerSpawner._teleportPoints.Add(point);
         }
     }
 
@@ -117,37 +118,6 @@ public class MapGenerator : MonoBehaviour
                     {
                         if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
                     }
-                        //switch (rnd)
-                        //{
-                        //    case < _tileNoneValue:
-                        //        break;
-
-                        //    case < _tile2X2Value:
-                        //        if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
-                        //        break;
-
-                        //    case < 6:
-                        //        if (CheckCanPlace(x, y))
-                        //        {
-                        //            for (int i = x; i <= x + 1; i++)
-                        //            {
-                        //                for (int j = y; j <= y + 1; j++)
-                        //                {
-                        //                    _mapTiles[i, j].HasObject = true;
-                        //                }
-                        //            }
-                        //            pos.x += _cellSize / 2;
-                        //            pos.z += _cellSize / 2;
-                        //            if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate2X2(pos, _cellSize, _map.RuntimeParent);
-                        //        }
-                        //        else
-                        //        {
-                        //            if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
-                        //        }
-                        //        break;
-                        //    default:
-                        //        break;
-                        //}
 
                 }
             }
