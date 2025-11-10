@@ -129,8 +129,8 @@ public class EnemyDeathEffect : MonoBehaviour
                     if (obj != null)
                     {
                         Vector3 spawnPos = transform.position + _spawnOffset;
-                        Instantiate(obj, spawnPos, transform.rotation);
-                        Destroy(obj, _destroyAfterDuration);
+                        GameObject spawned = Instantiate(obj, spawnPos, transform.rotation);
+                        Destroy(spawned, _destroyAfterDuration);
                     }
                 }
             }
