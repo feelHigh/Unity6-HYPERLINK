@@ -4,7 +4,7 @@ using UnityEngine;
 /// 포탈 설정 데이터 (ScriptableObject)
 /// 
 /// 기능:
-/// - 포탈 타입 정의 (씬 전환 / 텔레포트)
+/// - 포탈 타입 정의 (씬 전환 / 텔레포트 / UI 열기)
 /// - 대상 씬 또는 위치 지정
 /// - 에디터 워크플로우 지원
 /// 
@@ -73,6 +73,9 @@ public class PortalData : ScriptableObject
             case PortalType.Teleport:
                 return !string.IsNullOrEmpty(_teleportLocationName);
 
+            case PortalType.OpenTeleportUI:
+                return true; // UI 타입은 항상 유효
+
             default:
                 return false;
         }
@@ -91,6 +94,9 @@ public class PortalData : ScriptableObject
 
             case PortalType.Teleport:
                 return $"Location: {_teleportLocationName}";
+
+            case PortalType.OpenTeleportUI:
+                return "Open Teleport UI";
 
             default:
                 return "Invalid";
@@ -111,5 +117,10 @@ public enum PortalType
     /// <summary>
     /// 같은 씬 또는 다른 씬의 특정 위치로 텔레포트
     /// </summary>
-    Teleport
+    Teleport,
+
+    /// <summary>
+    /// 텔레포트 UI 열기 (플레이어가 목적지 선택)
+    /// </summary>
+    OpenTeleportUI
 }
