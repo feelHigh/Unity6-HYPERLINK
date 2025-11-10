@@ -10,11 +10,16 @@ using UnityEngine;
 /// 변경사항:
 /// - AttackInfo를 사용한 데미지 전달
 /// - 히트 VFX 지원
+/// - 태그 말고 레이어로 변경
 /// </summary>
 public class TargetDetector : MonoBehaviour
 {
     [Header("----- 설정 -----")]
     [SerializeField] Collider _detectorColl;            //감지 콜라이더
+
+    [Header("----- Layer Masks -----")]
+    [SerializeField] LayerMask _playerLayerMask;        //플레이어 레이어 마스크
+    [SerializeField] LayerMask _ignoreLayerMask;        //무시할 레이어 마스크 (적, 아이템)
 
     float _damage;
     GameObject _hitVfx;
@@ -84,8 +89,11 @@ public class TargetDetector : MonoBehaviour
     {
         Debug.Log(other.gameObject.name + other.gameObject.transform);
 
+        int otherLayer = other.gameObject.layer;
+        int otherLayerBit = 1 << otherLayer;
+
         //플레이어와 충돌했을 때
-        if (other.CompareTag("Player"))
+        if ((_playerLayerMask.value & otherLayerBit) != 0)
         {
             Debug.Log("[TergetDetector] 플레이어 감지");
             PlayerCombat player = other.GetComponent<PlayerCombat>();
@@ -126,8 +134,8 @@ public class TargetDetector : MonoBehaviour
                 Debug.Log("[TergetDetector] PlayerCombat을 찾을 수 없습니다.");
             }
         }
-        //적 동료는 무시
-        else if (other.CompareTag("Enemy"))
+        //적 동료와 아이템은 무시
+        else if ((_ignoreLayerMask.value & otherLayerBit) != 0)
         {
             return;
         }
