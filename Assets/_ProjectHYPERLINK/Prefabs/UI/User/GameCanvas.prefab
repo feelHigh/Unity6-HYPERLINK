@@ -21899,6 +21899,7 @@ GameObject:
   - component: {fileID: 27962858825901162}
   - component: {fileID: 544895460855222080}
   - component: {fileID: 4991958048020973587}
+  - component: {fileID: 5753710782990084487}
   m_Layer: 5
   m_Name: GamePanel
   m_TagString: Untagged
@@ -22015,6 +22016,18 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: 1
   m_LayoutPriority: 1
+--- !u!225 &5753710782990084487
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3401019947870683171}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3401232255061860253
 GameObject:
   m_ObjectHideFlags: 0
@@ -26126,7 +26139,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5113475445106561336
@@ -34433,6 +34446,7 @@ GameObject:
   - component: {fileID: 9121992721606533526}
   - component: {fileID: 1649512048480982913}
   - component: {fileID: 3933906319780536160}
+  - component: {fileID: 2093940838751117919}
   m_Layer: 5
   m_Name: VideoPanel
   m_TagString: Untagged
@@ -34549,6 +34563,18 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: 1
   m_LayoutPriority: 1
+--- !u!225 &2093940838751117919
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5620120173256743686}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &5642973107415490152
 GameObject:
   m_ObjectHideFlags: 0
@@ -35465,9 +35491,9 @@ MonoBehaviour:
   _videoTabButton: {fileID: 7163249681687423467}
   _audioTabButton: {fileID: 3174693616275305497}
   _gameTabButton: {fileID: 4428884436281092331}
-  _videoPanel: {fileID: 5620120173256743686}
-  _audioPanel: {fileID: 8241562215352959309}
-  _gamePanel: {fileID: 3401019947870683171}
+  _videoCanvasGroup: {fileID: 2093940838751117919}
+  _audioCanvasGroup: {fileID: 7289659621412886526}
+  _gameCanvasGroup: {fileID: 5753710782990084487}
   _resolutionDropdown: {fileID: 9189706856655080566}
   _displayModeDropdown: {fileID: 355169770341521814}
   _masterVolumeSlider: {fileID: 4293164588282449002}
@@ -38027,7 +38053,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000015258789}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -0.000061035, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &9003911115388645597
@@ -51080,7 +51106,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.000030517578}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &601660305972062192
@@ -53394,6 +53420,7 @@ GameObject:
   - component: {fileID: 4137643484498142877}
   - component: {fileID: 7579668508242296905}
   - component: {fileID: 1375153976133568496}
+  - component: {fileID: 7289659621412886526}
   m_Layer: 5
   m_Name: AudioPanel
   m_TagString: Untagged
@@ -53510,6 +53537,18 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: 1
   m_LayoutPriority: 1
+--- !u!225 &7289659621412886526
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8241562215352959309}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8249294450217297976
 GameObject:
   m_ObjectHideFlags: 0
@@ -53901,10 +53940,6 @@ MonoBehaviour:
   _questUICanvasGroup: {fileID: 7634939882877420929}
   _settingsCanvasGroup: {fileID: 3433047724631194901}
   _healthManaBar: {fileID: 9137857224387329039}
-  _inventoryPanel: {fileID: 8158046984183854904}
-  _skillTreePanel: {fileID: 4624234728875701049}
-  _questUIPanel: {fileID: 6951840322367152723}
-  _settingsPanel: {fileID: 5714117006753891825}
   _settingsWindow: {fileID: 953430193302805491}
   _enableEscapeToLogin: 1
   _loginSceneName: LoginScene
@@ -60832,8 +60867,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 6476455379326348094}
   m_HandleRect: {fileID: 8816824566886547158}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.80211973
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
