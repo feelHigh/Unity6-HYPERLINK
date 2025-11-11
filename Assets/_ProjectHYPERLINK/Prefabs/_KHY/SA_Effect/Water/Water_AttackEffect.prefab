@@ -29158,6 +29158,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 12289
   _visualEffect: {fileID: 393451286498574306}
+  _lifeTime: 2
 --- !u!1 &8748454314422593084
 GameObject:
   m_ObjectHideFlags: 0

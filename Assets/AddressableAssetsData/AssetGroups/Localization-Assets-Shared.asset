@@ -45,6 +45,12 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6fd7c809734d2004b81c68296ae9e2b4
+    m_Address: Assets/_ProjectHYPERLINK/Scenes/KHY/TestLocalization/DATA/Quest/DATA_QUEST
+      Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8d8399380a023c24aa0ccdcc423eb017
     m_Address: Assets/_ProjectHYPERLINK/Scenes/KHY/TestLocalization/Test Table Shared
       Data.asset
@@ -53,6 +59,18 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b690c940536714e4fb44e3a114288600
     m_Address: Assets/_ProjectHYPERLINK/Scenes/KHY/TestLocalization/DATA/Character/DATA_CHAR_STAT/DATA_CHAR_STAT
+      Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c41019c8ff0201b47a99315553719dd1
+    m_Address: Assets/_ProjectHYPERLINK/Scenes/KHY/TestLocalization/UI/UI_SETTINGS/UI_SETTINGS
+      Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d4d9ec5a94041f14a901fbce168fd810
+    m_Address: Assets/_ProjectHYPERLINK/Scenes/KHY/TestLocalization/DATA/Portal/DATA_PORTAL
       Shared Data.asset
     m_ReadOnly: 1
     m_SerializedLabels: []

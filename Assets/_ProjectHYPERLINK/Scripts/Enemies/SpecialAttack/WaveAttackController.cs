@@ -13,6 +13,8 @@ public class WaveAttackController : MonoBehaviour
 
     [SerializeField] ParticleSystem _visualEffect;  //비쥬얼 이펙트
 
+    [SerializeField] float _lifeTime;
+
     SpecialAttackBase _specialAttack;
     float _damage = 0f;
 
@@ -48,7 +50,7 @@ public class WaveAttackController : MonoBehaviour
             }
         }
 
-        Destroy(gameObject, 2f);
+        Destroy(gameObject, _lifeTime);
     }
 
     private void Update()

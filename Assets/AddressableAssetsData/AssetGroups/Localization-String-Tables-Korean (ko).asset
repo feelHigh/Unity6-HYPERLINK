@@ -16,13 +16,19 @@ MonoBehaviour:
   m_GUID: 05dca4dd9c2031c43acaa87a4c147a0c
   m_SerializeEntries:
   - m_GUID: 09d69efe734842b458d61aa3dc53c500
-    m_Address: SYSTEM_TIME_ko
+    m_Address: SYSTEM_COMMON_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 246cb026aae0e9f4b946a89f12dd809e
     m_Address: UI_CHAR_SELECT_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6de8630610202b246996149e97e6d2e8
+    m_Address: UI_SETTINGS_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko
@@ -35,6 +41,18 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a504d35895435044b96b4254fb29c305
     m_Address: UI_LOGIN_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8f0af10fc8aae64898646882dcc80db
+    m_Address: DATA_QUEST_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: beae2f2567ba34344b28c319e5efefe4
+    m_Address: DATA_PORTAL_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko

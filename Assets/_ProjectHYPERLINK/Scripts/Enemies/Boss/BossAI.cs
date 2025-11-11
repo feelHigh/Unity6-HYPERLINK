@@ -691,7 +691,7 @@ public class BossAI : MonoBehaviour
 
         Debug.Log("[BossAI] 화염 브레스 종료!");
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1f);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);

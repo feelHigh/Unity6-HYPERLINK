@@ -7281,7 +7281,7 @@ GameObject:
   - component: {fileID: 5695348734673712518}
   - component: {fileID: 3050470519042755213}
   m_Layer: 0
-  m_Name: BaseEffect_Human
+  m_Name: Human_BaseEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
