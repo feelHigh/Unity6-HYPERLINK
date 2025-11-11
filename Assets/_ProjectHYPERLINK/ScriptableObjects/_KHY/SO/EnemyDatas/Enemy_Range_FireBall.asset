@@ -25,6 +25,7 @@ MonoBehaviour:
   _rewardGold: 5
   _projectilePrefab: {fileID: 4273459189357932595, guid: 3e6d7dcbc0fd656439fa04074ebb5162, type: 3}
   _projrctileSpeed: 12
+  _baseAttackHitVfx: {fileID: 2473541304445770518, guid: 087a115573234ad45a2f98f1ed3ce5d4, type: 3}
   _canBeEpic: 0
   _epicHpMultiplier: 2
   _epicAtkMultiplier: 2

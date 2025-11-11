@@ -12,20 +12,23 @@ public class EnemyDeathEffect : MonoBehaviour
 
     [Header("----- 기본 설정 -----")]
     [SerializeField] float _startDelay = 0f;                //연출 시작 딜레이
-    [SerializeField] float _middleDelay = 0f;               //연출 도중 딜레이
     [SerializeField] bool _disableAfterEffect = false;      //연출 완료 후 오브젝트 비활성화 여부
     [SerializeField] float _disableDuration = 0f;           //연출 완료 후 비활성화되기까지의 시간
 
     [Header("----- 오브젝트 제어 -----")]
     [SerializeField] bool _enableObjectControl = false;
+    [SerializeField] float _objectDisableDelay = 0f;        //오브젝트 비활성화 시작 딜레이
     [SerializeField] GameObject[] _objectsToDisable;        //비활성화할 오브젝트들
+    [SerializeField] float _objectSpawnDelay = 0f;          //오브젝트 생성 시작 딜레이
     [SerializeField] GameObject[] _objectsToSpawn;          //생성할 오브젝트들
     [SerializeField] Vector3 _spawnOffset = Vector3.zero;   //생성 위치 오프셋
     [SerializeField] float _destroyAfterDuration = 0f;      //생성한 오브젝트 파괴 시간
 
     [Header("----- Material 페이드 아웃 -----")]
     [SerializeField] bool _enableFadeOut = false;
+    [SerializeField] float _fadeOutDelay = 0f;              //페이드 시작 딜레이
     [SerializeField] bool _disableShadows = false;          //페이드할 때 그림자 비활성화 여부
+    [SerializeField] float _shadowDisableDelay = 0f;        //그림자 비활성화 시작 딜레이
     //일반 렌더러 매더리얼
     [SerializeField] Renderer[] _targetRenderers;           //페이드할 렌더러들
     [SerializeField] float _fadeDuration = 1f;              //페이드 시간
@@ -36,6 +39,7 @@ public class EnemyDeathEffect : MonoBehaviour
     [Header("----- 위치 변경 -----")]
     [SerializeField] bool _enablePositionChange = false;
     [SerializeField] bool _isUsingLocalPosition = false;    //로컬 좌표 사용 여부
+    [SerializeField] float _positionChangeDelay = 0f;       //위치 이동 시작 딜레이
     [SerializeField] Transform _targetModel;                //이동시킬 모델
     [SerializeField] Vector3 _positionOffset = new Vector3(0, -2, 0);   //목표 위치
     [SerializeField] float _moveDuration = 1f;              //이동 시간
@@ -100,118 +104,33 @@ public class EnemyDeathEffect : MonoBehaviour
     /// <returns></returns>
     IEnumerator DeathEffectCoroutine()
     {
-        //대기 시간만큼 대기
+        //시작 딜레이 대기
         if (_startDelay > 0)
         {
             yield return new WaitForSeconds(_startDelay);
         }
 
-        //오브젝트 제어
+        //각 연출 별 코루틴 실행
         if (_enableObjectControl)
         {
-            //비활성화
-            if (_objectsToDisable != null)
-            {
-                foreach (var obj in _objectsToDisable)
-                {
-                    if (obj != null)
-                    {
-                        obj.SetActive(false);
-                    }
-                }
-            }
-
-            //생성
-            if (_objectsToSpawn != null)
-            {
-                foreach (var obj in _objectsToSpawn)
-                {
-                    if (obj != null)
-                    {
-                        Vector3 spawnPos = transform.position + _spawnOffset;
-                        GameObject spawned = Instantiate(obj, spawnPos, transform.rotation);
-                        Destroy(spawned, _destroyAfterDuration);
-                    }
-                }
-            }
+            StartCoroutine(ObjectControlCoroutine());
         }
 
-        //그림자 비활성화
-        if (_enableFadeOut && _disableShadows && _targetRenderers != null)
-        {
-            foreach (var renderer in _targetRenderers)
-            {
-                if (renderer != null)
-                {
-                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                }
-            }
-        }
-
-        //중간 딜레이
-        if (_middleDelay > 0)
-        {
-            yield return new WaitForSeconds(_middleDelay);
-        }
-
-        //가장 긴 연출 시간 찾기
-        float maxDuration = 0f;
         if (_enableFadeOut)
         {
-            maxDuration = Mathf.Max(maxDuration, _fadeDuration);
+            StartCoroutine(FadeOutCoroutine());
         }
+
         if (_enablePositionChange)
         {
-            maxDuration = Mathf.Max(maxDuration, _moveDuration);
+            StartCoroutine(PositionChangeCoroutine());
         }
 
-        //연출이 없으면 바로 종료
-        if (maxDuration == 0)
+        //모든 연출 끝날 때까지 대기
+        float maxDuration = CaculateMaxDuration();
+        if (maxDuration > 0)
         {
-            if (_disableAfterEffect)
-            {
-                if (_disableDuration > 0)
-                {
-                    yield return new WaitForSeconds(_disableDuration);
-                }
-
-                gameObject.SetActive(false);
-            }
-
-            yield break;
-        }
-
-        float elapsed = 0f;
-
-        while (elapsed < maxDuration)
-        {
-            elapsed += Time.deltaTime;
-
-            //페이드 아웃
-            if (_enableFadeOut && elapsed < _fadeDuration)
-            {
-                float fadeTime = elapsed / _fadeDuration;
-                float alpha = _fadeCurve.Evaluate(fadeTime);
-                ApplyFade(alpha);
-            }
-
-            //위치 변경
-            if (_enablePositionChange && elapsed < _moveDuration && _targetModel != null)
-            {
-                float moveTime = elapsed / _moveDuration;
-                float curveValue = _moveCurve.Evaluate(moveTime);
-
-                if (_isUsingLocalPosition)
-                {
-                    _targetModel.localPosition = _originalPos + (_positionOffset * curveValue);
-                }
-                else
-                {
-                    _targetModel.position = _originalPos + (_positionOffset * curveValue);
-                }
-            }
-
-            yield return null;
+            yield return new WaitForSeconds(maxDuration);
         }
 
         //연출 완료 후 오브젝트 비활성화
@@ -223,6 +142,120 @@ public class EnemyDeathEffect : MonoBehaviour
             }
 
             gameObject.SetActive(false);
+        }
+
+        StopAllCoroutines();
+    }
+
+    #region 연출 별 코루틴
+    /// <summary>
+    /// 오브젝트 제어 코루틴
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator ObjectControlCoroutine()
+    {
+        //비활성화 딜레이 대기
+        if (_objectDisableDelay > 0)
+        {
+            yield return new WaitForSeconds(_objectDisableDelay);
+        }
+
+        //비활성화
+        if (_objectsToDisable != null)
+        {
+            foreach (var obj in _objectsToDisable)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                }
+            }
+        }
+
+        //생성 딜레이 대기
+        if (_objectSpawnDelay > 0)
+        {
+            yield return new WaitForSeconds(_objectSpawnDelay);
+        }
+
+        //생성
+        if (_objectsToSpawn != null)
+        {
+            foreach (var obj in _objectsToSpawn)
+            {
+                if (obj != null)
+                {
+                    Vector3 spawnPos = transform.position + _spawnOffset;
+                    GameObject spawned = Instantiate(obj, spawnPos, transform.rotation);
+
+                    //파괴 시간 설정되어 있으면 시간에 맞게 파괴
+                    if (_destroyAfterDuration > 0)
+                    {
+                        Destroy(spawned, _destroyAfterDuration);
+                    }
+                    //파괴 시간 미설정 시 3초 후 자동 파괴
+                    else
+                    {
+                        Destroy(spawned, 3f);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 페이드 아웃 코루틴
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator FadeOutCoroutine()
+    {
+        //딜레이 대기
+        if (_fadeOutDelay > 0)
+        {
+            yield return new WaitForSeconds(_fadeOutDelay);
+        }
+
+        //그림자 비활성화
+        if (_disableShadows)
+        {
+            StartCoroutine(DisableShadowCoroutine());
+        }
+
+        //페이드 아웃 실행
+        float elapsed = 0f;
+        while (elapsed < _fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float fadeTime = elapsed / _fadeDuration;
+            float alpha = _fadeCurve.Evaluate(fadeTime);
+
+            ApplyFade(alpha);
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// 그림자 비활성화 코루틴
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator DisableShadowCoroutine()
+    {
+        //딜레이 대기
+        if (_shadowDisableDelay > 0)
+        {
+            yield return new WaitForSeconds(_shadowDisableDelay);
+        }
+
+        //그림자 비활성화
+        if (_targetRenderers != null)
+        {
+            foreach (var renderer in _targetRenderers)
+            {
+                if (renderer != null)
+                {
+                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+            }
         }
     }
 
@@ -282,5 +315,67 @@ public class EnemyDeathEffect : MonoBehaviour
                 Debug.LogWarning($"{renderer.gameObject.name}의 Material 알파 조정 불가.");
             }
         }
+    }
+
+    /// <summary>
+    /// 위치 변경 코루틴
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator PositionChangeCoroutine()
+    {
+        //딜레이 대기
+        if (_positionChangeDelay > 0)
+        {
+            yield return new WaitForSeconds(_positionChangeDelay);
+        }
+
+        if (_targetModel == null) yield break;
+
+        //위치 이동 실행
+        float elapsed = 0f;
+        while (elapsed < _moveDuration)
+        {
+            elapsed += Time.deltaTime;
+            float moveTime = elapsed / _moveDuration;
+            float curveValue = _moveCurve.Evaluate(moveTime);
+
+            if (_isUsingLocalPosition)
+            {
+                _targetModel.localPosition = _originalPos + (_positionOffset * curveValue);
+            }
+            else
+            {
+                _targetModel.position = _originalPos + (_positionOffset * curveValue);
+            }
+
+            yield return null;
+        }
+    }
+    #endregion
+
+    /// <summary>
+    /// 가장 긴 연출 시간 계산
+    /// </summary>
+    /// <returns></returns>
+    float CaculateMaxDuration()
+    {
+        float maxDuration = 0f;
+
+        if (_enableObjectControl)
+        {
+            maxDuration = Mathf.Max(maxDuration, _objectDisableDelay + _objectSpawnDelay);
+        }
+
+        if (_enableFadeOut)
+        {
+            maxDuration = Mathf.Max(maxDuration, _fadeOutDelay + _fadeDuration);
+        }
+
+        if (_enablePositionChange)
+        {
+            maxDuration = Mathf.Max(maxDuration, _positionChangeDelay + _moveDuration);
+        }
+
+        return maxDuration;
     }
 }

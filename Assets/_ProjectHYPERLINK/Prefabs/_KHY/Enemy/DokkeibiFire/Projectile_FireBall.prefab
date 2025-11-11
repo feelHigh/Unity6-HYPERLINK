@@ -9863,7 +9863,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4273459189357932595}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.11, y: 2.8, z: 0}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 1
@@ -10066,7 +10066,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 2
       minColor: {r: 0, g: 0.19717503, b: 1, a: 1}
-      maxColor: {r: 0.0990566, g: 0.42346853, b: 1, a: 1}
+      maxColor: {r: 0, g: 1, b: 0.7859545, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -14717,6 +14717,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _detectorColl: {fileID: 6559218446980942766}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  _ignoreLayerMask:
+    serializedVersion: 2
+    m_Bits: 2304
 --- !u!54 &8299421512846565640
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -24571,7 +24577,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 6.6e-43, y: 9e-44, z: 0, w: 4.3e-44}
+  m_BoundingSphereOverride: {x: 7.6e-43, y: 3.18e-43, z: 0, w: -0.00014480005}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
