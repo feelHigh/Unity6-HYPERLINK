@@ -369,6 +369,9 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     public void LoadEquipmentUI()
     {
         if (_equipmentManager == null)
+            _equipmentManager = FindObjectOfType<EquipmentManager>();
+
+        if (_equipmentManager == null)
         {
             LogError("LoadEquipmentUI: EquipmentManager가 null입니다! 장비 UI를 로드할 수 없습니다.");
             return;

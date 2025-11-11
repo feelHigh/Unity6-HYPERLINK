@@ -30,7 +30,7 @@ public class GameInitializer : MonoBehaviour
     private string[] _gameScenes = new string[]
     {
         "TutorialScene",
-        "ForestScene",
+        "TestPortal",
         "CaveScene",
         "BossArena",
         "TheFirstStage",
@@ -121,6 +121,8 @@ public class GameInitializer : MonoBehaviour
             Log("플레이어 스폰 시작");
             PlayerSpawner.Instance.SpawnPlayerAtCorrectLocation();
             Log("플레이어 스폰 완료");
+
+            await WaitForPlayerComponents();
 
             // 5. 캐릭터 데이터 로드 (플레이어가 스폰된 후!)
             UpdateLoadingText("캐릭터 데이터 로드 중...");
@@ -338,6 +340,32 @@ public class GameInitializer : MonoBehaviour
     private void LoadCharacterSelectionScene()
     {
         SceneManager.LoadScene(_characterSelectionScene);
+    }
+
+    /// <summary>
+    /// 플레이어 컴포넌트 초기화 대기
+    /// </summary>
+    private async Task WaitForPlayerComponents()
+    {
+        float elapsed = 0f;
+        float timeout = 5f;
+
+        while (elapsed < timeout)
+        {
+            var equipMgr = FindFirstObjectByType<EquipmentManager>();
+            var skillMgr = FindFirstObjectByType<SkillTreeManager>();
+
+            if (equipMgr != null && skillMgr != null)
+            {
+                Log("플레이어 컴포넌트 준비 완료");
+                return;
+            }
+
+            await Task.Delay(50);
+            elapsed += 0.05f;
+        }
+
+        LogWarning("플레이어 컴포넌트 대기 타임아웃");
     }
 
     #region Public Methods (레거시)
