@@ -154,7 +154,7 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  _enableDebugLogs: 1
+  _enableDebugLogs: 0
   _visualizeKnockbackPath: 1
 --- !u!114 &6888478398968172481
 MonoBehaviour:
@@ -183,7 +183,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _currentAttackCooldownDisplay: 0.75
-  _enableDebugLogs: 1
+  _enableDebugLogs: 0
   _visualizeAttackRange: 1
 --- !u!114 &3735128981493473489
 MonoBehaviour:
