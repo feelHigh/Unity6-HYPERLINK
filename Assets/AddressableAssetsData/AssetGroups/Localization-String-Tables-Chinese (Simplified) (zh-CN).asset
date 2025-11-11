@@ -15,8 +15,50 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-Chinese (Simplified) (zh-CN)
   m_GUID: f2e3bac5ca47e1c42bdf7c18ccbfbf86
   m_SerializeEntries:
+  - m_GUID: 4a5c1649bbead0d4cb7883af18c0e566
+    m_Address: UI_CHAR_SELECT_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70b04371ff20357409d9471f8e5f17ee
+    m_Address: DATA_CHAR_STAT_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 722d0adca736be44281afd440977fb39
+    m_Address: SYSTEM_STATUS_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 774098860805d024b9cbdbf3f8d0f52c
-    m_Address: Test Table_zh-CN
+    m_Address: UI_LOGIN_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e633c32d038c9c4aa32ab90238d9662
+    m_Address: DATA_CHAR_CLASS_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7b7ebf00556b5c4ca19fe4e6098e90f
+    m_Address: SYSTEM_TIME_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c59f2766b5f9f3a468da30c3042028b2
+    m_Address: UI_PLAY_zh-CN
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-CN
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e39ce9d4998457142ace814b1cdd236d
+    m_Address: DATA_SKILL_zh-CN
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-zh-CN

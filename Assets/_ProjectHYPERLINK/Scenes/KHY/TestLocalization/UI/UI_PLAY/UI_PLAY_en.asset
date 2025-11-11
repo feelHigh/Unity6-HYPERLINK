@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
-  m_Name: Test Table_ko
+  m_Name: UI_PLAY_en
   m_EditorClassIdentifier: 
   m_LocaleId:
-    m_Code: ko
-  m_SharedData: {fileID: 11400000, guid: 8d8399380a023c24aa0ccdcc423eb017, type: 2}
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 62a2f7297f515084b9d12e6a89aa2ad9, type: 2}
   m_Metadata:
     m_Items: []
   m_TableData: []

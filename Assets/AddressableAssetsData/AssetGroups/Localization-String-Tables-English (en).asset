@@ -15,8 +15,50 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-English (en)
   m_GUID: a1353bc241059a4418c8b85763eb0a9f
   m_SerializeEntries:
+  - m_GUID: 416ba29763bbf14409ddb3a33cfce168
+    m_Address: DATA_SKILL_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b4486ac201306d47a5d5c31d1aed471
+    m_Address: SYSTEM_TIME_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b9786510f01b7045abfb9feda7b3b2f
+    m_Address: DATA_CHAR_CLASS_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 98e8b8f1d0e476c41a0149f0a26e195d
+    m_Address: SYSTEM_STATUS_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b1882ad4a552fb40b27f4fbe4d64308
+    m_Address: UI_CHAR_SELECT_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cabc4fa36cb139647b5c8b73fb41f2d8
+    m_Address: UI_PLAY_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f18df10adb709dc4fa84d645e19fb049
+    m_Address: DATA_CHAR_STAT_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f3563d36665508a43b08f1aeee80f763
-    m_Address: Test Table_en
+    m_Address: UI_LOGIN_en
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en

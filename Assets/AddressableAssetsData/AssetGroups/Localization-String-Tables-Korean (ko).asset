@@ -15,8 +15,50 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-Korean (ko)
   m_GUID: 05dca4dd9c2031c43acaa87a4c147a0c
   m_SerializeEntries:
+  - m_GUID: 09d69efe734842b458d61aa3dc53c500
+    m_Address: SYSTEM_TIME_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 246cb026aae0e9f4b946a89f12dd809e
+    m_Address: UI_CHAR_SELECT_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f1b30f80b9f81241bcd0b351b05cf68
+    m_Address: SYSTEM_STATUS_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a504d35895435044b96b4254fb29c305
-    m_Address: Test Table_ko
+    m_Address: UI_LOGIN_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c39b2cf1fd372bb41b86c90d7c1aed3a
+    m_Address: DATA_SKILL_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c92f092f98a305445a53cbea15ac1841
+    m_Address: UI_PLAY_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cb0ff7ad174f38a4dbcd5224fecc228e
+    m_Address: DATA_CHAR_STAT_ko
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ko
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2aee833f4e4f164787479f0a25d30c0
+    m_Address: DATA_CHAR_CLASS_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko
