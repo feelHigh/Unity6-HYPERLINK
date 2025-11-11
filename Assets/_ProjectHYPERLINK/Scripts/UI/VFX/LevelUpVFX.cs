@@ -44,12 +44,6 @@ public class LevelUpVFX : MonoBehaviour
 
     private void Awake()
     {
-        _audioSource = GetComponent<AudioSource>();
-        if (_audioSource == null)
-        {
-            _audioSource = gameObject.AddComponent<AudioSource>();
-        }
-
         if (_levelUpCanvas != null)
         {
             _levelUpCanvas.gameObject.SetActive(false);
@@ -105,10 +99,10 @@ public class LevelUpVFX : MonoBehaviour
     /// </summary>
     private IEnumerator PlayLevelUpEffect(int newLevel)
     {
-        // 사운드
-        if (_levelUpSound != null && _audioSource != null)
+        // AudioManager 사용
+        if (AudioManager.Instance?.SoundLibrary != null)
         {
-            _audioSource.PlayOneShot(_levelUpSound);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.LevelUp);
         }
 
         // 파티클
@@ -145,10 +139,10 @@ public class LevelUpVFX : MonoBehaviour
     /// </summary>
     private IEnumerator PlaySkillUnlockEffect(SkillData skill)
     {
-        // 사운드
-        if (_skillUnlockSound != null && _audioSource != null)
+        // AudioManager 사용
+        if (AudioManager.Instance?.SoundLibrary != null)
         {
-            _audioSource.PlayOneShot(_skillUnlockSound);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.SkillUnlock);
         }
 
         // 파티클

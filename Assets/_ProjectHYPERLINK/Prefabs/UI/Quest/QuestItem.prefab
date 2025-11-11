@@ -165,13 +165,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -305,8 +305,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -513,10 +513,12 @@ MonoBehaviour:
   _questDescriptionText: {fileID: 4176807012102727228}
   _objectivesContainer: {fileID: 8191054715176058706}
   _objectiveTextPrefab: {fileID: 3884526236132428128, guid: 911c23876d34d5f45a0212cd97ac963e, type: 3}
+  _backgroundImage: {fileID: 0}
   _completionIndicator: {fileID: 5547841186758913223}
   _activeQuestColor: {r: 1, g: 1, b: 1, a: 0.1}
   _completedObjectiveColor: {r: 0, g: 1, b: 0, a: 0.8}
   _incompleteObjectiveColor: {r: 1, g: 1, b: 1, a: 0.8}
+  _enableDebugLogs: 0
 --- !u!1 &7396643682196382448
 GameObject:
   m_ObjectHideFlags: 0

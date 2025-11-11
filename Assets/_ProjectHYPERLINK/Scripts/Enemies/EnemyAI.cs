@@ -373,6 +373,12 @@ public class EnemyAI : MonoBehaviour
 
         _animator.SetTrigger(_hashSpecialAttack);
         _animator.SetInteger(_hashSpecialAttackID, _specialAttack.SpecialAttackAnim);
+
+        // 에픽 특수 공격 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EpicSpecialAttack);
+        }
     }
 
     /// <summary>
@@ -397,6 +403,14 @@ public class EnemyAI : MonoBehaviour
         StartCoroutine(AttackRoutine());
 
         _animator.SetTrigger(_hashAttack);
+
+        // 일반 공격 사운드 재생 (공격 타입별)
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioClip attackSound = _basicAttack == BasicAttackType.Melee ? AudioManager.Instance.SoundLibrary.EnemyMeleeAttack : AudioManager.Instance.SoundLibrary.EnemyRangedAttack;
+
+            AudioManager.Instance.PlaySFX(attackSound);
+        }
     }
 
     /// <summary>
