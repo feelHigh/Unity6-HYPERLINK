@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8eea920b340082c4f9f96ac3ddab028d, type: 3}
-  m_Name: Presets_Human_Standard
+  m_Name: Enemy_Woman_Preset
   m_EditorClassIdentifier: 
   Presets:
   - CharacterName: Default_Female
