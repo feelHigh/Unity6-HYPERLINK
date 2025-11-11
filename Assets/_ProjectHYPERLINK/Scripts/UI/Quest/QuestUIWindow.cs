@@ -6,6 +6,11 @@ using TMPro;
 /// <summary>
 /// 퀘스트 UI 윈도우 (Prefab 호환)
 /// 
+/// 수정 사항:
+/// - QuestManager 초기화 완료 이벤트 구독
+/// - 초기화 완료 후에만 UI 갱신
+/// - 타이밍 이슈 해결
+/// 
 /// 역할:
 /// - 활성 퀘스트 목록 표시
 /// - QuestManager 이벤트 구독
@@ -53,8 +58,8 @@ public class QuestUIWindow : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
-        // 초기화 후에만 이벤트 구독 및 새로고침
-        if (_isInitialized)
+        // [수정] QuestManager가 준비되면 구독
+        if (_isInitialized && QuestManager.Instance != null)
         {
             SubscribeToQuestEvents();
             RefreshQuestList();
@@ -74,7 +79,7 @@ public class QuestUIWindow : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
-        // Start에서 한 번 더 초기화 보장 (Awake에서 놓쳤을 경우 대비)
+        // Start에서 한 번 더 초기화 보장
         if (!_isInitialized)
         {
             InitializeUI();
@@ -83,13 +88,23 @@ public class QuestUIWindow : MonoBehaviour
         // QuestManager 연결 시도
         if (QuestManager.Instance != null)
         {
-            SubscribeToQuestEvents();
-            RefreshQuestList();
-            _isInitialized = true;
+            // [수정] QuestManager가 이미 초기화되었는지 확인
+            if (QuestManager.Instance.IsInitialized)
+            {
+                // 즉시 구독 및 새로고침
+                SubscribeToQuestEvents();
+                RefreshQuestList();
+                _isInitialized = true;
+            }
+            else
+            {
+                // 초기화 이벤트 대기
+                StartCoroutine(WaitForQuestManagerInitialization());
+            }
         }
         else
         {
-            // QuestManager가 아직 없으면 재시도
+            // QuestManager 인스턴스 대기
             StartCoroutine(WaitForQuestManager());
         }
     }
@@ -99,15 +114,14 @@ public class QuestUIWindow : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
-        // 초기화되지 않았으면 실행하지 않음
         if (!_isInitialized)
             return;
 
-        // CanvasGroup으로 가시성 확인 (CharacterUIController가 제어)
+        // CanvasGroup으로 가시성 확인
         if (_canvasGroup != null && !CanvasGroupHelper.IsVisible(_canvasGroup))
             return;
 
-        // 주기적으로 진행 상황 업데이트 (성능 최적화)
+        // 주기적으로 진행 상황 업데이트
         if (Time.time - _lastUpdateTime >= _updateInterval)
         {
             UpdateAllQuestProgress();
@@ -138,6 +152,45 @@ public class QuestUIWindow : MonoBehaviour
     }
 
     /// <summary>
+    /// [NEW] QuestManager 초기화 완료 대기
+    /// 
+    /// QuestManager.Initialize()가 호출된 후에만 UI 갱신
+    /// </summary>
+    private IEnumerator WaitForQuestManagerInitialization()
+    {
+        Log("QuestManager 초기화 대기 중...");
+
+        // QuestManager 초기화 이벤트 구독
+        QuestManager.Instance.OnQuestSystemInitialized += OnQuestManagerInitialized;
+
+        yield return null; // 이벤트가 이미 발생했을 수도 있으므로 한 프레임 대기
+
+        // 만약 이미 초기화되었다면
+        if (QuestManager.Instance.IsInitialized && !_isInitialized)
+        {
+            OnQuestManagerInitialized();
+        }
+    }
+
+    /// <summary>
+    /// [NEW] QuestManager 초기화 완료 콜백
+    /// </summary>
+    private void OnQuestManagerInitialized()
+    {
+        // 이벤트 구독 해제 (중복 호출 방지)
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestSystemInitialized -= OnQuestManagerInitialized;
+        }
+
+        Log("QuestManager 초기화 완료 감지! UI 갱신 시작");
+
+        SubscribeToQuestEvents();
+        RefreshQuestList();
+        _isInitialized = true;
+    }
+
+    /// <summary>
     /// QuestManager를 기다리는 코루틴
     /// 
     /// 이유:
@@ -155,9 +208,19 @@ public class QuestUIWindow : MonoBehaviour
             if (QuestManager.Instance != null)
             {
                 Log("QuestManager 발견!");
-                SubscribeToQuestEvents();
-                RefreshQuestList();
-                _isInitialized = true;
+
+                // [수정] 초기화 완료 대기
+                if (QuestManager.Instance.IsInitialized)
+                {
+                    SubscribeToQuestEvents();
+                    RefreshQuestList();
+                    _isInitialized = true;
+                }
+                else
+                {
+                    StartCoroutine(WaitForQuestManagerInitialization());
+                }
+
                 yield break;
             }
 
@@ -165,7 +228,7 @@ public class QuestUIWindow : MonoBehaviour
             waitTime += retryInterval;
         }
 
-        LogError($"QuestManager를 {maxWaitTime}초 동안 찾을 수 없습니다! QuestManager GameObject가 씬에 있는지 확인하세요.");
+        LogError($"QuestManager를 {maxWaitTime}초 동안 찾을 수 없습니다!");
     }
 
     #endregion
@@ -177,7 +240,6 @@ public class QuestUIWindow : MonoBehaviour
     /// </summary>
     private void SubscribeToQuestEvents()
     {
-        // 에디터 모드나 QuestManager가 없으면 구독하지 않음
         if (!Application.isPlaying || QuestManager.Instance == null)
         {
             if (Application.isPlaying)
@@ -185,7 +247,7 @@ public class QuestUIWindow : MonoBehaviour
             return;
         }
 
-        // 중복 구독 방지: 먼저 구독 해제
+        // 중복 구독 방지
         UnsubscribeFromQuestEvents();
 
         QuestManager.Instance.OnQuestStarted += OnQuestStarted;
@@ -200,13 +262,15 @@ public class QuestUIWindow : MonoBehaviour
     /// </summary>
     private void UnsubscribeFromQuestEvents()
     {
-        // 에디터 모드나 QuestManager가 없으면 해제할 것도 없음
         if (!Application.isPlaying || QuestManager.Instance == null)
             return;
 
         QuestManager.Instance.OnQuestStarted -= OnQuestStarted;
         QuestManager.Instance.OnQuestProgressUpdated -= OnQuestProgressUpdated;
         QuestManager.Instance.OnQuestCompleted -= OnQuestCompleted;
+
+        // [NEW] 초기화 이벤트도 구독 해제
+        QuestManager.Instance.OnQuestSystemInitialized -= OnQuestManagerInitialized;
     }
 
     #endregion
@@ -297,6 +361,8 @@ public class QuestUIWindow : MonoBehaviour
 
     /// <summary>
     /// 전체 퀘스트 목록 새로고침
+    /// 
+    /// [수정] 초기화되지 않았으면 실행하지 않음
     /// </summary>
     public void RefreshQuestList()
     {
@@ -310,6 +376,14 @@ public class QuestUIWindow : MonoBehaviour
         {
             if (Application.isPlaying)
                 LogWarning("QuestManager를 찾을 수 없습니다!");
+            ShowEmptyMessage(true);
+            return;
+        }
+
+        // [수정] QuestManager 초기화 확인
+        if (!QuestManager.Instance.IsInitialized)
+        {
+            Log("QuestManager가 아직 초기화되지 않았습니다. 대기 중...");
             ShowEmptyMessage(true);
             return;
         }
