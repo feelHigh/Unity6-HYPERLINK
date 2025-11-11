@@ -108,7 +108,21 @@ public class GameInitializer : MonoBehaviour
                 Log("수동 제작 씬 - 맵 생성 건너뜀");
             }
 
-            // 4. 캐릭터 데이터 로드
+            // 4. 플레이어 스폰 (맵이 완성된 후, 데이터 로드 전!)
+            UpdateLoadingText("플레이어 준비 중...");
+
+            if (PlayerSpawner.Instance == null)
+            {
+                LogError("PlayerSpawner를 찾을 수 없습니다!");
+                ReturnToCharacterSelection();
+                return;
+            }
+
+            Log("플레이어 스폰 시작");
+            PlayerSpawner.Instance.SpawnPlayerAtCorrectLocation();
+            Log("플레이어 스폰 완료");
+
+            // 5. 캐릭터 데이터 로드 (플레이어가 스폰된 후!)
             UpdateLoadingText("캐릭터 데이터 로드 중...");
             bool loadSuccess = await CharacterDataManager.Instance.LoadCharacterData();
 
@@ -128,25 +142,11 @@ public class GameInitializer : MonoBehaviour
 
             Log($"데이터 동기화 확인: {CharacterDataManager.Instance.CurrentCharacterData.character.characterName}");
 
-            // 5. 퀘스트 시스템 초기화
+            // 6. 퀘스트 시스템 초기화
             UpdateLoadingText("퀘스트 시스템 초기화 중...");
             InitializeQuestSystem();
 
-            // 6. 플레이어 스폰 (맵이 완성된 후)
-            UpdateLoadingText("플레이어 준비 중...");
-
-            if (PlayerSpawner.Instance == null)
-            {
-                LogError("PlayerSpawner를 찾을 수 없습니다!");
-                ReturnToCharacterSelection();
-                return;
-            }
-
-            Log("플레이어 스폰 시작");
-            PlayerSpawner.Instance.SpawnPlayerAtCorrectLocation();
-            Log("플레이어 스폰 완료");
-
-            // 7. PlayerInitializationManager를 통한 플레이어 데이터 로드
+            // 7. PlayerInitializationManager를 통한 플레이어 데이터 적용 확인
             UpdateLoadingText("캐릭터 데이터 적용 중...");
 
             if (PlayerInitializationManager.Instance == null)
