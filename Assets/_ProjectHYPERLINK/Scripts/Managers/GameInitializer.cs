@@ -124,6 +124,16 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
+            // 로드 검증
+            if (GameSessionManager.Instance == null || GameSessionManager.Instance.CurrentCharacterData == null)
+            {
+                LogError("GameSessionManager 동기화 실패!");
+                ReturnToCharacterSelection();
+                return;
+            }
+
+            Log($"데이터 동기화 확인: {CharacterDataManager.Instance.CurrentCharacterData.character.characterName}");
+
             // 4. 퀘스트 시스템 초기화
             UpdateLoadingText("퀘스트 시스템 초기화 중...");
             InitializeQuestSystem();

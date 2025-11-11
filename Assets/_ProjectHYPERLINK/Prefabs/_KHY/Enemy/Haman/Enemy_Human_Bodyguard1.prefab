@@ -68,6 +68,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _detectorColl: {fileID: 7227488842599461735}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  _ignoreLayerMask:
+    serializedVersion: 2
+    m_Bits: 2304
 --- !u!54 &6207607046159829383
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -623,16 +629,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _controller: {fileID: 8094236093037867607}
   _startDelay: 1.5
-  _middleDelay: 0
   _disableAfterEffect: 0
   _disableDuration: 0
   _enableObjectControl: 1
+  _objectDisableDelay: 0
   _objectsToDisable:
   - {fileID: 4415302852677071191}
+  _objectSpawnDelay: 0
   _objectsToSpawn: []
   _spawnOffset: {x: 0, y: 0, z: 0}
   _destroyAfterDuration: 0
   _enableFadeOut: 0
+  _fadeOutDelay: 0
+  _disableShadows: 0
+  _shadowDisableDelay: 0
   _targetRenderers: []
   _fadeDuration: 1
   _fadeCurve:
@@ -661,8 +671,10 @@ MonoBehaviour:
     m_RotationOrder: 4
   _shaderGraphPropertyName: _Alpha
   _enablePositionChange: 0
+  _isUsingLocalPosition: 0
+  _positionChangeDelay: 0
   _targetModel: {fileID: 0}
-  _targetPosition: {x: 0, y: -2, z: 0}
+  _positionOffset: {x: 0, y: -2, z: 0}
   _moveDuration: 1
   _moveCurve:
     serializedVersion: 2

@@ -611,19 +611,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _controller: {fileID: -7366752441098952199}
   _startDelay: 0
-  _middleDelay: 2
   _disableAfterEffect: 1
-  _disableDuration: 1
+  _disableDuration: 2
   _enableObjectControl: 1
+  _objectDisableDelay: 0
   _objectsToDisable:
   - {fileID: 1361192381362802041}
   - {fileID: 7727896435381894926}
   - {fileID: 4691613133839209498}
-  _objectsToSpawn: []
+  _objectSpawnDelay: 1
+  _objectsToSpawn:
+  - {fileID: 4364383282596128118, guid: 009d79c8b21bb3e4184c1b18596e2a01, type: 3}
   _spawnOffset: {x: 0, y: 0, z: 0}
-  _destroyAfterDuration: 0
+  _destroyAfterDuration: 3
   _enableFadeOut: 1
+  _fadeOutDelay: 0
   _disableShadows: 1
+  _shadowDisableDelay: 0
   _targetRenderers:
   - {fileID: 6911557172570926591}
   - {fileID: 3913423476466102978}
@@ -655,8 +659,9 @@ MonoBehaviour:
   _shaderGraphPropertyName: _Alpha
   _enablePositionChange: 0
   _isUsingLocalPosition: 0
+  _positionChangeDelay: 0
   _targetModel: {fileID: 0}
-  _targetPosition: {x: 0, y: -2, z: 0}
+  _positionOffset: {x: 0, y: -2, z: 0}
   _moveDuration: 1
   _moveCurve:
     serializedVersion: 2

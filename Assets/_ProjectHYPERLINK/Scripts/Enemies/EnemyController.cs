@@ -70,7 +70,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        if (_enemyType == EnemyType.Boss && _bossData != null)
+        if (_bossData != null)
         {
             InitializeBoss();
         }

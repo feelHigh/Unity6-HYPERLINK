@@ -14752,6 +14752,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _detectorColl: {fileID: 1803671280186233124}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  _ignoreLayerMask:
+    serializedVersion: 2
+    m_Bits: 2304
 --- !u!135 &1803671280186233124
 SphereCollider:
   m_ObjectHideFlags: 0
