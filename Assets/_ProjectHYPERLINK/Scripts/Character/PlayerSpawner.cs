@@ -1,29 +1,28 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 플레이어 스폰 / 텔레포트 시스템
-///  
-/// 기능:
-/// - 지정한 위치에 직업별 플레이어 스폰
-/// - 위치 간의 텔레포트 관리
-/// - 싱글톤 구조
 /// 
-/// 참고:
-/// - PlayerInitializationManager가 이 클래스의 GetPlayer()를 폴링하여 스폰 완료 감지
-/// - Start()에서 자동 스폰하므로 변경 없음
+/// 변경사항:
+/// - Start()에서 자동 스폰 제거
+/// - MapGenerator 완료 후 스폰하도록 변경
+/// - GameInitializer가 SpawnPlayerAtCorrectLocation() 호출
+/// 
+/// 초기화 흐름:
+/// 1. Awake: Instance 설정
+/// 2. Start: 아무것도 안 함 (대기)
+/// 3. GameInitializer: 맵 생성 완료 후 SpawnPlayerAtCorrectLocation() 호출
 /// </summary>
 public class PlayerSpawner : MonoBehaviour
 {
     public static PlayerSpawner Instance { get; private set; }
 
     [Header("Player Prefabs - 직업별")]
-    [Tooltip("Laon 프리팹")]
     [SerializeField] private GameObject _warriorPrefab;
-    [Tooltip("Sian 프리팹")]
     [SerializeField] private GameObject _magePrefab;
-    [Tooltip("Yujin 프리팹")]
     [SerializeField] private GameObject _archerPrefab;
 
     [Header("Spawn Settings")]
@@ -47,7 +46,18 @@ public class PlayerSpawner : MonoBehaviour
         Instance = this;
     }
 
+    // Start()에서 자동 스폰 제거 - GameInitializer가 명시적으로 호출
     private void Start()
+    {
+        // 아무것도 안 함 - GameInitializer가 SpawnPlayerAtCorrectLocation() 호출할 때까지 대기
+        Log("PlayerSpawner 준비 완료. 스폰 대기 중...");
+    }
+
+    /// <summary>
+    /// 올바른 위치에 플레이어 스폰 (GameInitializer에서 호출)
+    /// Portal을 통해 들어온 경우 지정된 위치에 스폰
+    /// </summary>
+    public void SpawnPlayerAtCorrectLocation()
     {
         // Portal에서 지정한 스폰 포인트 확인
         if (PlayerPrefs.HasKey("TargetSpawnPoint"))
@@ -57,40 +67,41 @@ public class PlayerSpawner : MonoBehaviour
 
             Log($"Portal 지정 스폰 포인트: {targetSpawn}");
 
-            // TeleportPoint 찾기
-            TeleportPoint point = null;
-
-            foreach (var portalPoint in _teleportPoints)
-            {
-                if (portalPoint.LocationName == targetSpawn)
-                {
-                    point = portalPoint;
-                    break;
-                }
-            }
+            TeleportPoint point = FindTeleportPoint(targetSpawn);
 
             if (point != null)
             {
-                // 해당 위치에 직접 스폰
                 SpawnPlayer(point.Position, point.Rotation);
                 Log($"스폰 완료: {targetSpawn}");
+                return;
             }
             else
             {
                 LogWarning($"스폰 포인트 '{targetSpawn}'를 찾을 수 없습니다. 기본 위치에 스폰합니다.");
-                SpawnPlayerAtDefault();
             }
         }
-        else
+
+        // 디폴트 지점에 스폰
+        SpawnPlayerAtDefault();
+    }
+
+    /// <summary>
+    /// TeleportPoint 찾기
+    /// </summary>
+    private TeleportPoint FindTeleportPoint(string locationName)
+    {
+        foreach (var point in _teleportPoints)
         {
-            // 디폴트 지점에 자동 스폰
-            SpawnPlayerAtDefault();
+            if (point.LocationName == locationName)
+            {
+                return point;
+            }
         }
+        return null;
     }
 
     /// <summary>
     /// 디폴트 지점에 플레이어 스폰
-    /// GameSessionManager에서 직업 정보를 가져와서 올바른 프리팹 스폰
     /// </summary>
     public void SpawnPlayerAtDefault()
     {
@@ -105,7 +116,6 @@ public class PlayerSpawner : MonoBehaviour
 
     /// <summary>
     /// 특정 위치에 플레이어 스폰
-    /// GameSessionManager의 캐릭터 데이터에서 직업 읽기
     /// </summary>
     public void SpawnPlayer(Vector3 position, Quaternion rotation)
     {
@@ -167,17 +177,14 @@ public class PlayerSpawner : MonoBehaviour
                 if (_warriorPrefab == null)
                     LogError("Laon 프리팹이 할당되지 않았습니다!");
                 return _warriorPrefab;
-
             case CharacterClass.Sian:
                 if (_magePrefab == null)
                     LogError("Sian 프리팹이 할당되지 않았습니다!");
                 return _magePrefab;
-
             case CharacterClass.Yujin:
                 if (_archerPrefab == null)
                     LogError("Yujin 프리팹이 할당되지 않았습니다!");
                 return _archerPrefab;
-
             default:
                 LogWarning($"처리되지 않은 직업: {characterClass}. Laon 프리팹 사용");
                 return _warriorPrefab;
@@ -189,16 +196,7 @@ public class PlayerSpawner : MonoBehaviour
     /// </summary>
     public void TeleportToLocation(string locationName)
     {
-        TeleportPoint point = null;
-
-        foreach (var portalPoint in _teleportPoints)
-        {
-            if (portalPoint.LocationName == locationName)
-            {
-                point = portalPoint;
-                break;
-            }
-        }
+        TeleportPoint point = FindTeleportPoint(locationName);
 
         if (point != null && _currentPlayer != null)
         {
@@ -218,7 +216,6 @@ public class PlayerSpawner : MonoBehaviour
 
     /// <summary>
     /// 현재 플레이어 인스턴스 가져오기
-    /// PlayerInitializationManager가 이 메서드로 스폰 상태 확인
     /// </summary>
     public GameObject GetPlayer()
     {
