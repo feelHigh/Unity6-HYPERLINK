@@ -174,7 +174,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _currentDebuffCoroutine = StartCoroutine(FreezeCoroutine(attack));
                 break;
             case SpecialAttackType.Earth:
-                _currentDebuffCoroutine = StartCoroutine(BlindCoroutine(attack));
+                _currentDebuffCoroutine = StartCoroutine(SilenceCroutine(attack));
                 break;
             case SpecialAttackType.Wood:
                 _currentDebuffCoroutine = StartCoroutine(RootCoroutine(attack));
@@ -262,10 +262,10 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         Debug.Log("[상태이상] 빙결 종료");
     }
 
-    private IEnumerator BlindCoroutine(SpecialAttackBase attack)
+    private IEnumerator SilenceCroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 시야 방해 시작");
-
+        Debug.Log("[상태이상] 침묵 시작");
+        /*
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
         if (_stateController != null)
@@ -281,11 +281,12 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
 
         CleanupDebuffEffect();
+        */
 
         // 침묵 효과 (수정: SetSilence 사용)
         if (attack.SilenceDuration > 0)
         {
-            _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
+            _currentAdditionalEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
             if (_stateController != null)
             {
@@ -305,7 +306,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             Debug.Log("[침묵] 종료");
         }
 
-        Debug.Log("[상태이상] 시야 방해 종료");
+        //Debug.Log("[상태이상] 시야 방해 종료");
     }
 
     private IEnumerator RootCoroutine(SpecialAttackBase attack)

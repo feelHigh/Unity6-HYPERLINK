@@ -672,64 +672,21 @@ public class BossAI : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        //브레스 방향 계산
-        Vector3 breathDir = transform.forward;
-
-        Vector3 toPlayer = _target.position - _breathSpawnPos.position;
-        float angleDown = Mathf.Atan2(-toPlayer.y, new Vector2(toPlayer.x, toPlayer.z).magnitude) * Mathf.Rad2Deg;
-        angleDown = Mathf.Clamp(angleDown, -30, 30);
-
-        Quaternion breathRotation = _breathSpawnPos.rotation * Quaternion.Euler(angleDown, 0, 0);
-
-        //브레스 이펙트 생성
-        GameObject breathEffect = null;
-        if (_breathEffect != null && _breathSpawnPos != null)
-        {
-            breathEffect = Instantiate(_breathEffect, _breathSpawnPos.position, breathRotation, transform);
-        }
-
         Debug.Log("[BossAI] 화염 브레스 발사!");
 
-        //지속 피해
-        float tickInterval = 1f / _data.BreathTicksPerSecond;
-        float elapsed = 0f;
-
-        while (elapsed < _data.BreathDuration)
+        //브레스 이펙트 생성
+        if (_breathEffect != null && _breathSpawnPos != null)
         {
-            //브레스 범위 내 플레이어 감지
-            Vector3 breathStart = _breathSpawnPos != null ? _breathSpawnPos.position : transform.position + transform.forward * 2f;
+            Quaternion breatRot = Quaternion.LookRotation(transform.forward);
 
-            //브레스 범위 박스 중심점 계산
-            Vector3 boxCenter = breathStart + breathDir * (_data.BreathRange / 2);
+            GameObject breathEffect = Instantiate(_breathEffect, _breathSpawnPos.position, breatRot);
 
-            //박스 크기 설정
-            Vector3 boxHalfExtents = new Vector3(
-                _data.BreathWidth / 2,  //폭
-                3f,                     //높이
-                _data.BreathRange / 2   //길이
-                );
-
-            //OverlapBox로 범위 내 플레이어 감지
-            Collider[] hits = Physics.OverlapBox(boxCenter, boxHalfExtents, breathRotation, _playerLayerMask);
-
-            foreach (Collider hit in hits)
+            WaveAttackController waveAttackController = breathEffect.GetComponent<WaveAttackController>();
+            if (waveAttackController != null)
             {
-                PlayerCombat player = hit.GetComponent<PlayerCombat>();
-                if (player != null)
-                {
-                    float damage = _controller.Atk * _data.BreathDamageMultiplier;
-                    player.TakeDamage(damage);
-                }
+                float damage = _controller.Atk * _data.BreathDamageMultiplier;
+                waveAttackController.Initialize(damage : damage);
             }
-
-            yield return new WaitForSeconds(tickInterval);
-            elapsed += tickInterval;
-        }
-
-        //브레스 이펙트 제거
-        if (breathEffect != null)
-        {
-            Destroy(breathEffect);
         }
 
         Debug.Log("[BossAI] 화염 브레스 종료!");

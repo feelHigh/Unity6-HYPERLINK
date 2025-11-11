@@ -3,20 +3,23 @@ using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 
 /// <summary>
-/// 포탈 시스템 (리팩토링됨 - 씬 전환 시 데이터 저장 기능 추가)
+/// 포탈 시스템 (리팩토링됨 - TeleportUIWindow 참조 개선)
 /// 
 /// 기능:
 /// - 씬 간 전환 (Scene Transition) - 데이터 저장 포함
 /// - 위치 간 텔레포트 (Portal-to-Portal)
+/// - 텔레포트 UI 열기 (플레이어가 목적지 선택) - 개선됨
 /// - IInteractable 구현으로 상호작용 시스템 통합
 /// - 퀘스트 완료 체크로 포탈 잠금/해제
+/// - 발견 시스템 통합
 /// - 자동 작동 또는 수동 상호작용
 /// 
 /// 사용법:
 /// 1. GameObject에 Portal 컴포넌트 추가
 /// 2. PortalData ScriptableObject 생성 및 할당
 /// 3. [선택] RequiredQuestID 설정 (퀘스트 완료 시에만 사용 가능)
-/// 4. Collider 컴포넌트 필수 (자동 Trigger 설정)
+/// 4. [선택] TeleportUIWindow 직접 참조 (OpenTeleportUI 타입일 때)
+/// 5. Collider 컴포넌트 필수 (자동 Trigger 설정)
 /// 
 /// 커스텀 에디터:
 /// - 레벨 디자이너가 PortalData로 포탈 설정 관리
@@ -31,6 +34,10 @@ public class Portal : MonoBehaviour, IInteractable
     [Header("퀘스트 잠금 설정")]
     [Tooltip("이 포탈을 사용하기 위해 완료해야 하는 퀘스트 ID (비어있으면 항상 사용 가능)")]
     [SerializeField] private string _requiredQuestID = "";
+
+    [Header("텔레포트 UI 참조 (OpenTeleportUI 타입일 때만)")]
+    [Tooltip("직접 참조 (선택 사항). 비어있으면 자동으로 찾습니다.")]
+    [SerializeField] private TeleportUIWindow _teleportUIWindow;
 
     [Header("비주얼 (Optional)")]
     [Tooltip("포탈 이펙트 오브젝트")]
@@ -52,6 +59,10 @@ public class Portal : MonoBehaviour, IInteractable
     private bool _isActivating = false;
     private Transform _playerTransform;
 
+    // TeleportUIWindow 캐싱
+    private TeleportUIWindow _cachedTeleportUI;
+    private bool _hasSearchedForUI = false;
+
     public string PortalLocation => _portalLocation;
 
     #region Unity Lifecycle
@@ -67,6 +78,12 @@ public class Portal : MonoBehaviour, IInteractable
     private void Start()
     {
         UpdateVisuals();
+
+        // OpenTeleportUI 타입이면 미리 TeleportUIWindow 찾기
+        if (_portalData != null && _portalData.Type == PortalType.OpenTeleportUI)
+        {
+            FindTeleportUIWindow();
+        }
     }
 
     private void Update()
@@ -140,6 +157,8 @@ public class Portal : MonoBehaviour, IInteractable
                 return $"{_portalData.TargetSceneName} 이동";
             case PortalType.Teleport:
                 return $"{_portalData.TeleportLocationName} 텔레포트";
+            case PortalType.OpenTeleportUI:
+                return "텔레포트";
             default:
                 return "포탈";
         }
@@ -238,8 +257,7 @@ public class Portal : MonoBehaviour, IInteractable
     #region 포탈 작동 로직
 
     /// <summary>
-    /// 포탈 활성화 (씬 전환 또는 텔레포트)
-    /// 변경: async void로 변경하여 비동기 씬 전환 지원
+    /// 포탈 활성화 (씬 전환, 텔레포트, UI 열기)
     /// </summary>
     private async void ActivatePortal(PlayerCharacter player)
     {
@@ -267,6 +285,10 @@ public class Portal : MonoBehaviour, IInteractable
             case PortalType.Teleport:
                 ActivateTeleport();
                 break;
+
+            case PortalType.OpenTeleportUI:
+                OpenTeleportUI();
+                break;
         }
 
         // VFX 재생 (선택 사항)
@@ -282,6 +304,7 @@ public class Portal : MonoBehaviour, IInteractable
     /// - 퀘스트 데이터 저장 포함
     /// - 위치 정보 자동 업데이트
     /// - 오류 처리 개선 (저장 실패 시 씬 전환 중단)
+    /// - 발견 시스템 통합 (목적지 자동 발견)
     /// 
     /// 데이터 저장 순서:
     /// 1. 스폰 포인트 정보를 PlayerPrefs에 저장 (다음 씬에서 사용)
@@ -302,6 +325,12 @@ public class Portal : MonoBehaviour, IInteractable
 
         Log($"씬 전환 준비: {targetScene}" +
             (string.IsNullOrEmpty(spawnPoint) ? "" : $" -> {spawnPoint}"));
+
+        // === 발견 시스템: 목적지 자동 발견 ===
+        if (TeleportManager.Instance != null && !string.IsNullOrEmpty(spawnPoint))
+        {
+            TeleportManager.Instance.DiscoverDestination(targetScene, spawnPoint);
+        }
 
         // === 1단계: 씬 전환 정보 저장 ===
 
@@ -350,7 +379,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (QuestManager.Instance != null)
         {
             Log("퀘스트 데이터 저장 중...");
-            QuestManager.Instance.SaveQuestProgress();
+            QuestManager.Instance.SaveQuestProgressAsync();
             Log("퀘스트 데이터 저장 완료");
         }
 
@@ -362,12 +391,20 @@ public class Portal : MonoBehaviour, IInteractable
 
     /// <summary>
     /// 텔레포트 모드
+    /// 발견 시스템 통합
     /// </summary>
     private void ActivateTeleport()
     {
         string locationName = _portalData.TeleportLocationName;
 
         Log($"텔레포트: {locationName}");
+
+        // 발견 시스템: 현재 씬의 텔레포트 위치 발견
+        if (TeleportManager.Instance != null)
+        {
+            string currentScene = SceneManager.GetActiveScene().name;
+            TeleportManager.Instance.DiscoverDestination(currentScene, locationName);
+        }
 
         if (PlayerSpawner.Instance != null)
         {
@@ -379,6 +416,96 @@ public class Portal : MonoBehaviour, IInteractable
         }
 
         _isActivating = false;
+    }
+
+    /// <summary>
+    /// 텔레포트 UI 열기 모드 (개선됨)
+    /// 
+    /// 개선 사항:
+    /// - 캐싱 메커니즘 추가
+    /// - 직접 참조 지원
+    /// - 더 나은 에러 메시지
+    /// - 디버그 로그 강화
+    /// </summary>
+    private void OpenTeleportUI()
+    {
+        Log("텔레포트 UI 열기 시도");
+
+        // 1단계: TeleportUIWindow 찾기 또는 캐시 사용
+        TeleportUIWindow teleportUI = FindTeleportUIWindow();
+
+        if (teleportUI == null)
+        {
+            LogError("TeleportUIWindow를 찾을 수 없습니다!");
+            LogError("해결 방법:");
+            LogError("1. GameCanvas에 TeleportUIWindow GameObject가 있는지 확인");
+            LogError("2. TeleportUIWindow에 TeleportUIWindow.cs 컴포넌트가 있는지 확인");
+            LogError("3. 또는 Portal Inspector에서 Teleport UI Window 필드에 직접 할당");
+            _isActivating = false;
+            return;
+        }
+
+        // 2단계: UI 열기
+        Log($"TeleportUIWindow 찾음: {teleportUI.name}");
+
+        // UI가 이미 열려있는지 확인
+        if (teleportUI.IsOpen())
+        {
+            Log("TeleportUIWindow가 이미 열려 있습니다");
+        }
+        else
+        {
+            Log("TeleportUIWindow.Open() 호출");
+            teleportUI.Open();
+            Log("TeleportUIWindow 열기 완료");
+        }
+
+        _isActivating = false;
+    }
+
+    /// <summary>
+    /// TeleportUIWindow 찾기 (캐싱 지원)
+    /// 
+    /// 우선순위:
+    /// 1. Inspector에서 직접 할당된 참조 (_teleportUIWindow)
+    /// 2. 이전에 찾은 캐시 (_cachedTeleportUI)
+    /// 3. FindObjectOfType으로 새로 검색
+    /// </summary>
+    private TeleportUIWindow FindTeleportUIWindow()
+    {
+        // 1. 직접 할당된 참조 확인
+        if (_teleportUIWindow != null)
+        {
+            Log("직접 할당된 TeleportUIWindow 사용");
+            _cachedTeleportUI = _teleportUIWindow;
+            return _teleportUIWindow;
+        }
+
+        // 2. 캐시된 참조 확인
+        if (_cachedTeleportUI != null)
+        {
+            Log("캐시된 TeleportUIWindow 사용");
+            return _cachedTeleportUI;
+        }
+
+        // 3. 아직 검색하지 않았거나 캐시가 없으면 검색
+        if (!_hasSearchedForUI)
+        {
+            Log("TeleportUIWindow 검색 중...");
+            _cachedTeleportUI = FindObjectOfType<TeleportUIWindow>(true); // includeInactive = true
+            _hasSearchedForUI = true;
+
+            if (_cachedTeleportUI != null)
+            {
+                Log($"TeleportUIWindow 찾음: {_cachedTeleportUI.name}");
+            }
+            else
+            {
+                LogWarning("TeleportUIWindow를 찾을 수 없습니다. 씬에 있는지 확인하세요.");
+            }
+        }
+
+        return _cachedTeleportUI;
     }
 
     #endregion
@@ -435,6 +562,15 @@ public class Portal : MonoBehaviour, IInteractable
         {
             LogError($"유효하지 않은 PortalData: {_portalData.GetDebugInfo()}");
         }
+
+        // OpenTeleportUI 타입이면 TeleportUIWindow 확인
+        if (_portalData.Type == PortalType.OpenTeleportUI)
+        {
+            if (_teleportUIWindow == null)
+            {
+                LogWarning("TeleportUIWindow가 직접 할당되지 않았습니다. 자동 검색을 시도합니다.");
+            }
+        }
     }
 
     #endregion
@@ -487,10 +623,15 @@ public class Portal : MonoBehaviour, IInteractable
 #if UNITY_EDITOR
         // 디버그 정보 표시
         string questInfo = string.IsNullOrEmpty(_requiredQuestID) ? "퀘스트 제한 없음" : $"필요 퀘스트: {_requiredQuestID}";
+        string uiInfo = "";
+        if (_portalData.Type == PortalType.OpenTeleportUI)
+        {
+            uiInfo = _teleportUIWindow != null ? $"\nUI 참조: {_teleportUIWindow.name}" : "\nUI 참조: 자동 검색";
+        }
 
         UnityEditor.Handles.Label(
             transform.position + Vector3.up * 2f,
-            $"Portal: {_portalData.PortalName}\n{_portalData.GetDebugInfo()}\n{questInfo}"
+            $"Portal: {_portalData.PortalName}\n{_portalData.GetDebugInfo()}\n{questInfo}{uiInfo}"
         );
 #endif
     }

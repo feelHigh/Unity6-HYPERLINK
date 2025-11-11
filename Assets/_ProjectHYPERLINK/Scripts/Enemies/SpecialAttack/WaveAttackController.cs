@@ -14,6 +14,7 @@ public class WaveAttackController : MonoBehaviour
     [SerializeField] ParticleSystem _visualEffect;  //비쥬얼 이펙트
 
     SpecialAttackBase _specialAttack;
+    float _damage = 0f;
 
     float _curLength = 0f;      //현재 공격 길이
     float _targetDistance;      //목표 거리
@@ -23,9 +24,10 @@ public class WaveAttackController : MonoBehaviour
     /// <summary>
     /// 파동형 공격을 초기화하는 함수
     /// </summary>
-    public void Initialize(SpecialAttackBase specialAttack)
+    public void Initialize(SpecialAttackBase specialAttack = null, float damage = 0f)
     {
         _specialAttack = specialAttack;
+        _damage = damage;
 
         _curLength = 0f;
         _isActive = true;
@@ -68,12 +70,19 @@ public class WaveAttackController : MonoBehaviour
 
             foreach (Collider coll in colls)
             {
-                Debug.Log($"[WaveAttack] 얼음 공격 적중 {coll.name}");
-
                 PlayerCombat player = coll.GetComponent<PlayerCombat>();
                 if (player != null)
                 {
-                    player.ApplySpecialEffect(_specialAttack, transform.position);
+                    if (_specialAttack != null)
+                    {
+                        Debug.Log($"[WaveAttack] 얼음 공격 적중 {coll.name}");
+                        player.ApplySpecialEffect(_specialAttack, transform.position);
+                    }
+                    else
+                    {
+                        Debug.Log($"[WaveAttack] 직접 데미지 공격 적중 {coll.name}");
+                        player.TakeDamage(_damage);
+                    }
 
                     _hasHitPlayer = true;
                     break;

@@ -21864,7 +21864,7 @@ GameObject:
   - component: {fileID: 2167517850332989187}
   - component: {fileID: 2167517850332989188}
   m_Layer: 0
-  m_Name: SlamEffect
+  m_Name: Boss_SlamEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -53374,7 +53374,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2271704823949064801
 Transform:
   m_ObjectHideFlags: 0
@@ -77809,7 +77809,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8793661813914163850
 Transform:
   m_ObjectHideFlags: 0
@@ -116833,7 +116833,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8793661814993308260
 Transform:
   m_ObjectHideFlags: 0
