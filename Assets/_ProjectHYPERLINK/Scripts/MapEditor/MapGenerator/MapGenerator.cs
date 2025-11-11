@@ -58,7 +58,7 @@ public class MapGenerator : MonoBehaviour
             TeleportPoint point = new TeleportPoint();
             point.PortalToPoint(portal);
 
-            //_playerSpawner._teleportPoints.Add(point);
+            _playerSpawner._teleportPoints.Add(point);
         }
     }
 
