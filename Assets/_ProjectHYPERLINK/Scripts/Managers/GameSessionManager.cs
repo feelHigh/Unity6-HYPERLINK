@@ -1,7 +1,12 @@
 using UnityEngine;
+using System.Threading.Tasks;
 
 /// <summary>
 /// 게임 세션 데이터 관리
+/// 
+/// 수정 사항:
+/// - SaveCurrentCharacterAsync() 메서드 추가 (Task 반환)
+/// - AutoSave에서 비동기 저장 완료 대기
 /// 
 /// 역할:
 /// - 현재 플레이 중인 캐릭터 데이터 저장
@@ -63,7 +68,10 @@ public class GameSessionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 수동 저장
+    /// 수동 저장 (동기 - fire-and-forget)
+    /// 
+    /// [주의] 저장 완료를 기다리지 않습니다
+    /// 저장 완료를 기다려야 하는 경우 SaveCurrentCharacterAsync()를 사용하세요
     /// </summary>
     public async void SaveCurrentCharacter()
     {
@@ -74,15 +82,55 @@ public class GameSessionManager : MonoBehaviour
     }
 
     /// <summary>
+    /// [NEW] 수동 저장 (비동기)
+    /// 
+    /// 저장 완료를 기다려야 하는 경우 사용
+    /// 예: 씬 전환 전, 앱 종료 전
+    /// </summary>
+    public async Task<bool> SaveCurrentCharacterAsync()
+    {
+        if (_currentCharacterData == null)
+        {
+            Debug.LogWarning("[GameSessionManager] 저장할 캐릭터 데이터가 없습니다");
+            return false;
+        }
+
+        bool success = await CloudSaveManager.Instance.SaveCharacterDataAsync(_currentCharacterData);
+
+        if (success)
+        {
+            Debug.Log("[GameSessionManager] 캐릭터 데이터 저장 완료");
+        }
+        else
+        {
+            Debug.LogError("[GameSessionManager] 캐릭터 데이터 저장 실패!");
+        }
+
+        return success;
+    }
+
+    /// <summary>
     /// 자동 저장 (5분마다)
+    /// 
+    /// [수정] 저장 완료를 기다림
     /// </summary>
     private async void AutoSave()
     {
         if (_currentCharacterData != null)
         {
             UpdatePlayTime();
-            await CloudSaveManager.Instance.SaveCharacterDataAsync(_currentCharacterData);
-            Debug.Log("자동 저장 완료");
+
+            // 저장 완료 대기
+            bool success = await CloudSaveManager.Instance.SaveCharacterDataAsync(_currentCharacterData);
+
+            if (success)
+            {
+                Debug.Log("자동 저장 완료");
+            }
+            else
+            {
+                Debug.LogError("자동 저장 실패!");
+            }
         }
     }
 

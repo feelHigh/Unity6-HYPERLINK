@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 퀘스트 시스템 관리자
+/// 
+/// 수정 사항:
+/// - OnQuestSystemInitialized 이벤트 추가 (UI 업데이트용)
+/// - SaveQuestProgressAsync 메서드 추가 (비동기 저장)
+/// - Initialize 완료 시 이벤트 발생
 /// 
 /// 역할:
 /// - 활성 퀘스트 관리
@@ -34,11 +40,16 @@ public class QuestManager : MonoBehaviour
     private Dictionary<string, QuestProgress> _activeQuests = new Dictionary<string, QuestProgress>();
     private List<string> _completedQuestIDs = new List<string>();
     private string _currentSceneName;
+    private bool _isInitialized = false; // [NEW] 초기화 상태 추적
 
     // 이벤트
     public event Action<QuestData, QuestProgress> OnQuestStarted;
     public event Action<QuestData, QuestProgress> OnQuestProgressUpdated;
     public event Action<QuestData> OnQuestCompleted;
+    public event Action OnQuestSystemInitialized; // [NEW] 초기화 완료 알림
+
+    // [NEW] 초기화 상태 프로퍼티
+    public bool IsInitialized => _isInitialized;
 
     #region Unity Lifecycle
 
@@ -73,12 +84,15 @@ public class QuestManager : MonoBehaviour
     /// <summary>
     /// 저장된 데이터로 퀘스트 시스템 초기화
     /// GameInitializer에서 호출
+    /// 
+    /// [수정] 초기화 완료 시 OnQuestSystemInitialized 이벤트 발생
     /// </summary>
     public void Initialize(CharacterSaveData saveData)
     {
         if (saveData == null)
         {
             LogWarning("SaveData가 null입니다. 퀘스트 초기화 실패");
+            _isInitialized = false;
             return;
         }
 
@@ -102,7 +116,11 @@ public class QuestManager : MonoBehaviour
             }
         }
 
+        _isInitialized = true;
         Log($"퀘스트 시스템 초기화 완료: 완료 {_completedQuestIDs.Count}개, 진행중 {_activeQuests.Count}개");
+
+        // [NEW] UI 업데이트를 위한 이벤트 발생
+        OnQuestSystemInitialized?.Invoke();
     }
 
     #endregion
@@ -202,7 +220,6 @@ public class QuestManager : MonoBehaviour
 
     /// <summary>
     /// 보상 지급
-    /// [NEW] 골드 보상 활성화
     /// </summary>
     private void GiveQuestRewards(QuestData questData)
     {
@@ -217,7 +234,7 @@ public class QuestManager : MonoBehaviour
             }
         }
 
-        // [NEW] 골드 보상
+        // 골드 보상
         if (questData.GoldReward > 0)
         {
             PlayerCharacter player = FindFirstObjectByType<PlayerCharacter>();
@@ -356,12 +373,31 @@ public class QuestManager : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// 완료된 퀘스트 ID 목록 반환
+    /// </summary>
+    public List<string> GetCompletedQuestIDs()
+    {
+        return new List<string>(_completedQuestIDs);
+    }
+
+    /// <summary>
+    /// 진행 중인 퀘스트 진행 상황 목록 반환
+    /// </summary>
+    public List<QuestProgress> GetActiveQuestProgress()
+    {
+        return new List<QuestProgress>(_activeQuests.Values);
+    }
+
     #endregion
 
     #region 저장/로드
 
     /// <summary>
-    /// 퀘스트 진행 상황 저장
+    /// 퀘스트 진행 상황 저장 (동기)
+    /// 
+    /// [주의] 이 메서드는 fire-and-forget 방식으로 저장합니다.
+    /// 저장 완료를 기다려야 하는 경우 SaveQuestProgressAsync()를 사용하세요.
     /// </summary>
     public void SaveQuestProgress()
     {
@@ -378,6 +414,48 @@ public class QuestManager : MonoBehaviour
 
         // 자동 저장 트리거
         GameSessionManager.Instance.SaveCurrentCharacter();
+    }
+
+    /// <summary>
+    /// 퀘스트 진행 상황 저장 (비동기)
+    /// 
+    /// [NEW] 저장 완료를 기다려야 하는 경우 사용
+    /// 예: 씬 전환 전, 앱 종료 전
+    /// </summary>
+    public async Task<bool> SaveQuestProgressAsync()
+    {
+        if (GameSessionManager.Instance == null)
+        {
+            LogWarning("GameSessionManager가 없습니다");
+            return false;
+        }
+
+        CharacterSaveData saveData = GameSessionManager.Instance.CurrentCharacterData;
+        if (saveData == null)
+        {
+            LogWarning("CharacterSaveData가 없습니다");
+            return false;
+        }
+
+        // 완료된 퀘스트 저장
+        saveData.gameplay.questsCompleted = new List<string>(_completedQuestIDs);
+
+        // 진행 중인 퀘스트 저장
+        saveData.gameplay.questProgress = new List<QuestProgress>(_activeQuests.Values);
+
+        // 비동기 저장 및 완료 대기
+        bool success = await CloudSaveManager.Instance.SaveCharacterDataAsync(saveData);
+
+        if (success)
+        {
+            Log("퀘스트 데이터 저장 완료");
+        }
+        else
+        {
+            LogError("퀘스트 데이터 저장 실패!");
+        }
+
+        return success;
     }
 
     #endregion

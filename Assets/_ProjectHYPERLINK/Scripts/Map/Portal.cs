@@ -379,7 +379,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (QuestManager.Instance != null)
         {
             Log("퀘스트 데이터 저장 중...");
-            QuestManager.Instance.SaveQuestProgress();
+            QuestManager.Instance.SaveQuestProgressAsync();
             Log("퀘스트 데이터 저장 완료");
         }
 

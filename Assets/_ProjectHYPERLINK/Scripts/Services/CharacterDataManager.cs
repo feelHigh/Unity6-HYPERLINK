@@ -471,6 +471,13 @@ public class CharacterDataManager : MonoBehaviour
 
             Log($"위치 저장: 씬={_currentCharacterData.position.scene}, 좌표=({_currentCharacterData.position.x:F2}, {_currentCharacterData.position.y:F2}, {_currentCharacterData.position.z:F2})");
         }
+
+        // 퀘스트 데이터 수집
+        if (QuestManager.Instance != null)
+        {
+            CollectQuestData(_currentCharacterData);
+            Log("퀘스트 데이터 수집 완료");
+        }
     }
 
     /// <summary>
@@ -590,6 +597,22 @@ public class CharacterDataManager : MonoBehaviour
     public string GetCharacterName()
     {
         return _currentCharacterData?.character.characterName ?? "Unknown";
+    }
+
+    /// <summary>
+    /// QuestManager에서 퀘스트 데이터 수집
+    /// </summary>
+    private void CollectQuestData(CharacterSaveData data)
+    {
+        if (data.gameplay == null)
+        {
+            data.gameplay = new CharacterSaveData.GameplayData();
+        }
+
+        data.gameplay.questsCompleted = QuestManager.Instance.GetCompletedQuestIDs();
+        data.gameplay.questProgress = QuestManager.Instance.GetActiveQuestProgress();
+
+        Log($"퀘스트 데이터 수집: 완료 {data.gameplay.questsCompleted.Count}개, 진행중 {data.gameplay.questProgress.Count}개");
     }
 
     #region 로깅
