@@ -14,7 +14,99 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: UI_SETTINGS
   m_TableCollectionNameGuidString: c41019c8ff0201b47a99315553719dd1
-  m_Entries: []
+  m_Entries:
+  - m_Id: 56672645849088
+    m_Key: SETTINGS_TITLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432000
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432001
+    m_Key: SETTINGS_BTN_CANCLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432002
+    m_Key: SETTINGS_BTN_ACCEPT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432003
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432004
+    m_Key: SETTINGS_TAB_VIDEO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432005
+    m_Key: SETTINGS_TAB_AUDIO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432006
+    m_Key: SETTINGS_TAB_GAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432007
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432008
+    m_Key: SETTINGS_VIDEO_TITLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432009
+    m_Key: SETTINGS_VIDEO_RESOLUTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432010
+    m_Key: SETTINGS_VIDEO_DISPLAY_MODE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432011
+    m_Key: SETTINGS_VIDEO_MODE_WINDOWED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432012
+    m_Key: SETTINGS_VIDEO_MODE_BORDERLESS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432013
+    m_Key: SETTINGS_VIDEO_MODE_FULLSCREEN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432014
+    m_Key: New Entry 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432015
+    m_Key: SETTINGS_AUDIO_TITLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432016
+    m_Key: SETTINGS_AUDIO_MASTER_VOLUME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432017
+    m_Key: SETTINGS_AUDIO_SFX_VOLUME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432018
+    m_Key: SETTINGS_AUDIO_MUSIC_VOLUME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432019
+    m_Key: New Entry 4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432020
+    m_Key: SETTINGS_GAME_TITLE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432021
+    m_Key: SETTINGS_GAME_LANGUAGE
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

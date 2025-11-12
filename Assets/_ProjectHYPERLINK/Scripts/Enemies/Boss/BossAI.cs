@@ -758,6 +758,8 @@ public class BossAI : MonoBehaviour
     void OnDeath()
     {
         _isActive = false;
+        _isCharging = false;
+
         ChangeState(BossState.Dead);
 
         // NavMeshAgent 정지
@@ -766,6 +768,8 @@ public class BossAI : MonoBehaviour
             _agent.isStopped = true;
             _agent.enabled = false;
         }
+
+        _animator.SetTrigger(_hashDie);
 
         Debug.Log("[BossAI] 보스 사망!");
     }

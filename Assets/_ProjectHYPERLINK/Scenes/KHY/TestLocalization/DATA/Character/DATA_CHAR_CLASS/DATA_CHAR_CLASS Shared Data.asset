@@ -27,8 +27,8 @@ MonoBehaviour:
     m_Key: CLASS_NAME_YUJIN
     m_Metadata:
       m_Items: []
-  - m_Id: 32949182466
-    m_Key: New Entry
+  - m_Id: 271866030497792
+    m_Key: New Entry 1
     m_Metadata:
       m_Items: []
   - m_Id: 32957571072
@@ -41,6 +41,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 32957571074
     m_Key: CLASS_DESC_YUJIN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32949182466
+    m_Key: New Entry
     m_Metadata:
       m_Items: []
   m_Metadata:

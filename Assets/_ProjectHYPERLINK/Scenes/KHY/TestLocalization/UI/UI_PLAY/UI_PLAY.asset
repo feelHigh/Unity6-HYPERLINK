@@ -32,7 +32,7 @@ MonoBehaviour:
         - rid: 3716726690045493321
         - rid: 3716726690045493322
         - rid: 3716726690045493323
-        m_ConnectedFile: C:/Users/User/Desktop/HYPERLINK_LocalizationTable/UI/UI_PLAY.csv
+        m_ConnectedFile: C:/Users/User/Desktop/HYPERLINK_LocalizationTable/UI_PLAY.csv
     - rid: 3716726690045493320
       type: {class: KeyIdColumns, ns: UnityEditor.Localization.Plugins.CSV.Columns, asm: Unity.Localization.Editor}
       data:

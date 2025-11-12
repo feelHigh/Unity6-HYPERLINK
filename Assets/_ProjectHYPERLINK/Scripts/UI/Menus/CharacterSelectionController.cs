@@ -1,9 +1,10 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using TMPro;
 using System;
 using System.Threading.Tasks;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Localization.Settings;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
 /// 캐릭터 선택 및 생성 화면 컨트롤러
@@ -92,7 +93,11 @@ public class CharacterSelectionController : MonoBehaviour
     /// </summary>
     private async Task CheckForExistingCharacter()
     {
-        ShowLoading("캐릭터 데이터 로드 중...");
+        string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "SYSTEM_STATUS",
+            "SYSTEM_STATUS_LOADING_CHARACTER_DATA");
+
+        ShowLoading(text);
 
         try
         {
@@ -133,23 +138,66 @@ public class CharacterSelectionController : MonoBehaviour
     private void DisplayExistingCharacter(CharacterSaveData data)
     {
         _characterNameText.text = data.character.characterName;
-        _classText.text = data.character.characterClass;
-        _levelText.text = $"레벨 {data.character.level}";
 
-        _strengthText.text = $"힘: {data.stats.baseStats.strength}";
-        _dexterityText.text = $"민첩: {data.stats.baseStats.dexterity}";
-        _intelligenceText.text = $"지능: {data.stats.baseStats.intelligence}";
-        _vitalityText.text = $"활력: {data.stats.baseStats.vitality}";
+        //클래스
+        string classText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_CLASS",
+            "CLASS_NAME_" + data.character.characterClass.ToUpper());
+        _classText.text = classText;
 
+        //레벨
+        string levelText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_LEVEL");
+        _levelText.text = $"{levelText} {data.character.level}";
+
+        //힘
+        string strengthText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_Strength");
+        _strengthText.text = $"{strengthText}: {data.stats.baseStats.strength}";
+
+        //민첩
+        string dexterityText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_Dexterity");
+        _dexterityText.text = $"{dexterityText}: {data.stats.baseStats.dexterity}";
+
+        //지능
+        string intelligenceText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_Intelligence");
+        _intelligenceText.text = $"{intelligenceText}: {data.stats.baseStats.intelligence}";
+
+        //활력
+        string vitalityText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_Vitality");
+        _vitalityText.text = $"{vitalityText}: {data.stats.baseStats.vitality}";
+
+        //플레이 시간
+        string playText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_CHAR_SELECT",
+            "SELECT_TXT_PLAYTIME");
+        string hourText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "SYSTEM_COMMON",
+            "SYSTEM_TIME_HOUR");
+        string minuteText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "SYSTEM_COMMON",
+            "SYSTEM_TIME_MINUTE");
         TimeSpan playTime = TimeSpan.FromSeconds(data.metadata.playTimeSeconds);
-        _playTimeText.text = $"플레이: {playTime.Hours}시간 {playTime.Minutes}분";
+        _playTimeText.text = $"{playText}: {playTime.Hours}{hourText} {playTime.Minutes}{minuteText}";
 
         DateTime lastPlayed = DateTime.Parse(data.metadata.lastPlayed);
         TimeSpan timeSince = DateTime.UtcNow - lastPlayed;
 
         // 마지막 씬 정보 추가
+        string lastPlayText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_CHAR_SELECT",
+            "SELECT_TXT_PLAYTIME");
+        //TODO : 씬 이름
         string lastScene = !string.IsNullOrEmpty(data.position?.scene) ? data.position.scene : _gameScene;
-        _lastPlayedText.text = $"최근 플레이: {FormatTimeSince(timeSince)} ({lastScene})";
+        _lastPlayedText.text = $"{lastPlayText}: {FormatTimeSince(timeSince)} ({lastScene})";
 
         _existingCharacterPanel.SetActive(true);
     }
@@ -187,13 +235,17 @@ public class CharacterSelectionController : MonoBehaviour
 
         if (string.IsNullOrEmpty(characterName))
         {
-            ShowError("캐릭터 이름을 입력하세요");
+            string emptyNameMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_CHAR_SELECT", "SELECT_MSG_EMPTY_NICKNAME");
+            ShowError(emptyNameMsg);
             return;
         }
 
         if (characterName.Length < 3)
         {
-            ShowError("캐릭터 이름은 3자 이상이어야 합니다");
+            string invalidNameMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_CHAR_SELECT", "SELECT_MSG_INVALID_NICKNAME");
+            ShowError(invalidNameMsg);
             return;
         }
 
@@ -203,7 +255,10 @@ public class CharacterSelectionController : MonoBehaviour
         }
 
         _isCreatingCharacter = true;
-        ShowLoading("캐릭터 생성 중...");
+
+        string creatingMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_CHAR_SELECT", "SELECT_STATUS_CREATING_CHAR");
+        ShowLoading(creatingMsg);
 
         try
         {
@@ -225,13 +280,18 @@ public class CharacterSelectionController : MonoBehaviour
             if (success)
             {
                 _currentCharacterData = newCharacter;
-                ShowLoading("게임 로드 중...");
+
+                string loadingText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "SYSTEM_STATUS", "SYSTEM_STATUS_LOADING_GAME");
+                ShowLoading(loadingText);
                 await Task.Delay(1000);
                 LoadGameScene();
             }
             else
             {
-                ShowError("캐릭터 생성 실패");
+                string createFailMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "UI_CHAR_SELCT", "SELECT_MSG_CREATE_FAILED");
+                ShowError(createFailMsg);
                 _isCreatingCharacter = false;
             }
         }
@@ -250,7 +310,9 @@ public class CharacterSelectionController : MonoBehaviour
     {
         if (_currentCharacterData != null)
         {
-            ShowLoading("게임 로드 중...");
+            string loadingText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "SYSTEM_STATUS", "SYSTEM_STATUS_LOADING_GAME");
+            ShowLoading(loadingText);
             LoadGameScene();
         }
     }
@@ -260,13 +322,18 @@ public class CharacterSelectionController : MonoBehaviour
     /// </summary>
     private async void OnDeleteClicked()
     {
-        bool confirm = await ShowConfirmDialog("캐릭터를 영구 삭제하시겠습니까?");
+        string deleteCharMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_CHAR_SELCT", "SELECT_MSG_DELETE_CHAR_CONFIRM");
+        bool confirm = await ShowConfirmDialog(deleteCharMsg);
 
         if (!confirm)
         {
             return;
         }
 
+        string deletingMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_CHAR_SELCT", "SELECT_STATUS_DELETING_CHAR");
+        ShowError(deletingMsg);
         ShowLoading("캐릭터 삭제 중...");
 
         try
@@ -282,7 +349,9 @@ public class CharacterSelectionController : MonoBehaviour
             }
             else
             {
-                ShowError("캐릭터 삭제 실패");
+                string deleteFailMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "UI_CHAR_SELCT", "SELECT_MSG_DELETE_FAILED");
+                ShowError(deleteFailMsg);
             }
         }
         catch (Exception e)
@@ -424,23 +493,37 @@ public class CharacterSelectionController : MonoBehaviour
     {
         if (timeSince.TotalMinutes < 1)
         {
-            return "방금 전";
+            string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_TIME_JUST_NOW");
+            return text;
         }
         else if (timeSince.TotalHours < 1)
         {
-            return $"{(int)timeSince.TotalMinutes}분 전";
+            string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_TIME_MINUTES_AGO",
+                new object[] { (int)timeSince.TotalMinutes });
+            return text;
         }
         else if (timeSince.TotalDays < 1)
         {
-            return $"{(int)timeSince.TotalHours}시간 전";
+            string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_TIME_HOURS_AGO",
+                new object[] { (int)timeSince.TotalHours });
+            return text;
         }
         else if (timeSince.TotalDays < 7)
         {
-            return $"{(int)timeSince.TotalDays}일 전";
+            string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_TIME_DAYS_AGO",
+                new object[] { (int)timeSince.TotalDays });
+            return text;
         }
         else
         {
-            return $"{(int)(timeSince.TotalDays / 7)}주 전";
+            string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_TIME_WEEKS_AGO",
+                new object[] { (int)timeSince.TotalDays / 7});
+            return text;
         }
     }
 }

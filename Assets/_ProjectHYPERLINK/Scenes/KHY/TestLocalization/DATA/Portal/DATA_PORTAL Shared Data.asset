@@ -14,7 +14,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: DATA_PORTAL
   m_TableCollectionNameGuidString: d4d9ec5a94041f14a901fbce168fd810
-  m_Entries: []
+  m_Entries:
+  - m_Id: 37639410196480
+    m_Key: PORTAL_NAME_TUTORIAL_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585088
+    m_Key: PORTAL_DESC_TUTORIAL_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585089
+    m_Key: PORTAL_NAME_TUTORIAL_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585090
+    m_Key: PORTAL_DESC_TUTORIAL_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585091
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585092
+    m_Key: PORTAL_NAME_VILLAGE_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585093
+    m_Key: PORTAL_DESC_VILLAGE_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585094
+    m_Key: PORTAL_NAME_VILLAGE_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585095
+    m_Key: PORTAL_DESC_VILLAGE_2
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

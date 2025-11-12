@@ -14,7 +14,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: DATA_SKILL
   m_TableCollectionNameGuidString: e89ab7f5cc205b44888b396952cc1cf7
-  m_Entries: []
+  m_Entries:
+  - m_Id: 265775422939136
+    m_Key: SKILL_TYPE_ACTIVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327744
+    m_Key: SKILL_TYPE_PASSIVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327745
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327746
+    m_Key: SKILL_LABEL_COOLDOWN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327747
+    m_Key: SKILL_LABEL_RANGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327748
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327749
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327750
+    m_Key: SKILL_NAME_JUDGMENT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327751
+    m_Key: SKILL_DESC_JUDGMENT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327752
+    m_Key: SKILL_NAME_PIERCING_THRUST
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327753
+    m_Key: SKILL_DESC_PIERCING_THRUST
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327754
+    m_Key: SKILL_NAME_CONVICTION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327755
+    m_Key: SKILL_DESC_CONVICTION
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

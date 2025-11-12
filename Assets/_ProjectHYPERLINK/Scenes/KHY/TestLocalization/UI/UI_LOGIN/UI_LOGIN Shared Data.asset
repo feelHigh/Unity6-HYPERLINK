@@ -39,16 +39,12 @@ MonoBehaviour:
     m_Key: LOGIN_BTN_SIGNUP
     m_Metadata:
       m_Items: []
-  - m_Id: 4779872898293765
-    m_Key: LOGIN_TXT_CONNECTING
+  - m_Id: 5073630218985472
+    m_Key: LOGIN_STATUS_LOGGING_IN
     m_Metadata:
       m_Items: []
-  - m_Id: 4779872898293766
-    m_Key: LOGIN_TXT_LOGGING_IN
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4779872898293767
-    m_Key: LOGIN_TXT-SIGNING_UP
+  - m_Id: 5073630260928512
+    m_Key: LOGIN_STATUS-SIGNING_UP
     m_Metadata:
       m_Items: []
   - m_Id: 4779872898293768
@@ -65,14 +61,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4779872898293771
     m_Key: LOGIN_MSG_INVALID_PASSWORD
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4779872898293772
-    m_Key: LOGIN_TXT_LOADING_DATA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4741394328231936
-    m_Key: New Entry
     m_Metadata:
       m_Items: []
   m_Metadata:

@@ -14,7 +14,67 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: UI_CHAR_SELECT
   m_TableCollectionNameGuidString: 1133796a39a7b9a4fbdf05809934c151
-  m_Entries: []
+  m_Entries:
+  - m_Id: 301639448436736
+    m_Key: SELECT_TXT_PLAITIME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825344
+    m_Key: SELECT_TXT_LASTPLAY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825345
+    m_Key: SELECT_BTN_PLAY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825346
+    m_Key: SELECT_BTN_DELETE_CHAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825347
+    m_Key: SELECT_TXT_SELECT_CLASS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825348
+    m_Key: SELECT_INPUT_NICKNAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825349
+    m_Key: SELECT_BTN_CREATE_CHAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825350
+    m_Key: SELECT_MSG_EMPTY_NICKNAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825351
+    m_Key: SELECT_MSG_INVALID_NICKNAME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825352
+    m_Key: SELECT_STATUS_CREATING_CHAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825353
+    m_Key: SELECT_MSG_CREATE_FAILED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825354
+    m_Key: SELECT_MSG_DELETE_CHAR_CONFIRM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825355
+    m_Key: SELECT_STATUS_DELETING_CHAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825356
+    m_Key: SELECT_MSG_DELETE_SUCCESS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825357
+    m_Key: SELECT_MSG_DELETE_FAILED
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

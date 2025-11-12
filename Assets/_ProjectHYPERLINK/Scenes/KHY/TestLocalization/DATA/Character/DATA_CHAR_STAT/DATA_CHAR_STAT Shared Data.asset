@@ -14,7 +14,111 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: DATA_CHAR_STAT
   m_TableCollectionNameGuidString: b690c940536714e4fb44e3a114288600
-  m_Entries: []
+  m_Entries:
+  - m_Id: 272616433426432
+    m_Key: STAT_NAME_STRENGTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203648
+    m_Key: STAT_NAME_DEXTERITY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203649
+    m_Key: STAT_NAME_INTERLLIGENCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203650
+    m_Key: STAT_NAME_VITALITY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203651
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203652
+    m_Key: STAT_NAME_PHYSICAL_ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203653
+    m_Key: STAT_NAME_MAGICAL_ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203654
+    m_Key: STAT_NAME_ARMOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203655
+    m_Key: STAT_NAME_ALL_RESISTANCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203656
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203657
+    m_Key: STAT_NAME_CRITICAL_CHANCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203658
+    m_Key: STAT_NAME_CRITICAL_DAMAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203659
+    m_Key: STAT_NAME_ATTACK_SPEED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203660
+    m_Key: STAT_NAME_MOVEMENT_SPEED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203661
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203662
+    m_Key: STAT_NAME_MAX_HEALTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203663
+    m_Key: STAT_NAME_CURRENT_HEALTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203664
+    m_Key: STAT_NAME_MAX_MANA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203665
+    m_Key: STAT_NAME_CURRENT_MANA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203666
+    m_Key: STAT_NAME_HEALTH_REGENERATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203667
+    m_Key: STAT_NAME_MANA_REGENERATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203668
+    m_Key: New Entry 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203669
+    m_Key: STAT_NAME_LEVEL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203670
+    m_Key: STAT_NAME_EXPERIENCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203671
+    m_Key: STAT_NAME_RED_SODA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203672
+    m_Key: STAT_NAME_GOLD
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

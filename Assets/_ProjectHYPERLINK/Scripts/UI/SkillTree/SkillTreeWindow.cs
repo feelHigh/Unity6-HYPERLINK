@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 스킬 트리 윈도우
@@ -337,14 +338,23 @@ public class SkillTreeWindow : MonoBehaviour
         // 제목
         if (_tooltipTitle != null)
         {
-            string nodeType = nodeData.IsPassive ? "[패시브]" : "[액티브]";
-            _tooltipTitle.text = $"{nodeType} {nodeData.NodeName}";
+            string nodeType = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                nodeData.IsPassive ? "SKILL_TYPE_PASSIVE" : "SKILL_TYPE_ACTIVE");
+
+            string nodeName = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_NAME_" + nodeData.NodeID);
+
+            _tooltipTitle.text = $"{nodeType} {nodeName}";
         }
 
         // 설명
         if (_tooltipDescription != null)
         {
-            _tooltipDescription.text = nodeData.Description;
+            _tooltipDescription.text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_DESC_" + nodeData.NodeID);
         }
 
         // 스탯 정보
@@ -380,22 +390,52 @@ public class SkillTreeWindow : MonoBehaviour
         if (nodeData.IsPassive)
         {
             if (nodeData.PassiveStatBonuses == null || nodeData.PassiveStatBonuses.Count == 0)
-                return "스탯 보너스 없음";
+                return LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "UI_PLAY",
+                    "PLAY_TXT_SKILL_NO_BONUS_STAT");
 
-            string statsText = "<b>스탯 보너스:</b>\n";
+            string header = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_TXT_SKILL_BONUS_STAT");
+
+            string statsText = header + "\n";
             foreach (PassiveStatBonus bonus in nodeData.PassiveStatBonuses)
             {
-                statsText += $"  +{bonus.Value} {GetStatTypeName(bonus.StatType)}\n";
+                string statName = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "DATA_CHAR_STAT",
+                    "STAT_NAME_" + bonus.StatType.ToString());
+
+                statsText += $"{statName} + {bonus.Value}\n";
             }
             return statsText;
         }
         else if (nodeData.SkillData != null)
         {
             SkillData skill = nodeData.SkillData;
-            return $"<b>스킬 정보:</b>\n" +
-                   $"  마나: {skill.ManaCost}\n" +
-                   $"  쿨다운: {skill.Cooldown}초\n" +
-                   $"  사거리: {skill.Range}m";
+
+            string header = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_TXT_SKILL_INFO");
+            string manaText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT",
+                "STAT_NAME_MANA");
+            string cooldownText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_LABEL_COOLDOWN");
+            string rangeText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_LABEL_RANGE");
+            string secondText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON",
+                "SYSTEM_TIME_SECOND");
+            string meterText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON",
+                "SYSTEM_COMMON_LENGTH");
+
+            return $"{header}\n" +
+                   $"  {manaText}: {skill.ManaCost}\n" +
+                   $"  {cooldownText}: {skill.Cooldown}{secondText}\n" +
+                   $"  {rangeText}: {skill.Range}{meterText}";
         }
 
         return "";
@@ -406,19 +446,40 @@ public class SkillTreeWindow : MonoBehaviour
     /// </summary>
     private string GetRequirementsText(SkillTreeNodeData nodeData)
     {
-        string reqText = "<b>필요 조건:</b>\n";
-        reqText += $"  스킬 포인트: {nodeData.RequiredSkillPoints}\n";
-        reqText += $"  레벨: {nodeData.RequiredLevel}\n";
+        string header = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_PLAY",
+            "PLAY_TXT_SKILL_REQUIRMENTS");
+        string skillPointText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_PLAY",
+            "PLAY_TXT_SKILLPOINTS");
+        string levelText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "DATA_CHAR_STAT",
+            "STAT_NAME_LEVEL");
+
+        string reqText = header + "\n";
+        reqText += $"  {skillPointText}: {nodeData.RequiredSkillPoints}\n";
+        reqText += $"  {levelText}: {nodeData.RequiredLevel}\n";
 
         if (nodeData.RequiredNodeData != null)
         {
-            reqText += $"  선행 스킬: {nodeData.RequiredNodeData.NodeName}\n";
+            string preRequisiteText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_TXT_PREREQUISITE_SKILL");
+            string requiredSkillName = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_NAME_" + nodeData.RequiredNodeData.NodeID);
+
+            reqText += $"  {preRequisiteText}: {requiredSkillName}\n";
         }
 
         // 언락 가능 여부 확인
         if (_skillTreeManager.CanUnlockNode(nodeData, out string failReason))
         {
-            reqText += "\n<color=green>언락 가능!</color>";
+            string canUnlockText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_UNLOCKABLE");
+
+            reqText += $"\n<color=green>{canUnlockText}</color>";
         }
         else if (!_skillTreeManager.IsNodeUnlocked(nodeData.NodeID))
         {
@@ -426,12 +487,16 @@ public class SkillTreeWindow : MonoBehaviour
         }
         else
         {
-            reqText += "\n<color=green>언락됨</color>";
+            string unlockText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_UNLOCKED");
+            reqText += $"\n<color=green>{unlockText}</color>";
         }
 
         return reqText;
     }
 
+    /* Localization 도입으로 사용하지 않게 됨
     /// <summary>
     /// 스탯 타입 이름 반환
     /// </summary>
@@ -458,6 +523,7 @@ public class SkillTreeWindow : MonoBehaviour
             default: return statType.ToString();
         }
     }
+    */
 
     /// <summary>
     /// 툴팁 위치 설정
@@ -491,7 +557,11 @@ public class SkillTreeWindow : MonoBehaviour
     {
         if (_skillPointsText != null)
         {
-            _skillPointsText.text = $"스킬 포인트: {currentSP}";
+            string skillPointText = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_PLAY",
+            "PLAY_TXT_SKILLPOINTS");
+
+            _skillPointsText.text = $"{skillPointText}: {currentSP}";
         }
     }
 

@@ -17,7 +17,19 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: 3e8bdfd2027a59c478c1eab23dc7c261, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 32919822336
+    m_Localized: La on
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32949182464
+    m_Localized: Si an
+    m_Metadata:
+      m_Items: []
+  - m_Id: 32949182465
+    m_Localized: Yu jin
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

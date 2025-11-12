@@ -14,7 +14,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TableCollectionName: DATA_QUEST
   m_TableCollectionNameGuidString: 6fd7c809734d2004b81c68296ae9e2b4
-  m_Entries: []
+  m_Entries:
+  - m_Id: 48017036845056
+    m_Key: QUEST_NAME_TUTORIAL_COMPLETE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427968
+    m_Key: QUEST_DESC_TUTORIAL_COMPLETE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427969
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427970
+    m_Key: QUEST_NAME_FIELD_COMPLETE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427971
+    m_Key: QUEST_DESC_FIELD_COMPLETE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427972
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427973
+    m_Key: QUEST_NAME_BOSS_COMPLETE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48017049427974
+    m_Key: QUEST_DESC_BOSS_COMPLETE
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

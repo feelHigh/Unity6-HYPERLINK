@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 퀘스트 UI 윈도우 (Prefab 호환)
@@ -142,7 +143,9 @@ public class QuestUIWindow : MonoBehaviour
         // 빈 메시지 설정
         if (_emptyMessageText != null)
         {
-            _emptyMessageText.text = "진행 중인 퀘스트가 없습니다";
+            string emptyText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY", "PLAY_MSG_NO_ACTIVE_QUEST");
+            _emptyMessageText.text = emptyText;
         }
 
         // 초기 상태: 빈 메시지 표시
