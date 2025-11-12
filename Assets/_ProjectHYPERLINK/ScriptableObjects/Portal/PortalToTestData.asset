@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _portalName: "\uD3EC\uD0C8"
   _portalType: 0
-  _targetSceneName: TestScene1
+  _targetSceneName: Tutorial
   _targetSpawnPointName: Enter
   _teleportLocationName: 
   _interactionRange: 2

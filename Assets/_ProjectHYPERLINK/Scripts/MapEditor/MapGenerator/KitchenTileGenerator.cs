@@ -8,8 +8,8 @@ public class KitchenTileGenerator : TileGenerator
     public override void Generate1X1(Vector3 pos, float cellSize, Transform parent)
     {
         if (_object1X1.Length == 0) return;
-        float xdistance = Random.Range(-cellSize / 3, cellSize / 3);
-        float ydistance = Random.Range(-cellSize / 3, cellSize / 3);
+        float xdistance = Random.Range(-cellSize / 5, cellSize / 5);
+        float ydistance = Random.Range(-cellSize / 5, cellSize / 5);
         pos.x += xdistance;
         pos.z += ydistance;
         int num = Random.Range(0, _object1X1.Length);

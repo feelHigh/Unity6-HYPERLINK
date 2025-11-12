@@ -14,7 +14,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &7729031287588100663
 Transform:
@@ -91,6 +91,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Paper_A
       objectReference: {fileID: 0}
+    - target: {fileID: 5711919633581513356, guid: 3c1034fb420341e41884438eae449276, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6072027490935323481, guid: 3c1034fb420341e41884438eae449276, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6072027490935323481, guid: 3c1034fb420341e41884438eae449276, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -153,6 +165,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Paper_C_1
       objectReference: {fileID: 0}
+    - target: {fileID: 651582056530652438, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 1299884555224255683, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1299884555224255683, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -171,9 +195,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7729031287588100663}
     m_Modifications:
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_Name
       value: Papers_pile
+      objectReference: {fileID: 0}
+    - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 8953510285906791836, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -233,9 +269,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7729031287588100663}
     m_Modifications:
+    - target: {fileID: 7746865939867025398, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7746865939867025398, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8107211565942906403, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
       propertyPath: m_Name
       value: Paper_B
+      objectReference: {fileID: 0}
+    - target: {fileID: 8107211565942906403, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 8919741195266507929, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -339,6 +387,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Paper_C
       objectReference: {fileID: 0}
+    - target: {fileID: 651582056530652438, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 1299884555224255683, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1299884555224255683, guid: 73e9d77ed6ac80e41bc3bbf61ac23f9e, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -357,9 +417,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7729031287588100663}
     m_Modifications:
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_Name
       value: Papers_pile_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 8953510285906791836, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -419,9 +491,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7729031287588100663}
     m_Modifications:
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7785156910723380979, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_Name
       value: Papers_pile_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8577829545828652838, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 8953510285906791836, guid: d7a3d42e71faffa4c9e58eb02f32d71f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -481,9 +565,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7729031287588100663}
     m_Modifications:
+    - target: {fileID: 7746865939867025398, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7746865939867025398, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8107211565942906403, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
       propertyPath: m_Name
       value: Paper_B_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8107211565942906403, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 8919741195266507929, guid: c876c04f08c61ce489932b332c15db4b, type: 3}
       propertyPath: m_LocalPosition.x

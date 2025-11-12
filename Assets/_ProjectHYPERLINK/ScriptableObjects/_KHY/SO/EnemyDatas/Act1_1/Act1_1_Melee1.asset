@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
+  m_Name: Act1_1_Melee1
+  m_EditorClassIdentifier: 
+  _name: "\uADFC\uAC70\uB9AC1"
+  _maxHp: 150
+  _moveSpeed: 5
+  _atk: 15
+  _detectionRange: 8
+  _chaseDistance: 10
+  _basicAttackType: 0
+  _attackRange: 1
+  _attackCoolTime: 3
+  _rewardExp: 5
+  _rewardGold: 5
+  _projectilePrefab: {fileID: 0}
+  _projrctileSpeed: 12
+  _baseAttackHitVfx: {fileID: 3760523717369191613, guid: d6746c7ccf2e8ac478085edb58de393c, type: 3}
+  _canBeEpic: 1
+  _epicHpMultiplier: 1.5
+  _epicAtkMultiplier: 2
+  _epicExpMultiplier: 2
+  _epicGoldMultiplier: 2
+  _meleeAttackSound: {fileID: 0}
+  _rangedAttackSound: {fileID: 0}
+  _hitSound: {fileID: 0}
+  _deathSound: {fileID: 0}
+  _epicSpawnSound: {fileID: 0}
