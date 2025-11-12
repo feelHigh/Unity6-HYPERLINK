@@ -78,11 +78,11 @@ LineRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Positions:
-  - {x: -10, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
+  - {x: 4.2133737, y: 1.98, z: 17.170433}
+  - {x: 4.2133727, y: 1.98, z: 7.170433}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.7
+    widthMultiplier: 1.2
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -102,7 +102,7 @@ LineRenderer:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 1}
+      key2: {r: 1, g: 0.3563676, b: 0, a: 1}
       key3: {r: 1, g: 0.8353392, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
       key5: {r: 0, g: 0, b: 0, a: 0}
@@ -125,7 +125,7 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
@@ -165,8 +165,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 599428960706337562}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -5, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: 0.7071069, z: -0, w: 0.70710677}
+  m_LocalPosition: {x: -5.0000005, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -22099,7 +22099,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3075972435038265669}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: -0.70710677, z: -0, w: 0.7071069}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -29518,7 +29518,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4096526307353937873}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 3, z: 2}
   m_ConstrainProportionsScale: 0
@@ -29533,7 +29533,7 @@ Transform:
   - {fileID: 185965767911252327}
   - {fileID: 759690807757901447}
   m_Father: {fileID: 1744048945625465907}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!198 &720655056210098218
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -41721,7 +41721,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4713981066431907202}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: -0.70710677, z: -0, w: 0.7071069}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -54408,7 +54408,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7114139791911779645}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: -0.70710677, z: -0, w: 0.7071069}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -62327,8 +62327,8 @@ LineRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Positions:
-  - {x: -10, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0}
+  - {x: 4.2133737, y: 1.98, z: 17.170433}
+  - {x: 4.2133727, y: 1.98, z: 7.170433}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 2
@@ -62349,8 +62349,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.5566038, g: 0.03393925, b: 0, a: 1}
-      key1: {r: 0.3962264, g: 0.01219158, b: 0, a: 1}
+      key0: {r: 1, g: 0.87076914, b: 0, a: 1}
+      key1: {r: 1, g: 0.029702969, b: 0, a: 1}
       key2: {r: 0.3962264, g: 0.01219158, b: 0, a: 0}
       key3: {r: 0.3962264, g: 0.01219158, b: 0, a: 0}
       key4: {r: 0.6470588, g: 0.2039216, b: 0.4078431, a: 1}
@@ -62374,13 +62374,13 @@ LineRenderer:
       atime6: 59174
       atime7: 65535
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
-    textureMode: 0
+    textureMode: 3
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
@@ -62433,9 +62433,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9771fa780841fd044a05a832f127f46a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxDistance: 7.5
-  _expandSpeed: 3.25
-  _boxHalfExtents: {x: 0.5, y: 1, z: 0.5}
+  _maxDistance: 10
+  _expandSpeed: 10
+  _boxHalfExtents: {x: 0.5, y: 3, z: 0.5}
   _rayHeight: 1
   _playerLayerMask:
     serializedVersion: 2
@@ -62444,3 +62444,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 12288
   _visualEffect: {fileID: 720655056210098218}
+  _lifeTime: 1.3

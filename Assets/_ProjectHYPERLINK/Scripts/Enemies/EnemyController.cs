@@ -40,7 +40,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     public event Action OnInitialized;      //초기화 완료 이벤트
     public event Action OnHit;              //피격 이벤트
     public event Action OnDie;              //죽음 이벤트
-    public static event Action<EnemyController> OnBossSpawned;  //보스 스폰 완료 이벤트
+    public event Action<float, bool> OnShowDamage;      //데미지 텍스트 표시 이벤트 (데미지, 크리티컬 여부)
 
     // 현재 상태 스탯 //
     float _maxHp;           //최대 체력
@@ -194,7 +194,6 @@ public class EnemyController : MonoBehaviour, IDamageable
         }
 
         OnInitialized?.Invoke();
-        OnBossSpawned?.Invoke(this);
 
         Debug.Log("[EnemyController.Boss] 보스 초기화 완료!");
     }
@@ -245,6 +244,10 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //피격 애니메이션 이벤트 발행
         OnHit?.Invoke();
+
+        //데미지 텍스트 생성 이벤트 발행 (크리티컬 임시 값)
+        bool isCritical = false;
+        OnShowDamage?.Invoke(attackInfo.Damage, isCritical);
 
         //현재 체력이 0보다 작거나 같으면
         if (_curHp <= 0)

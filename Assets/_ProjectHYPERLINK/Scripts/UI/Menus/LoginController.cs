@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Threading.Tasks;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 로그인 화면 UI 컨트롤러
@@ -99,8 +100,12 @@ public class LoginController : MonoBehaviour
     /// </summary>
     private async void OnPlayNowClicked()
     {
+        string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "SYSTEM_STATUS",
+            "SYSTEM_STATUS_CONNECTING");
+
         HideError();
-        ShowLoading("연결 중...");
+        ShowLoading(text);
         SetButtonsInteractable(false);
 
         bool success = await AuthenticationManager.Instance.SignInAnonymouslyAsync();
@@ -125,8 +130,12 @@ public class LoginController : MonoBehaviour
             return;
         }
 
+        string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_LOGIN",
+            "LOGIN_STATUS_LOGGING_IN");
+
         HideError();
-        ShowLoading("로그인 중...");
+        ShowLoading(text);
         SetButtonsInteractable(false);
 
         bool success = await AuthenticationManager.Instance.SignInWithUsernamePasswordAsync(username, password);
@@ -151,8 +160,12 @@ public class LoginController : MonoBehaviour
             return;
         }
 
+        string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "UI_LOGIN",
+            "LOGIN_STATUS-SIGNING_UP");
+
         HideError();
-        ShowLoading("계정 생성 중...");
+        ShowLoading(text);
         SetButtonsInteractable(false);
 
         bool success = await AuthenticationManager.Instance.SignUpWithUsernamePasswordAsync(username, password);
@@ -171,25 +184,41 @@ public class LoginController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(username))
         {
-            ShowError("사용자명을 입력하세요");
+            string msg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_LOGIN",
+                "LOGIN_MSG_EMPTY_USERNAME");
+
+            ShowError(msg);
             return false;
         }
 
         if (username.Length < 3)
         {
-            ShowError("사용자명은 3자 이상이어야 합니다");
+            string msg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_LOGIN",
+                "LOGIN_MSG_INVALID_USERNAME");
+
+            ShowError(msg);
             return false;
         }
 
         if (string.IsNullOrEmpty(password))
         {
-            ShowError("비밀번호를 입력하세요");
+            string msg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_LOGIN",
+                "LOGIN_MSG_EMPTY_PASSWORD");
+
+            ShowError(msg);
             return false;
         }
 
         if (password.Length < 6)
         {
-            ShowError("비밀번호는 6자 이상이어야 합니다");
+            string msg = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_LOGIN",
+                "LOGIN_MSG_INVALID_PASSWORD");
+
+            ShowError(msg);
             return false;
         }
 
@@ -199,7 +228,12 @@ public class LoginController : MonoBehaviour
     private void HandleSignInSuccess(string playerId)
     {
         Debug.Log($"로그인 성공: {playerId}");
-        ShowLoading("캐릭터 데이터 로드 중...");
+
+        string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+            "SYSTEM_STATUS",
+            "SYSTEM_STATUS_LOADING_CHARACTER_DATA");
+
+        ShowLoading(text);
         LoadCharacterSelectionScene();
     }
 

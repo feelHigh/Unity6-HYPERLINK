@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: DATA_SKILL_ko
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: ko
+  m_SharedData: {fileID: 11400000, guid: e89ab7f5cc205b44888b396952cc1cf7, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 265775422939136
+    m_Localized: "\uC561\uD2F0\uBE0C"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327744
+    m_Localized: "\uD328\uC2DC\uBE0C"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327746
+    m_Localized: "\uCFE8\uB2E4\uC6B4"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327747
+    m_Localized: "\uC0AC\uAC70\uB9AC"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327750
+    m_Localized: "\uC2EC\uD310"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327751
+    m_Localized: "\uB77C\uC628\uC774 \uD798\uAECF \uB0B4\uB824\uCCD0 \uCDA9\uACA9\uD30C\uC640
+      \uD568\uAED8 \uC55E\uC5D0 \uC788\uB294 \uC801\uB4E4\uC5D0\uAC8C \uD53C\uD574\uB97C
+      \uC90D\uB2C8\uB2E4."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327752
+    m_Localized: "\uCF8C\uC18D \uAC00\uB974\uAE30"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327753
+    m_Localized: "\uB77C\uC628\uC774 \uAC80\uC744 \uBE60\uB978\uC18D\uB3C4\uB85C
+      \uB0B4\uC9C8\uB7EC \uC801\uB4E4\uC744 \uAC00\uB974\uBA70 \uC55E\uC73C\uB85C
+      \uC774\uB3D9\uD569\uB2C8\uB2E4."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327754
+    m_Localized: "\uB2E8\uC8C4"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265775431327755
+    m_Localized: "\uB77C\uC628\uC774 \uACF5\uC911\uC73C\uB85C \uB6F0\uC5B4\uC62C\uB77C
+      \uB545\uC5D0 \uCC29\uC9C0\uD558\uBA70 \uC801\uC5D0\uAC8C \uD070 \uD53C\uD574\uB97C
+      \uC90D\uB2C8\uB2E4."
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

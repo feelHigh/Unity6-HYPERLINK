@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 캐릭터 UI 컨트롤러 (통합 키 바인딩)
@@ -315,22 +316,46 @@ public class CharacterUIController : MonoBehaviour
         _previousStats = stats;
 
         if (_strengthText != null)
-            _strengthText.text = stats.Strength.ToString();
+        {
+            string strengthText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_Strength");
+            _strengthText.text = $"{strengthText}: {stats.Strength}";
+        }
 
         if (_dexterityText != null)
-            _dexterityText.text = stats.Dexterity.ToString();
+        {
+            string dexterityText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_Dexterity");
+            _strengthText.text = $"{dexterityText}: {stats.Dexterity}";
+        }
 
         if (_intelligenceText != null)
-            _intelligenceText.text = stats.Intelligence.ToString();
+        {
+            string intelligenceText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_Intelligence");
+            _strengthText.text = $"{intelligenceText}: {stats.Intelligence}";
+        }
 
         if (_vitalityText != null)
-            _vitalityText.text = stats.Vitality.ToString();
+        {
+            string vitalityText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_Vitality");
+            _strengthText.text = $"{vitalityText}: {stats.Vitality}";
+        }
 
         if (_critChanceText != null)
-            _critChanceText.text = $"{stats.CriticalChance:F1}%";
+        {
+            string critChanceText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_CriticalChance");
+            _strengthText.text = $"{critChanceText}: {stats.CriticalChance:F1}%";
+        }
 
         if (_critDamageText != null)
-            _critDamageText.text = $"{stats.CriticalDamage:F1}%";
+        {
+            string critDamageText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_CriticalDamage");
+            _strengthText.text = $"{critDamageText}: {stats.CriticalDamage:F1}%";
+        }
     }
 
     private bool AreStatsEqual(CharacterStats a, CharacterStats b)
@@ -383,7 +408,9 @@ public class CharacterUIController : MonoBehaviour
         // 레벨 표시
         if (_levelText != null)
         {
-            _levelText.text = $"Lv. {level}";
+            string levelText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_CHAR_STAT", "STAT_NAME_LEVEL");
+            _levelText.text = $"{levelText}. {level}";
         }
     }
 

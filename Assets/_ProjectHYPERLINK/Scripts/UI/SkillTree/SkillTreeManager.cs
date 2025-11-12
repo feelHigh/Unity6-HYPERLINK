@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 스킬 트리 매니저 - REFACTORED
@@ -233,28 +234,38 @@ public class SkillTreeManager : MonoBehaviour
 
         if (nodeData == null)
         {
-            failReason = "노드 데이터가 없습니다.";
+            failReason = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_DATA_NULL");
             return false;
         }
 
         // 이미 언락됨
         if (IsNodeUnlocked(nodeData.NodeID))
         {
-            failReason = "이미 언락된 노드입니다.";
+            failReason = failReason = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_ALREADY_UNLOCKED");
             return false;
         }
 
         // SP 확인
         if (_currentSkillPoints < nodeData.RequiredSkillPoints)
         {
-            failReason = $"스킬 포인트 부족 ({_currentSkillPoints}/{nodeData.RequiredSkillPoints})";
+            failReason = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_NOT_ENOUGH_SKILLPOINT",
+                new object[] { _currentSkillPoints , nodeData.RequiredSkillPoints });
             return false;
         }
 
         // 레벨 확인
         if (_experienceManager != null && _experienceManager.CurrentLevel < nodeData.RequiredLevel)
         {
-            failReason = $"필요 레벨 {nodeData.RequiredLevel} (현재: {_experienceManager.CurrentLevel})";
+            failReason = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_REQUIRED_LEVEL",
+                new object[] { nodeData.RequiredLevel, _experienceManager.CurrentLevel });
             return false;
         }
 
@@ -263,7 +274,14 @@ public class SkillTreeManager : MonoBehaviour
         {
             if (!IsNodeUnlocked(nodeData.RequiredNodeData.NodeID))
             {
-                failReason = $"선행 스킬 필요: {nodeData.RequiredNodeData.NodeName}";
+                string requiredSkillName = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_SKILL",
+                "SKILL_NAME_" + nodeData.RequiredNodeData.NodeID);
+
+                failReason = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_PLAY",
+                "PLAY_MSG_SKILL_REQUIRED_PREV_SKILL",
+                new object[] { requiredSkillName });
                 return false;
             }
         }
