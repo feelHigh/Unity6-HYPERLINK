@@ -80,6 +80,12 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             // 데미지 적용
             _playerCharacter.TakeDamage(attackInfo.Damage);
 
+            // 피격 사운드 재생
+            if (AudioManager.Instance?.SoundLibrary != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.PlayerHit);
+            }
+
             Debug.Log($"[PlayerCombat] {attackInfo.Type} 공격 받음: {attackInfo.Damage:F1} 데미지");
 
             // 히트 VFX 생성
@@ -88,7 +94,6 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 SpawnHitVFX(attackInfo.HitVfxPrefab, attackInfo.HitPosition);
             }
 
-            // 히트 스턴 적용
             ApplyHitStun();
         }
     }
@@ -123,6 +128,14 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     public void Die()
     {
         Debug.Log("[PlayerCombat] 플레이어 사망!");
+
+        // 사망 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(
+                AudioManager.Instance.SoundLibrary.PlayerDeath
+            );
+        }
 
         CleanupAllEffects();
 

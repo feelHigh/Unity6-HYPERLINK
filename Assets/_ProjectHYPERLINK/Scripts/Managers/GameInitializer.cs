@@ -4,40 +4,21 @@ using System.Threading.Tasks;
 using TMPro;
 
 /// <summary>
-/// 게임 씬 초기화 및 데이터 로드 (리팩토링됨)
+/// 게임 씬 초기화 및 데이터 로드 (최종 수정)
 /// 
-/// 주요 변경사항:
-/// - OnSceneUnloaded에서 전체 데이터 저장 (위치뿐만 아니라 모든 게임 데이터)
-/// - 씬 전환 시 데이터 손실 방지를 위한 추가 안전장치
-/// - SavePlayerPosition → SaveAllGameData로 메서드명 변경
+/// 최종 변경사항:
+/// - PlayerSpawner를 맵 생성 완료 후에 호출
+/// - 플레이어가 완성된 맵에 스폰되도록 보장
+/// - PlayerInitializationManager는 플레이어 스폰 후 데이터 로드
 /// 
-/// 변경사항:
-/// - PlayerInitializationManager 통합
-/// - WaitForPlayerSpawn → PlayerInitializationManager.StartInitialization() 사용
-/// - InitializeSystemReferences 로직 → PlayerInitializationManager로 이동
-/// - 퀘스트 시스템 초기화 통합
-/// - 초기화 프로세스 단순화
-/// - 씬 언로드 시 전체 데이터 저장 추가
-/// 
-/// 역할:
-/// - TutorialTestScene 진입 시 실행
-/// - 캐릭터 데이터 로드
-/// - PlayerInitializationManager를 통한 시스템 초기화 조율
-/// - QuestManager 초기화 및 퀘스트 시작
-/// - 씬 전환 시 전체 데이터 저장 (추가 안전장치)
-/// - 로드 화면 제어
-/// 
-/// 위치:
-/// - TutorialTestScene의 GameManager GameObject에 추가
-/// - PlayerInitializationManager와 함께 사용
-/// 
-/// 실행 순서:
-/// 1. Awake: 씬 전환 이벤트 등록
-/// 2. Start: 데이터 로드 및 PlayerInitializationManager 시작
-/// 3. 퀘스트 시스템 초기화
-/// 4. 성공: 게임 시작
-/// 5. 실패: 캐릭터 선택 화면으로 복귀
-/// 6. OnSceneUnloaded: 씬 전환 전 전체 데이터 저장
+/// 초기화 순서:
+/// 1. Unity Services 확인
+/// 2. 시스템 검증
+/// 3. 맵 생성 (Generator 씬인 경우)
+/// 4. 캐릭터 데이터 로드
+/// 5. 퀘스트 초기화
+/// 6. 플레이어 스폰 ← 여기서 스폰!
+/// 7. 플레이어 초기화 (데이터 적용)
 /// </summary>
 public class GameInitializer : MonoBehaviour
 {
@@ -45,12 +26,11 @@ public class GameInitializer : MonoBehaviour
     [SerializeField] private string _characterSelectionScene = "CharacterSelectionScene";
 
     [Header("게임 씬 목록")]
-    [Tooltip("데이터를 저장해야 하는 게임 씬 목록")]
     [SerializeField]
     private string[] _gameScenes = new string[]
     {
         "TutorialScene",
-        "ForestScene",
+        "TestPortal",
         "CaveScene",
         "BossArena",
         "TheFirstStage",
@@ -59,10 +39,9 @@ public class GameInitializer : MonoBehaviour
     };
 
     [Header("퀘스트 설정")]
-    [Tooltip("게임 시작 시 자동으로 시작할 퀘스트 ID 목록")]
     [SerializeField] private string[] _autoStartQuestIDs = new string[] { "tutorial_complete" };
 
-    [Header("로딩 UI (Optional)")]
+    [Header("로딩 UI")]
     [SerializeField] private GameObject _loadingPanel;
     [SerializeField] private TextMeshProUGUI _loadingText;
 
@@ -71,7 +50,6 @@ public class GameInitializer : MonoBehaviour
 
     private void Awake()
     {
-        // 씬 전환 이벤트 등록 (데이터 저장용)
         SceneManager.sceneUnloaded += OnSceneUnloaded;
     }
 
@@ -82,14 +60,9 @@ public class GameInitializer : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 이벤트 등록 해제
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
     }
 
-    /// <summary>
-    /// 게임 초기화 메인 프로세스
-    /// PlayerInitializationManager를 사용하여 초기화 간소화
-    /// </summary>
     private async Task InitializeGame()
     {
         UpdateLoadingText("게임 초기화 중...");
@@ -104,7 +77,7 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 2. 시스템 참조 확인 (PlayerSpawner, EnemySpawner 등)
+            // 2. 시스템 참조 확인
             UpdateLoadingText("시스템 로드 중...");
             if (!VerifyGameSystems())
             {
@@ -113,7 +86,45 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 3. 캐릭터 데이터 로드
+            // 3. 맵 생성 (Generator 씬인 경우)
+            if (MapGeneratorInitializer.Instance != null)
+            {
+                UpdateLoadingText("맵 생성 중...");
+                Log("MapGenerator 초기화 시작");
+
+                bool mapInitSuccess = await MapGeneratorInitializer.Instance.InitializeMapGenerationAsync();
+
+                if (!mapInitSuccess)
+                {
+                    LogError("맵 생성 실패!");
+                    ReturnToCharacterSelection();
+                    return;
+                }
+
+                Log("맵 생성 완료 - 텔레포트 포인트 등록됨");
+            }
+            else
+            {
+                Log("수동 제작 씬 - 맵 생성 건너뜀");
+            }
+
+            // 4. 플레이어 스폰 (맵이 완성된 후, 데이터 로드 전!)
+            UpdateLoadingText("플레이어 준비 중...");
+
+            if (PlayerSpawner.Instance == null)
+            {
+                LogError("PlayerSpawner를 찾을 수 없습니다!");
+                ReturnToCharacterSelection();
+                return;
+            }
+
+            Log("플레이어 스폰 시작");
+            PlayerSpawner.Instance.SpawnPlayerAtCorrectLocation();
+            Log("플레이어 스폰 완료");
+
+            await WaitForPlayerComponents();
+
+            // 5. 캐릭터 데이터 로드 (플레이어가 스폰된 후!)
             UpdateLoadingText("캐릭터 데이터 로드 중...");
             bool loadSuccess = await CharacterDataManager.Instance.LoadCharacterData();
 
@@ -124,7 +135,6 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 로드 검증
             if (GameSessionManager.Instance == null || GameSessionManager.Instance.CurrentCharacterData == null)
             {
                 LogError("GameSessionManager 동기화 실패!");
@@ -134,12 +144,12 @@ public class GameInitializer : MonoBehaviour
 
             Log($"데이터 동기화 확인: {CharacterDataManager.Instance.CurrentCharacterData.character.characterName}");
 
-            // 4. 퀘스트 시스템 초기화
+            // 6. 퀘스트 시스템 초기화
             UpdateLoadingText("퀘스트 시스템 초기화 중...");
             InitializeQuestSystem();
 
-            // 5. PlayerInitializationManager를 통한 Player 초기화
-            UpdateLoadingText("플레이어 준비 중...");
+            // 7. PlayerInitializationManager를 통한 플레이어 데이터 적용 확인
+            UpdateLoadingText("캐릭터 데이터 적용 중...");
 
             if (PlayerInitializationManager.Instance == null)
             {
@@ -157,11 +167,11 @@ public class GameInitializer : MonoBehaviour
                 return;
             }
 
-            // 6. 초기화 완료
+            // 8. 초기화 완료
             UpdateLoadingText("게임 시작!");
             Log("게임 초기화 완료!");
 
-            await Task.Delay(500); // 짧은 딜레이
+            await Task.Delay(500);
             HideLoadingScreen();
         }
         catch (System.Exception e)
@@ -171,19 +181,14 @@ public class GameInitializer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Unity Services 준비 확인
-    /// </summary>
     private async Task<bool> EnsureServicesReady()
     {
-        // UGSInitializer 확인
         if (!UGSInitializer.IsInitialized)
         {
             Log("Unity Services 초기화 대기 중...");
             await UGSInitializer.Initialize();
         }
 
-        // 인증 확인
         if (!AuthenticationManager.IsSignedIn)
         {
             LogError("사용자 인증 안 됨");
@@ -193,44 +198,29 @@ public class GameInitializer : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 게임 시스템 존재 확인
-    /// PlayerSpawner와 EnemySpawner가 씬에 있는지 검증
-    /// </summary>
     private bool VerifyGameSystems()
     {
-        // PlayerSpawner 확인
         if (PlayerSpawner.Instance == null)
         {
             LogError("PlayerSpawner를 찾을 수 없습니다!");
             return false;
         }
 
-        // PlayerInitializationManager 확인
         if (PlayerInitializationManager.Instance == null)
         {
             LogError("PlayerInitializationManager를 찾을 수 없습니다!");
             return false;
         }
 
-        // EnemySpawner 확인 (선택 사항)
-        var enemySpawner = FindFirstObjectByType<EnemySpawner>();
-        if (enemySpawner == null)
-        {
-            Log("EnemySpawner를 찾을 수 없습니다 (선택사항)");
-        }
-
-        // ItemSpawner 확인
         if (ItemSpawner.Instance == null)
         {
             LogError("ItemSpawner를 찾을 수 없습니다!");
             return false;
         }
 
-        // QuestManager 확인
         if (QuestManager.Instance == null)
         {
-            LogError("QuestManager를 찾을 수 없습니다! QuestManager GameObject를 씬에 추가하세요.");
+            LogError("QuestManager를 찾을 수 없습니다!");
             return false;
         }
 
@@ -238,11 +228,6 @@ public class GameInitializer : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 퀘스트 시스템 초기화
-    /// - 저장된 퀘스트 진행 상황 로드
-    /// - 자동 시작 퀘스트 활성화
-    /// </summary>
     private void InitializeQuestSystem()
     {
         if (QuestManager.Instance == null)
@@ -257,14 +242,11 @@ public class GameInitializer : MonoBehaviour
             return;
         }
 
-        // 저장된 데이터로 퀘스트 시스템 초기화
         CharacterSaveData saveData = GameSessionManager.Instance.CurrentCharacterData;
         if (saveData != null)
         {
             QuestManager.Instance.Initialize(saveData);
             Log("퀘스트 시스템 초기화 완료");
-
-            // 자동 시작 퀘스트 활성화
             StartAutoQuests();
         }
         else
@@ -273,9 +255,6 @@ public class GameInitializer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 자동 시작 퀘스트 활성화
-    /// </summary>
     private void StartAutoQuests()
     {
         if (_autoStartQuestIDs == null || _autoStartQuestIDs.Length == 0)
@@ -288,7 +267,6 @@ public class GameInitializer : MonoBehaviour
             if (string.IsNullOrEmpty(questID))
                 continue;
 
-            // 이미 완료했거나 진행 중이면 건너뛰기
             if (QuestManager.Instance.IsQuestCompleted(questID))
             {
                 Log($"퀘스트 이미 완료됨: {questID}");
@@ -301,28 +279,13 @@ public class GameInitializer : MonoBehaviour
                 continue;
             }
 
-            // 퀘스트 시작
             QuestManager.Instance.StartQuest(questID);
             Log($"자동 시작 퀘스트 활성화: {questID}");
         }
     }
 
-    /// <summary>
-    /// 씬 언로드 시 호출 (씬 전환 전)
-    /// 
-    /// 변경사항:
-    /// - SavePlayerPosition() → SaveAllGameData()로 변경
-    /// - 위치뿐만 아니라 모든 게임 데이터 저장
-    /// - Portal에서 이미 저장했더라도 추가 안전장치로 작동
-    /// 
-    /// 주의:
-    /// - 이 메서드는 씬 언로드 시 자동으로 호출됨
-    /// - Portal에서 이미 데이터를 저장했다면 중복 저장이지만,
-    ///   다른 방법으로 씬이 전환되는 경우를 대비한 안전장치
-    /// </summary>
     private void OnSceneUnloaded(Scene scene)
     {
-        // 현재 씬이 게임 씬인지 확인
         bool isGameScene = System.Array.Exists(_gameScenes, s => s == scene.name);
 
         if (isGameScene)
@@ -332,22 +295,6 @@ public class GameInitializer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 전체 게임 데이터 저장
-    /// 
-    /// 저장되는 데이터:
-    /// - 캐릭터 정보 (레벨, 경험치)
-    /// - 스탯 (HP, 마나, 모든 스탯)
-    /// - 장비
-    /// - 인벤토리 (아이템, 골드)
-    /// - 스킬 트리 및 스킬 슬롯
-    /// - 위치 (씬, 좌표)
-    /// - 퀘스트 진행 상황
-    /// 
-    /// 주의:
-    /// - async void로 구현 (이벤트 핸들러이므로)
-    /// - 저장 실패 시 에러 로그만 출력 (씬 전환은 계속 진행)
-    /// </summary>
     private async void SaveAllGameData()
     {
         if (CharacterDataManager.Instance == null)
@@ -376,7 +323,6 @@ public class GameInitializer : MonoBehaviour
             LogError($"데이터 저장 중 예외 발생: {e.Message}");
         }
 
-        // 퀘스트 데이터 저장
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.SaveQuestProgress();
@@ -384,15 +330,10 @@ public class GameInitializer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 캐릭터 선택 화면으로 복귀
-    /// </summary>
     private void ReturnToCharacterSelection()
     {
         UpdateLoadingText("캐릭터 선택 화면으로 이동...");
         Log("캐릭터 선택 화면으로 복귀");
-
-        // 짧은 딜레이 후 씬 전환
         Invoke(nameof(LoadCharacterSelectionScene), 2f);
     }
 
@@ -401,21 +342,38 @@ public class GameInitializer : MonoBehaviour
         SceneManager.LoadScene(_characterSelectionScene);
     }
 
-    #region Public Methods (외부 호출용)
-
     /// <summary>
-    /// 다른 씬으로 전환 (외부 호출용)
-    /// 
-    /// 주의:
-    /// - 이 메서드는 이제 사용하지 않는 것을 권장
-    /// - Portal 시스템을 사용하면 자동으로 데이터 저장됨
-    /// - 레거시 코드 호환을 위해 남겨둠
+    /// 플레이어 컴포넌트 초기화 대기
     /// </summary>
+    private async Task WaitForPlayerComponents()
+    {
+        float elapsed = 0f;
+        float timeout = 5f;
+
+        while (elapsed < timeout)
+        {
+            var equipMgr = FindFirstObjectByType<EquipmentManager>();
+            var skillMgr = FindFirstObjectByType<SkillTreeManager>();
+
+            if (equipMgr != null && skillMgr != null)
+            {
+                Log("플레이어 컴포넌트 준비 완료");
+                return;
+            }
+
+            await Task.Delay(50);
+            elapsed += 0.05f;
+        }
+
+        LogWarning("플레이어 컴포넌트 대기 타임아웃");
+    }
+
+    #region Public Methods (레거시)
+
     public async void ChangeScene(string sceneName)
     {
         Log($"ChangeScene 호출됨: {sceneName}");
 
-        // 전체 데이터 저장
         if (CharacterDataManager.Instance != null)
         {
             await CharacterDataManager.Instance.CollectAndSaveData();
@@ -424,14 +382,6 @@ public class GameInitializer : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-    /// <summary>
-    /// 특정 위치로 텔레포트 후 저장
-    /// 
-    /// 주의:
-    /// - 이 메서드는 이제 사용하지 않는 것을 권장
-    /// - Portal 시스템을 사용하면 자동으로 처리됨
-    /// - 레거시 코드 호환을 위해 남겨둠
-    /// </summary>
     public void TeleportAndSave(string locationName)
     {
         if (PlayerSpawner.Instance != null)
@@ -442,7 +392,7 @@ public class GameInitializer : MonoBehaviour
 
     #endregion
 
-    #region UI 업데이트
+    #region UI
 
     private void UpdateLoadingText(string message)
     {
