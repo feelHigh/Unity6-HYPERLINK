@@ -235,6 +235,18 @@ public class SkillActivationSystem : MonoBehaviour
         // 스킬 실행
         ExecuteSkill(skill);
 
+        // 스킬 캐스팅 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            // SkillData에 커스텀 사운드가 있으면 사용, 없으면 기본 사운드
+            AudioClip castSound = skill.SkillCastSound != null ? skill.SkillCastSound : AudioManager.Instance.SoundLibrary.PlayerSkillCast;
+
+            if (castSound != null)
+            {
+                AudioManager.Instance.PlaySFX(castSound);
+            }
+        }
+
         // 쿨다운 시작
         StartCooldown(skill);
 

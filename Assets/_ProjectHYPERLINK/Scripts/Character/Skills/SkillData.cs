@@ -101,6 +101,17 @@ public class SkillData : ScriptableObject
 
     #endregion
 
+    #region 사운드 설정
+
+    [Header("스킬 사운드")]
+    [Tooltip("스킬 캐스팅 시 재생할 사운드")]
+    [SerializeField] private AudioClip _skillCastSound;
+
+    [Tooltip("스킬이 적에게 히트할 때 재생할 사운드")]
+    [SerializeField] private AudioClip _skillHitSound;
+
+    #endregion
+
     #region Public 프로퍼티
 
     public string SkillName => _skillName;
@@ -131,6 +142,8 @@ public class SkillData : ScriptableObject
     public LayerMask WallLayer => _wallLayer;
     public float WallStopBuffer => _wallStopBuffer;
     public GameObject EnemyHitVfx => _enemyHitVfx;
+    public AudioClip SkillCastSound => _skillCastSound;
+    public AudioClip SkillHitSound => _skillHitSound;
 
     /// <summary>
     /// Hit Area 설정 목록 가져오기

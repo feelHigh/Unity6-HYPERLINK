@@ -13,6 +13,10 @@ using System.Collections.Generic;
 /// - U: 퀘스트 윈도우 토글
 /// - O: 설정 윈도우 토글
 /// - ESC: 모든 패널 닫기 / LoginScene 이동 옵션
+/// 
+/// [수정사항]
+/// - OnExperienceChanged: TotalExpRequiredForNextLevel 사용으로 바 계산 수정
+/// - InitializeSkillSlots: 빈 슬롯 초기화 (스킬 데이터는 SkillActivationSystem이 관리)
 /// </summary>
 public class CharacterUIController : MonoBehaviour
 {
@@ -222,6 +226,14 @@ public class CharacterUIController : MonoBehaviour
         ForceUpdateAll();
     }
 
+    /// <summary>
+    /// 스킬 슬롯 초기화
+    /// 
+    /// 변경사항:
+    /// - 빈 슬롯으로 시작
+    /// - SkillActivationSystem에 등록만 수행
+    /// - 실제 스킬 배치는 플레이어가 드래그 앤 드롭으로 수행
+    /// </summary>
     private void InitializeSkillSlots()
     {
         if (_playerCharacter == null)
@@ -230,17 +242,20 @@ public class CharacterUIController : MonoBehaviour
             return;
         }
 
-        Log($"스킬 슬롯 초기화 시작 (빈 슬롯으로 시작)");
+        Log($"스킬 슬롯 초기화 시작 (빈 슬롯으로 시작 - SkillActivationSystem 등록)");
 
         for (int i = 0; i < _skillSlots.Count; i++)
         {
             if (_skillSlots[i] != null)
             {
+                // 슬롯 인덱스만 설정 (스킬 데이터는 null)
                 _skillSlots[i].Initialize(i, skillData: null);
 
+                // SkillActivationSystem에 등록
                 if (_skillActivationSystem != null)
                 {
                     _skillActivationSystem.RegisterSkillSlot(_skillSlots[i]);
+                    Log($"  슬롯 {i} → SkillActivationSystem 등록 완료");
                 }
             }
         }
@@ -260,10 +275,11 @@ public class CharacterUIController : MonoBehaviour
         OnManaChanged(_playerCharacter.CurrentMana, _playerCharacter.MaxMana);
         OnRedSodaChanged(_playerCharacter.RedSoda);
 
+        // [수정] TotalExpRequiredForNextLevel 사용
         int current = _experienceManager.CurrentExperience;
-        int required = _experienceManager.ExperienceToNextLevel;
+        int totalRequired = _experienceManager.TotalExpRequiredForNextLevel;
         int level = _experienceManager.CurrentLevel;
-        OnExperienceChanged(current, required, level);
+        OnExperienceChanged(current, totalRequired, level);
     }
 
     private void OnHealthChanged(float current, float max)
@@ -329,28 +345,42 @@ public class CharacterUIController : MonoBehaviour
                Mathf.Approximately(a.CriticalDamage, b.CriticalDamage);
     }
 
-    private void OnExperienceChanged(int current, int required, int level)
+    /// <summary>
+    /// 경험치 변경 이벤트 핸들러
+    /// 
+    /// [수정사항]
+    /// - required 파라미터: 다음 레벨까지 필요한 총 경험치 (TotalExpRequiredForNextLevel)
+    /// - fillAmount 계산: current / required (정확한 비율)
+    /// 
+    /// ExperienceManager.OnExperienceChanged: Action<int, int, int> (current, totalRequired, level)
+    /// </summary>
+    private void OnExperienceChanged(int current, int totalRequired, int level)
     {
         if (current == _previousExperience &&
-            required == _previousExperienceRequired &&
+            totalRequired == _previousExperienceRequired &&
             level == _previousLevel)
             return;
 
         _previousExperience = current;
-        _previousExperienceRequired = required;
+        _previousExperienceRequired = totalRequired;
         _previousLevel = level;
 
+        // [수정] 경험치 바 계산 수정: current / totalRequired
         if (_experienceBar != null)
         {
-            float fillAmount = required > 0 ? (float)current / required : 0f;
+            float fillAmount = totalRequired > 0 ? (float)current / totalRequired : 0f;
             _experienceBar.fillAmount = fillAmount;
+
+            Log($"경험치 바 업데이트: {current}/{totalRequired} = {fillAmount:F2} ({fillAmount * 100:F1}%)");
         }
 
+        // 경험치 텍스트 표시
         if (_experienceText != null)
         {
-            _experienceText.text = $"{current} / {required}";
+            _experienceText.text = $"{current} / {totalRequired}";
         }
 
+        // 레벨 표시
         if (_levelText != null)
         {
             _levelText.text = $"Lv. {level}";
@@ -413,7 +443,7 @@ public class CharacterUIController : MonoBehaviour
 
     #endregion
 
-    #region 입력 처리
+    #region 키보드 입력 및 패널 토글
 
     private void Update()
     {
@@ -422,14 +452,14 @@ public class CharacterUIController : MonoBehaviour
 
     private void HandleInput()
     {
-        if (Input.GetKeyDown(KeyCode.I))
-            ToggleInventoryPanel();
-
         if (Input.GetKeyDown(KeyCode.K))
             ToggleSkillTreePanel();
 
+        if (Input.GetKeyDown(KeyCode.I))
+            ToggleInventoryPanel();
+
         if (Input.GetKeyDown(KeyCode.U))
-            ToggleQuestUIPanel();
+            ToggleQuestPanel();
 
         if (Input.GetKeyDown(KeyCode.O))
             ToggleSettingsPanel();
@@ -438,112 +468,80 @@ public class CharacterUIController : MonoBehaviour
             HandleEscape();
     }
 
-    public void ToggleInventoryPanel()
-    {
-        if (_inventoryCanvasGroup == null)
-        {
-            LogWarning("인벤토리 CanvasGroup이 할당되지 않았습니다!");
-            return;
-        }
-
-        bool wasVisible = CanvasGroupHelper.IsVisible(_inventoryCanvasGroup);
-
-        if (wasVisible && ItemInventory.Instance != null)
-            ItemInventory.Instance.Close();
-
-        bool newState = CanvasGroupHelper.Toggle(_inventoryCanvasGroup);
-
-        Log($"인벤토리 패널 {(newState ? "열림" : "닫힘")}");
-    }
-
     public void ToggleSkillTreePanel()
     {
-        if (_skillTreeCanvasGroup == null)
-        {
-            LogWarning("스킬 트리 CanvasGroup이 할당되지 않았습니다!");
-            return;
-        }
+        bool isVisible = CanvasGroupHelper.IsVisible(_skillTreeCanvasGroup);
+        CanvasGroupHelper.SetVisible(_skillTreeCanvasGroup, !isVisible);
 
-        bool newState = CanvasGroupHelper.Toggle(_skillTreeCanvasGroup);
-        Log($"스킬 트리 패널 {(newState ? "열림" : "닫힘")}");
+        if (!isVisible)
+            RefreshSkillSlots();
+
+        Log($"스킬 트리 패널 {(!isVisible ? "열림" : "닫힘")}");
     }
 
-    public void ToggleQuestUIPanel()
+    public void ToggleInventoryPanel()
     {
-        if (_questUICanvasGroup == null)
-        {
-            LogWarning("퀘스트 UI CanvasGroup이 할당되지 않았습니다!");
-            return;
-        }
-
-        bool newState = CanvasGroupHelper.Toggle(_questUICanvasGroup);
-        Log($"퀘스트 UI {(newState ? "열림" : "닫힘")}");
+        bool isVisible = CanvasGroupHelper.IsVisible(_inventoryCanvasGroup);
+        CanvasGroupHelper.SetVisible(_inventoryCanvasGroup, !isVisible);
+        Log($"인벤토리 패널 {(!isVisible ? "열림" : "닫힘")}");
     }
 
-    /// <summary>
-    /// 설정 윈도우 토글
-    /// </summary>
+    public void ToggleQuestPanel()
+    {
+        bool isVisible = CanvasGroupHelper.IsVisible(_questUICanvasGroup);
+        CanvasGroupHelper.SetVisible(_questUICanvasGroup, !isVisible);
+        Log($"퀘스트 패널 {(!isVisible ? "열림" : "닫힘")}");
+    }
+
     public void ToggleSettingsPanel()
     {
-        if (_settingsCanvasGroup == null)
-        {
-            LogWarning("설정 CanvasGroup이 할당되지 않았습니다!");
-            return;
-        }
+        bool isVisible = CanvasGroupHelper.IsVisible(_settingsCanvasGroup);
+        CanvasGroupHelper.SetVisible(_settingsCanvasGroup, !isVisible);
 
-        if (_settingsWindow == null)
-        {
-            LogWarning("SettingsWindow 컴포넌트가 할당되지 않았습니다!");
-            return;
-        }
-
-        bool wasVisible = CanvasGroupHelper.IsVisible(_settingsCanvasGroup);
-
-        if (!wasVisible)
-            _settingsWindow.Open();
-        else
-            _settingsWindow.Close();
-
-        Log($"설정 윈도우 {(!wasVisible ? "열림" : "닫힘")}");
+        Log($"설정 패널 {(!isVisible ? "열림" : "닫힘")}");
     }
 
     private void HandleEscape()
     {
-        bool anyPanelOpen = false;
+        // 열려 있는 패널이 있으면 모두 닫기
+        bool anyClosed = false;
 
-        if (CanvasGroupHelper.IsVisible(_inventoryCanvasGroup)) anyPanelOpen = true;
-        if (CanvasGroupHelper.IsVisible(_skillTreeCanvasGroup)) anyPanelOpen = true;
-        if (CanvasGroupHelper.IsVisible(_questUICanvasGroup)) anyPanelOpen = true;
-        if (CanvasGroupHelper.IsVisible(_settingsCanvasGroup)) anyPanelOpen = true;
-
-        if (anyPanelOpen)
+        if (CanvasGroupHelper.IsVisible(_skillTreeCanvasGroup))
         {
-            CloseAllPanels();
+            CanvasGroupHelper.SetVisible(_skillTreeCanvasGroup, false);
+            anyClosed = true;
         }
-        else if (_enableEscapeToLogin)
+
+        if (CanvasGroupHelper.IsVisible(_inventoryCanvasGroup))
         {
-            LoadLoginScene();
+            CanvasGroupHelper.SetVisible(_inventoryCanvasGroup, false);
+            anyClosed = true;
         }
-    }
 
-    public void CloseAllPanels()
-    {
-        CanvasGroupHelper.SetVisible(_inventoryCanvasGroup, false);
-        CanvasGroupHelper.SetVisible(_skillTreeCanvasGroup, false);
-        CanvasGroupHelper.SetVisible(_questUICanvasGroup, false);
-        CanvasGroupHelper.SetVisible(_settingsCanvasGroup, false);
+        if (CanvasGroupHelper.IsVisible(_questUICanvasGroup))
+        {
+            CanvasGroupHelper.SetVisible(_questUICanvasGroup, false);
+            anyClosed = true;
+        }
 
-        // SettingsWindow 명시적 닫기
-        if (_settingsWindow != null)
-            _settingsWindow.Close();
+        if (CanvasGroupHelper.IsVisible(_settingsCanvasGroup))
+        {
+            CanvasGroupHelper.SetVisible(_settingsCanvasGroup, false);
+            anyClosed = true;
+        }
 
-        Log("모든 패널 닫기");
-    }
+        if (anyClosed)
+        {
+            Log("ESC - 모든 패널 닫힘");
+            return;
+        }
 
-    private void LoadLoginScene()
-    {
-        Log($"LoginScene 이동: {_loginSceneName}");
-        UnityEngine.SceneManagement.SceneManager.LoadScene(_loginSceneName);
+        // 모든 패널이 닫혀 있으면 LoginScene 이동
+        if (_enableEscapeToLogin)
+        {
+            Log($"ESC - {_loginSceneName}으로 이동");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(_loginSceneName);
+        }
     }
 
     #endregion

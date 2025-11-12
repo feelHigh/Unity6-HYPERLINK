@@ -338,9 +338,15 @@ public class PlayerAttackController : MonoBehaviour
 
         // 공격 이벤트 발생
         OnAttackStarted?.Invoke();
-
+        
         // 애니메이션 트리거 발생
         OnAttackTrigger?.Invoke(ATTACK_HASH);
+
+        // 기본 공격 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.PlayerBasicAttack);
+        }
 
         Log($"공격 시작! 타겟: {enemies.Count}마리");
 

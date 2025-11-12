@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using CC;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 플레이어 캐릭터 핵심 시스템
@@ -516,9 +518,20 @@ public class PlayerCharacter : MonoBehaviour
 
     public void AddRedSoda(int amount)
     {
+        if (_redSoda >= 5)
+            return;
+        
         _redSoda += amount;
         Debug.Log($"레드 소다 {amount}개 획득! (총: {_redSoda})");
         OnRedSodaChanged?.Invoke(_redSoda);
+    }
+
+    public void RandomRedSodaDrop()
+    {
+        int randCount = Random.Range(0, 4);
+        
+        if (randCount == 0)
+            AddRedSoda(1);
     }
 
     private void Die()

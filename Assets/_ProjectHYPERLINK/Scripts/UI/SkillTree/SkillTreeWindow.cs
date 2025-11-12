@@ -174,6 +174,9 @@ public class SkillTreeWindow : MonoBehaviour
     public void InitializeSkillTree()
     {
         if (_skillTreeManager == null)
+            _skillTreeManager = FindObjectOfType<SkillTreeManager>();
+
+        if (_skillTreeManager == null)
         {
             Debug.LogError("[SkillTreeWindow] SkillTreeManager가 없습니다!");
             return;

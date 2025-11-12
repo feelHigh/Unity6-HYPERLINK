@@ -2,6 +2,10 @@ using UnityEngine;
 
 /// <summary>
 /// 모든 특수 공격 데이터의 기반이 될 추상 스크립터블 오브젝트 클래스
+/// 
+/// 사운드 오버라이드:
+/// - 각 특수 공격마다 고유한 사운드를 설정 가능
+/// - 비어있으면 GameSoundLibrary의 기본 사운드 사용
 /// </summary>
 public abstract class SpecialAttackBase : ScriptableObject
 {
@@ -16,11 +20,18 @@ public abstract class SpecialAttackBase : ScriptableObject
     [Header("----- 발사체 발사 지점 -----")]
     [SerializeField] protected Transform _cachedFirePos;    //지정된 firePos
 
+    [Header("----- 사운드 오버라이드 (선택사항) -----")]
+    [Tooltip("특수 공격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _specialAttackSound;
+
     // 프로퍼티 //
     public GameObject EpicEffect => _epicEffect;
     public SpecialAttackType Type => _type;
     public float CoolTime => _coolTime;
     public int SpecialAttackAnim => (int)_type;     //특수 공격 애니메이션 트리거
+
+    // 사운드 오버라이드 프로퍼티
+    public AudioClip SpecialAttackSound => _specialAttackSound;
 
     // 특수 효과 값 (각 자식 클래스에서 재정의) //
     //공통 (즉시 피해)

@@ -1,6 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// 적 데이터 ScriptableObject
+/// 
+/// 사운드 오버라이드:
+/// - 각 EnemyData마다 고유한 사운드를 설정 가능
+/// - 비어있으면 GameSoundLibrary의 기본 사운드 사용
+/// </summary>
 [CreateAssetMenu(fileName = "EnemyData", menuName = "Enemy/EnemyData")]
 public class EnemyData : ScriptableObject
 {
@@ -38,6 +45,22 @@ public class EnemyData : ScriptableObject
     [SerializeField] int _epicExpMultiplier;    //보상 경험치 배수
     [SerializeField] int _epicGoldMultiplier;   //보상 골드 배수
 
+    [Header("----- 사운드 오버라이드 (선택사항) -----")]
+    [Tooltip("근접 공격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _meleeAttackSound;
+
+    [Tooltip("원거리 공격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _rangedAttackSound;
+
+    [Tooltip("피격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _hitSound;
+
+    [Tooltip("사망 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _deathSound;
+
+    [Tooltip("에픽 스폰 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _epicSpawnSound;
+
     // ----- 프로퍼티 ------ //
     public string Name => _name;
     public float MaxHp => _maxHp;
@@ -60,4 +83,11 @@ public class EnemyData : ScriptableObject
     public float EpicAtkMultiplier => _epicAtkMultiplier;
     public int EpicExpMultiplier => _epicExpMultiplier;
     public int EpicGoldMultiplier => _epicGoldMultiplier;
+
+    // - 사운드 오버라이드 프로퍼티 - //
+    public AudioClip MeleeAttackSound => _meleeAttackSound;
+    public AudioClip RangedAttackSound => _rangedAttackSound;
+    public AudioClip HitSound => _hitSound;
+    public AudioClip DeathSound => _deathSound;
+    public AudioClip EpicSpawnSound => _epicSpawnSound;
 }
