@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c50483f4373beb468c584417b4ff1bb, type: 3}
+  m_Name: Act1_2Spawn3
+  m_EditorClassIdentifier: 
+  spawnList:
+  - enemyData: {fileID: 11400000, guid: 8a2f764d6ae764b43b8747a49c925d36, type: 2}
+    prefab: {fileID: 1995068114548180859, guid: 3b8886782725fde4a80b0cb42dd964f1, type: 3}
+    enemyName: "\uBCF4\uB514\uAC00\uB4DC2"
+    count: 5
+  dropTable: {fileID: 11400000, guid: 554f74af9456cfc4ab919637008beaea, type: 2}
+  dropChance: 0.7

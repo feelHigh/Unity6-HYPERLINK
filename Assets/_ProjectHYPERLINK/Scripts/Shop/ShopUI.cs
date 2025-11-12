@@ -26,7 +26,6 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         foreach (var item in _items)
         {
             item.Initialize(this, ItemSpawner.Instance.SpawnItemData(_dropTableData));
-            Debug.LogError("아이템 생서");
         }
     }
 

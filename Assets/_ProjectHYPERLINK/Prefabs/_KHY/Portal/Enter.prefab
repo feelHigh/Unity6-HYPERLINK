@@ -78,6 +78,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _portalData: {fileID: 0}
   _requiredQuestID: 
+  _teleportUIWindow: {fileID: 0}
   _portalEffect: {fileID: 0}
   _rotateTowardsPlayer: 1
   _rotationSpeed: 5
@@ -95,8 +96,32 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6988477659781910660, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 0.7467515
+      objectReference: {fileID: 0}
+    - target: {fileID: 6988477659781910660, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0.83983517
+      objectReference: {fileID: 0}
+    - target: {fileID: 6988477659781910660, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.9150943
+      objectReference: {fileID: 0}
     - target: {fileID: 6988477659781910667, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6988477660517880672, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 0.5801887
+      objectReference: {fileID: 0}
+    - target: {fileID: 6988477660517880672, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 0.8136038
+      objectReference: {fileID: 0}
+    - target: {fileID: 6988477660517880672, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6988477660517880678, guid: b4df79c7fdb7c8c4cad851ee52aecbf8, type: 3}

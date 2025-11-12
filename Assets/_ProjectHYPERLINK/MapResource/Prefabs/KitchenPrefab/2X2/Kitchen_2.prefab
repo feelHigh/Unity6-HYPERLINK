@@ -14,7 +14,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &5952422900579042073
 Transform:
@@ -53,7 +53,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3342495850633871847
 Transform:
@@ -182,7 +182,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4005650569879244309
 Transform:
@@ -307,7 +307,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4821116035486719960
 Transform:
@@ -341,7 +341,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4933203121970705222
 Transform:
@@ -375,7 +375,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2877634998840676731
 Transform:
@@ -413,7 +413,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2930589441991972380
 Transform:
@@ -542,7 +542,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1095585552423066181
 Transform:
@@ -671,7 +671,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3284123924044150317
 Transform:
@@ -800,7 +800,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2214824070613298331
 Transform:
@@ -929,7 +929,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &5197212760910045538
 Transform:
@@ -1058,7 +1058,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1054771633789743488
 Transform:
@@ -1183,7 +1183,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3278802897921586336
 Transform:
@@ -1211,6 +1211,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3278802897921586336}
     m_Modifications:
+    - target: {fileID: 3404984881800790520, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4695242648303012503, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.70000076
@@ -1254,6 +1258,10 @@ PrefabInstance:
     - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_Name
       value: kitchen pantry
+      objectReference: {fileID: 0}
+    - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1273,6 +1281,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4933203121970705222}
     m_Modifications:
+    - target: {fileID: 3404984881800790520, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4695242648303012503, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.70000076
@@ -1316,6 +1328,10 @@ PrefabInstance:
     - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_Name
       value: kitchen pantry
+      objectReference: {fileID: 0}
+    - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1335,6 +1351,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2877634998840676731}
     m_Modifications:
+    - target: {fileID: 3404984881800790520, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4695242648303012503, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.70000076
@@ -1378,6 +1398,10 @@ PrefabInstance:
     - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_Name
       value: kitchen pantry
+      objectReference: {fileID: 0}
+    - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1397,6 +1421,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4821116035486719960}
     m_Modifications:
+    - target: {fileID: 3404984881800790520, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4695242648303012503, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.70000076
@@ -1440,6 +1468,10 @@ PrefabInstance:
     - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
       propertyPath: m_Name
       value: kitchen pantry
+      objectReference: {fileID: 0}
+    - target: {fileID: 6819156221754880368, guid: 1d8da38b4e100274f829bb2fd1a86495, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
