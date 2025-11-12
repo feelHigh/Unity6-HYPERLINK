@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,6 +10,7 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] ItemDropTableData _dropTableData;
     [SerializeField] PlayerCharacter _player;
     [SerializeField] bool _hasOpened = false;
+    [SerializeField] TextMeshProUGUI _golds;
 
     public void Open(PlayerCharacter player)
     {
@@ -17,7 +19,7 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             Initailize();
         }
-        
+        _golds.text = $"GOLD : {_player.CurrentGold.ToString()}";
         gameObject.SetActive(true);
     }
     private void Initailize()
@@ -41,10 +43,16 @@ public class ShopUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void Sell(ItemData data)
     {
         _player.AddGold(data.Gold/2);
+        _golds.text = $"GOLD : {_player.CurrentGold.ToString()}";
     }
 
     public bool Buy(ItemData data)
     {
-        return _dragManager.Buy(data,_player);
+        if (_dragManager.Buy(data, _player))
+        {
+            _golds.text = $"GOLD : {_player.CurrentGold.ToString()}";
+            return true;
+        }
+        return false;
     }
 }
