@@ -10,6 +10,11 @@ using System.Linq;
 /// - LoadCharacterData() 후 GameSessionManager 업데이트
 /// - CollectAndSaveData() 전 GameSessionManager 동기화
 /// 
+/// [수정] 스킬 슬롯 로드 개선
+/// - LoadSkillSlots()가 UI에 직접 접근하지 않음
+/// - SkillSlotStateManager에 데이터 전달
+/// - UI 복원은 SkillSlotStateManager가 적절한 타이밍에 수행
+/// 
 /// 기능:
 /// - Cloud Save 연동
 /// - Experience, Character, Equipment, Inventory 데이터 관리
@@ -191,8 +196,8 @@ public class CharacterDataManager : MonoBehaviour
             Log("스킬 트리 로드 완료");
         }
 
-        // Phase 7: 스킬 슬롯 (마지막)
-        if (_skillActivationSystem != null && data.progression != null && data.progression.skillSlots != null)
+        // Phase 7: 스킬 슬롯 데이터를 SkillSlotStateManager에 전달
+        if (data.progression != null && data.progression.skillSlots != null && data.progression.skillSlots.Count > 0)
         {
             LoadSkillSlots(data.progression.skillSlots);
         }
@@ -250,59 +255,46 @@ public class CharacterDataManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// 스킬 슬롯 로드 (수정)
+    /// 
+    /// 변경사항:
+    /// - UI에 직접 접근하지 않음
+    /// - SkillSlotStateManager에 데이터 전달
+    /// - UI 복원은 SkillSlotStateManager가 OnAllSystemsReady 이벤트에서 수행
+    /// 
+    /// 호출 시점:
+    /// - CharacterDataManager.ApplyDataToSystems() 내
+    /// - 데이터 로드 초기 단계 (UI 아직 준비 안 됨)
+    /// </summary>
     private void LoadSkillSlots(List<SkillSlotData> skillSlots)
     {
-        if (_skillActivationSystem == null)
+        if (skillSlots == null || skillSlots.Count == 0)
         {
-            LogWarning("SkillActivationSystem이 없어 스킬 슬롯을 로드할 수 없습니다");
+            Log("로드할 스킬 슬롯 데이터가 없습니다.");
             return;
         }
 
-        List<SkillSlotUI> slots = _skillActivationSystem.GetAllSkillSlots();
-
-        if (slots == null || slots.Count == 0)
+        // SkillSlotStateManager에 데이터 전달
+        if (SkillSlotStateManager.Instance != null)
         {
-            LogWarning("스킬 슬롯 UI를 찾을 수 없습니다");
-            return;
+            // SkillSlotData → Dictionary<int, string> 변환
+            Dictionary<int, string> slotStates = new Dictionary<int, string>();
+            foreach (var slot in skillSlots)
+            {
+                slotStates[slot.slotIndex] = slot.assignedSkillID;
+            }
+
+            SkillSlotStateManager.Instance.LoadFromSaveData(slotStates);
+            Log($"스킬 슬롯 데이터를 SkillSlotStateManager에 전달 완료 ({skillSlots.Count}개 슬롯)");
+        }
+        else
+        {
+            LogWarning("SkillSlotStateManager를 찾을 수 없습니다 - 스킬 슬롯 복원 불가");
         }
 
-        int loadedCount = 0;
-        int failedCount = 0;
-
-        foreach (SkillSlotData slotData in skillSlots)
-        {
-            if (slotData.slotIndex < 0 || slotData.slotIndex >= slots.Count)
-            {
-                LogWarning($"잘못된 슬롯 인덱스: {slotData.slotIndex}");
-                failedCount++;
-                continue;
-            }
-
-            SkillSlotUI slot = slots[slotData.slotIndex];
-
-            if (string.IsNullOrEmpty(slotData.assignedSkillID))
-            {
-                slot.RemoveSkill();
-                continue;
-            }
-
-            SkillData skillData = FindSkillByName(slotData.assignedSkillID);
-
-            if (skillData != null)
-            {
-                slot.AssignSkill(skillData);
-                loadedCount++;
-                Log($"슬롯 {slotData.slotIndex} 로드: {skillData.SkillName}");
-            }
-            else
-            {
-                LogWarning($"스킬을 찾을 수 없음: {slotData.assignedSkillID}");
-                slot.RemoveSkill();
-                failedCount++;
-            }
-        }
-
-        Log($"스킬 슬롯 로드 완료: 성공 {loadedCount}개, 실패 {failedCount}개");
+        // [제거] UI 직접 접근 코드 삭제
+        // SkillSlotStateManager가 적절한 타이밍에 UI 복원 수행
     }
 
     private SkillData FindSkillByName(string skillName)
@@ -453,7 +445,7 @@ public class CharacterDataManager : MonoBehaviour
                 data.inventory.items.Add(new CharacterSaveData.InventoryData.InventoryItem
                 {
                     itemId = itemData.ItemNumber.ToString(),
-                    quantity = 1, // 아이템은 개별로 저장됨
+                    quantity = 1,
                     slot = slotIndex
                 });
             }

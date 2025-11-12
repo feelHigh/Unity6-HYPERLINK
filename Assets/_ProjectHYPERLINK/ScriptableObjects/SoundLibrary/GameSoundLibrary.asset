@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d56cd94bfda62414cb3923cb2ca34dc2, type: 3}
+  m_Name: GameSoundLibrary
+  m_EditorClassIdentifier: 
+  _playerBasicAttack: {fileID: 0}
+  _playerHit: {fileID: 0}
+  _playerDeath: {fileID: 0}
+  _playerSkillCast: {fileID: 0}
+  _enemyMeleeAttack: {fileID: 0}
+  _enemyRangedAttack: {fileID: 0}
+  _enemyHit: {fileID: 0}
+  _enemyDeath: {fileID: 0}
+  _epicSpawn: {fileID: 0}
+  _epicSpecialAttack: {fileID: 0}
+  _bossSpawn: {fileID: 0}
+  _bossAttack: {fileID: 0}
+  _bossSpecialAttack: {fileID: 0}
+  _bossDeath: {fileID: 0}
+  _uiClick: {fileID: 0}
+  _uiHover: {fileID: 0}
+  _itemPickup: {fileID: 0}
+  _itemEquip: {fileID: 0}
+  _levelUp: {fileID: 0}
+  _skillUnlock: {fileID: 0}
+  _footstep: {fileID: 0}
+  _doorOpen: {fileID: 0}
+  _portalUse: {fileID: 0}

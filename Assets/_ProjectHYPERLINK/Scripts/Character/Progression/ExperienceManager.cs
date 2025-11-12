@@ -19,6 +19,10 @@ using System;
 /// - PlayerCharacter는 같은 GameObject에 필수
 /// - LevelUpData ScriptableObject 할당 필수
 /// - 연속 레벨업 지원 (한 번에 여러 레벨 상승 가능)
+/// 
+/// [수정사항]
+/// - TotalExpRequiredForNextLevel 추가: UI 바의 최대값
+/// - OnExperienceChanged 이벤트 파라미터 명확화
 
 public class ExperienceManager : MonoBehaviour
 {
@@ -30,13 +34,29 @@ public class ExperienceManager : MonoBehaviour
     // 이벤트
     public static event Action<int> OnExperienceGained;
     public static event Action<int, int> OnLevelUp;
+
+    /// <summary>
+    /// 경험치 변경 이벤트
+    /// 파라미터: (현재 경험치, 다음 레벨 필요 총 경험치, 현재 레벨)
+    /// </summary>
     public static event Action<int, int, int> OnExperienceChanged;
 
     private PlayerCharacter _playerCharacter;
 
     public int CurrentLevel => _currentLevel;
     public int CurrentExperience => _currentExperience;
-    public int ExperienceToNextLevel => GetExperienceRequiredForLevel(_currentLevel + 1) - _currentExperience;
+
+    /// <summary>
+    /// 다음 레벨에 필요한 총 경험치 (누적)
+    /// UI 바의 fillAmount 계산에 사용: currentExp / totalRequired
+    /// </summary>
+    public int TotalExpRequiredForNextLevel => GetExperienceRequiredForLevel(_currentLevel + 1);
+
+    /// <summary>
+    /// 다음 레벨까지 남은 경험치
+    /// </summary>
+    public int RemainingExpToNextLevel => TotalExpRequiredForNextLevel - _currentExperience;
+
     public bool CanLevelUp => _currentLevel < _levelUpData.MaxLevel;
 
     private void Awake()
@@ -59,8 +79,9 @@ public class ExperienceManager : MonoBehaviour
 
     private void Start()
     {
-        OnExperienceChanged?.Invoke(_currentExperience,
-            GetExperienceRequiredForLevel(_currentLevel + 1), _currentLevel);
+        // 초기 UI 업데이트 - TotalExpRequiredForNextLevel 사용
+        OnExperienceChanged?.Invoke(_currentExperience, TotalExpRequiredForNextLevel, _currentLevel);
+        Debug.Log($"[ExperienceManager] 초기화: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
     }
 
     /// 경험치 획득
@@ -75,8 +96,8 @@ public class ExperienceManager : MonoBehaviour
         // 레벨업 체크
         CheckForLevelUp();
 
-        OnExperienceChanged?.Invoke(_currentExperience,
-            GetExperienceRequiredForLevel(_currentLevel + 1), _currentLevel);
+        // UI 업데이트 - TotalExpRequiredForNextLevel 사용
+        OnExperienceChanged?.Invoke(_currentExperience, TotalExpRequiredForNextLevel, _currentLevel);
     }
 
     /// 레벨업 체크 (연속 레벨업 지원)
@@ -147,11 +168,10 @@ public class ExperienceManager : MonoBehaviour
         _currentLevel = data.character.level;
         _currentExperience = data.character.experience;
 
-        // UI 업데이트
-        OnExperienceChanged?.Invoke(_currentExperience,
-            GetExperienceRequiredForLevel(_currentLevel + 1), _currentLevel);
+        // UI 업데이트 - TotalExpRequiredForNextLevel 사용
+        OnExperienceChanged?.Invoke(_currentExperience, TotalExpRequiredForNextLevel, _currentLevel);
 
-        Debug.Log($"경험치 시스템 로드 완료: 레벨 {_currentLevel}, 경험치 {_currentExperience}");
+        Debug.Log($"경험치 시스템 로드 완료: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
     }
 
     /// 현재 상태를 CharacterSaveData에 저장

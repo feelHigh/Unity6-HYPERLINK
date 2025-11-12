@@ -154,6 +154,12 @@ public class EnemyController : MonoBehaviour, IDamageable
         //오브 생성
         CreateEpicOrbs();
 
+        // 에픽 스폰 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EpicSpawn);
+        }
+
         OnInitialized?.Invoke();
     }
 
@@ -171,13 +177,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         _enemyName = _bossData.BossName;
         _enemyType = EnemyType.Boss;
 
-        /*
-        //드랍 설정
-        _dropTable = dropTable;
-        _dropChance = dropChance;
-        */
-
-        //스탯 초기화
+        // 스탯 초기화
         _maxHp = _bossData.MaxHp;
         _curHp = _maxHp;
         _atk = _bossData.Atk;
@@ -187,7 +187,12 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         _isDead = false;
 
-        //초기화 완료 이벤트 발행
+        // 보스 스폰 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.BossSpawn);
+        }
+
         OnInitialized?.Invoke();
 
         Debug.Log("[EnemyController.Boss] 보스 초기화 완료!");
@@ -199,17 +204,19 @@ public class EnemyController : MonoBehaviour, IDamageable
     /// <param name="damage">데미지 양</param>
     public void TakeDamage(float damage)
     {
-        //현재 상태가 죽음 상태면 리턴
         if (_curHp <= 0) return;
 
-        //현재 체력을 데미지 만큼 감소
         _curHp -= damage;
         _curHp = Mathf.Max(_curHp, 0);
 
-        //피격 애니메이션 이벤트 발행
+        // 피격 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EnemyHit);
+        }
+
         OnHit?.Invoke();
 
-        //현재 체력이 0보다 작거나 같으면
         if (_curHp <= 0)
         {
             Die();
@@ -270,6 +277,23 @@ public class EnemyController : MonoBehaviour, IDamageable
         if (_isDead) return;
 
         _isDead = true;
+
+        // 사망 사운드 재생 (적 타입별)
+        if (AudioManager.Instance?.SoundLibrary != null)
+        {
+            AudioClip deathSound;
+
+            if (_enemyType == EnemyType.Boss)
+            {
+                deathSound = AudioManager.Instance.SoundLibrary.BossDeath;
+            }
+            else
+            {
+                deathSound = AudioManager.Instance.SoundLibrary.EnemyDeath;
+            }
+
+            AudioManager.Instance.PlaySFX(deathSound);
+        }
 
         //콜라이더 비활성화
         if (_collider != null)
@@ -376,6 +400,9 @@ public class EnemyController : MonoBehaviour, IDamageable
         {
             player.AddGold(_goldReward);
             Debug.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
+
+            // 귀염뽀짝 포션
+            player.RandomRedSodaDrop();
         }
     }
 

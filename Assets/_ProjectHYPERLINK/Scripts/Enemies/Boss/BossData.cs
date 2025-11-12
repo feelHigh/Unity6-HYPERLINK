@@ -2,6 +2,10 @@ using UnityEngine;
 
 /// <summary>
 /// 보스 데이터 ScriptableObject
+/// 
+/// 사운드 오버라이드:
+/// - 각 보스마다 고유한 사운드를 설정 가능
+/// - 비어있으면 GameSoundLibrary의 기본 사운드 사용
 /// </summary>
 [CreateAssetMenu(fileName = "BossData", menuName = "Enemy/BossData")]
 public class BossData : ScriptableObject
@@ -82,6 +86,31 @@ public class BossData : ScriptableObject
     [SerializeField] int _rewardExp = 1000;
     [SerializeField] int _rewardGold = 500;
 
+    [Header("----- 사운드 오버라이드 (선택사항) -----")]
+    [Tooltip("보스 스폰 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _spawnSound;
+
+    [Tooltip("보스 기본 공격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _basicAttackSound;
+
+    [Tooltip("보스 특수 공격 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _specialAttackSound;
+
+    [Tooltip("보스 사망 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
+    [SerializeField] private AudioClip _deathSound;
+
+    [Tooltip("패턴 1: 내려찍기 사운드 (선택사항)")]
+    [SerializeField] private AudioClip _slamSound;
+
+    [Tooltip("패턴 2: 돌진 사운드 (선택사항)")]
+    [SerializeField] private AudioClip _chargeSound;
+
+    [Tooltip("패턴 3: 3연타 사운드 (선택사항)")]
+    [SerializeField] private AudioClip _comboSound;
+
+    [Tooltip("패턴 4: 브레스 사운드 (선택사항)")]
+    [SerializeField] private AudioClip _breathSound;
+
     //프로퍼티
     public string BossName => _bossName;
     public float MaxHp => _maxHp;
@@ -131,4 +160,14 @@ public class BossData : ScriptableObject
     //보상
     public int RewardExp => _rewardExp;
     public int RewardGold => _rewardGold;
+
+    //사운드 오버라이드 프로퍼티
+    public AudioClip SpawnSound => _spawnSound;
+    public AudioClip BasicAttackSound => _basicAttackSound;
+    public AudioClip SpecialAttackSound => _specialAttackSound;
+    public AudioClip DeathSound => _deathSound;
+    public AudioClip SlamSound => _slamSound;
+    public AudioClip ChargeSound => _chargeSound;
+    public AudioClip ComboSound => _comboSound;
+    public AudioClip BreathSound => _breathSound;
 }

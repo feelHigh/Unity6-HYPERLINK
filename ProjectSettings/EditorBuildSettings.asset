@@ -11,9 +11,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/CharacterSelectionScene.unity
     guid: adb89467ac70d2d468244dca76923f78
-  - enabled: 0
+  - enabled: 1
     path: Assets/_ProjectHYPERLINK/Scenes/Release/TutorialScene.unity
     guid: e3cbeb66789511143bcba24695c9c07d
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/CJJ/BillagePortal.unity
+    guid: 59d244344d19160499040b886f6dd2b0
+  - enabled: 1
+    path: Assets/_ProjectHYPERLINK/Scenes/CJJ/TestPortal.unity
+    guid: 254fe17cc3491c54b8b78b37a0434165
   - enabled: 0
     path: Assets/_ProjectHYPERLINK/Scenes/KHH/TestScene1.unity
     guid: 9a4785a68e102da43bf7bb4407368178

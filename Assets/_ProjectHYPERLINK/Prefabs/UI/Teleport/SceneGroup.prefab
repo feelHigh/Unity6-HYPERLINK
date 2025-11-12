@@ -35,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 241.975, y: -17.25}
+  m_AnchoredPosition: {x: 248, y: -17.25}
   m_SizeDelta: {x: 483.95, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4898373607905056774
@@ -196,8 +196,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Tutorial Scene
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fbe5804c313c639419a44490df1522f4, type: 2}
-  m_sharedMaterial: {fileID: -4456136074633957893, guid: fbe5804c313c639419a44490df1522f4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: aae6ad19b2e0b73429901cba33dd7433, type: 2}
+  m_sharedMaterial: {fileID: -8222628391921384032, guid: aae6ad19b2e0b73429901cba33dd7433, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -319,7 +319,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 10
+  m_Spacing: 15
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 1
