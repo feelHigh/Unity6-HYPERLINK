@@ -6,11 +6,6 @@ using UnityEngine;
 /// 사용처:
 /// 근거리 공격 : 무기/타격 부위에 부착 (Animation Event로 제어)
 /// 원거리 공격 : 발사체 프리팹에 부착 (생성 시 자동 활성화)
-/// 
-/// 변경사항:
-/// - AttackInfo를 사용한 데미지 전달
-/// - 히트 VFX 지원
-/// - 태그 말고 레이어로 변경
 /// </summary>
 public class TargetDetector : MonoBehaviour
 {
@@ -22,7 +17,7 @@ public class TargetDetector : MonoBehaviour
     [SerializeField] LayerMask _ignoreLayerMask;        //무시할 레이어 마스크 (적, 아이템)
 
     float _damage;
-    GameObject _hitVfx;
+    HitVfxConfig _hitVfxConfig;
     SpecialAttackBase _specialAttack;
 
     private void Awake()
@@ -39,11 +34,11 @@ public class TargetDetector : MonoBehaviour
     /// 일반 공격 초기화
     /// </summary>
     /// <param name="damage">데미지 양</param>
-    /// <param name="hitVfx">히트 VFX 프리팹 (선택)</param>
-    public void Initialize(float damage, GameObject hitVfx = null)
+    /// <param name="hitVfxConfig">히트 VFX 설정 (선택)</param>
+    public void Initialize(float damage, HitVfxConfig hitVfxConfig = null)
     {
         _damage = damage;
-        _hitVfx = hitVfx;
+        _hitVfxConfig = hitVfxConfig;
         _specialAttack = null;
     }
 
@@ -54,7 +49,7 @@ public class TargetDetector : MonoBehaviour
     public void InitializeSA(SpecialAttackBase specialAttack)
     {
         _damage = 0;
-        _hitVfx = null;
+        _hitVfxConfig = null;
         _specialAttack = specialAttack;
     }
 
@@ -113,7 +108,7 @@ public class TargetDetector : MonoBehaviour
                     AttackInfo attackInfo = AttackInfo.CreateEnemyBaseAttack(
                         _damage,
                         other.transform.position,
-                        _hitVfx
+                        _hitVfxConfig
                     );
                     player.TakeDamage(attackInfo);
 

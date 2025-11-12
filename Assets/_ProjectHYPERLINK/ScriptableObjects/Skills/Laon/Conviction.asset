@@ -29,7 +29,7 @@ MonoBehaviour:
   _buffDuration: 0
   _hitAreaConfigs:
   - _shape: 0
-    _damagePointTiming: 0.6
+    _damagePointTiming: 0.7
     _positionOffset: {x: 0, y: 1, z: 0}
     _rotationOffset: {x: 0, y: 0, z: 0}
     _sphereRadius: 2.5
@@ -37,12 +37,19 @@ MonoBehaviour:
     _ignoreTags: []
     _damageMultiplier: 1
   _vfxConfigs:
-  - _vfxPrefab: {fileID: 1011157772751556, guid: ca63c6ac7458764498741e0306f78528, type: 3}
+  - _vfxPrefab: {fileID: 1011157772751556, guid: 081e1bc139b73684681fde16b4db6361, type: 3}
     _spawnTiming: 0.6
     _positionOffset: {x: 0, y: 1, z: 0}
     _rotationOffset: {x: 0, y: 270, z: 0}
+    _scale: 1
     _lifetime: 0.3
     _attachToCharacter: 0
+  _enemyHitVfxConfig:
+    _vfxPrefab: {fileID: 100004, guid: 352bfe72ccda8443dacb88991f4e44f5, type: 3}
+    _positionOffset: {x: 0, y: 0, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _scale: 2
+    _lifetime: 0.5
   _animationDuration: 1
   _useRootMotion: 1
   _dashDistanceMode: 0
@@ -57,3 +64,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 12288
   _wallStopBuffer: 0.5
+  _skillCastSound: {fileID: 0}
+  _skillHitSound: {fileID: 0}

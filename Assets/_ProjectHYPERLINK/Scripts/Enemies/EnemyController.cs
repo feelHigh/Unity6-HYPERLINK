@@ -7,10 +7,6 @@ using UnityEngine;
 /// 통합 적 컨트롤러
 /// - 일반, 에픽, 보스 몬스터
 /// - 골드 보상 지급
-/// 
-/// 변경사항:
-/// - AttackInfo 오버로드 추가
-/// - 히트 VFX 생성 기능 추가
 /// </summary>
 public class EnemyController : MonoBehaviour, IDamageable
 {
@@ -237,10 +233,16 @@ public class EnemyController : MonoBehaviour, IDamageable
         _curHp -= attackInfo.Damage;
         _curHp = Mathf.Max(_curHp, 0);
 
-        //히트 VFX 생성
-        if (attackInfo.HitVfxPrefab != null)
+        // 피격 사운드 재생
+        if (AudioManager.Instance?.SoundLibrary != null)
         {
-            SpawnHitVFX(attackInfo.HitVfxPrefab, attackInfo.HitPosition);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EnemyHit);
+        }
+
+        //히트 VFX 생성
+        if (attackInfo.HitVfxConfig != null && attackInfo.HitVfxConfig.IsValid())
+        {
+            SpawnHitVFX(attackInfo.HitVfxConfig, attackInfo.HitPosition);
         }
 
         //피격 애니메이션 이벤트 발행
@@ -255,15 +257,48 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     /// <summary>
     /// 히트 VFX 생성
+    /// Offset, Rotation, Size 모두 적용
     /// </summary>
-    /// <param name="vfxPrefab">VFX 프리팹</param>
-    /// <param name="position">생성 위치</param>
-    private void SpawnHitVFX(GameObject vfxPrefab, Vector3 position)
+    /// <param name="hitVfxConfig">VFX 설정</param>
+    /// <param name="basePosition">기본 생성 위치</param>
+    private void SpawnHitVFX(HitVfxConfig hitVfxConfig, Vector3 basePosition)
     {
-        if (vfxPrefab == null) return;
+        if (hitVfxConfig == null || !hitVfxConfig.IsValid())
+        {
+            Debug.LogWarning("[EnemyController] HitVfxConfig가 유효하지 않습니다.");
+            return;
+        }
 
-        GameObject vfx = Instantiate(vfxPrefab, position, Quaternion.identity);
-        Destroy(vfx, 2f); // 2초 후 자동 제거
+        // 위치 계산: 기본 위치 + 오프셋
+        Vector3 spawnPosition = basePosition + hitVfxConfig.PositionOffset;
+
+        // 회전 계산: 오일러 각도로 회전
+        Quaternion spawnRotation = Quaternion.Euler(hitVfxConfig.RotationOffset);
+
+        // VFX 생성
+        GameObject vfx = Instantiate(hitVfxConfig.VfxPrefab, spawnPosition, spawnRotation);
+
+        // 크기 적용
+        vfx.transform.localScale *= hitVfxConfig.Scale;
+
+        // 수명 계산 및 자동 제거
+        float lifetime = hitVfxConfig.Lifetime;
+        if (lifetime <= 0)
+        {
+            ParticleSystem ps = vfx.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+            }
+            else
+            {
+                lifetime = 2f;
+            }
+        }
+
+        Destroy(vfx, lifetime);
+
+        Debug.Log($"[EnemyController] 히트 VFX 생성: {vfx.name} (Scale: {hitVfxConfig.Scale})");
     }
 
     /// <summary>
