@@ -316,7 +316,7 @@ public class SkillActivationSystem : MonoBehaviour
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
-            projectile.Initialize(damage, skill.Range, _playerCharacter, skill.EnemyHitVfx);
+            projectile.Initialize(damage, skill.Range, _playerCharacter, skill.EnemyHitVfxConfig);
         }
 
         Debug.Log($"[{skill.SkillName}] 투사체 발사 완료");

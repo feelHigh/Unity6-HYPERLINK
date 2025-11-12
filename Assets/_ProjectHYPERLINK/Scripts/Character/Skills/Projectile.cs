@@ -3,14 +3,9 @@ using UnityEngine;
 /// <summary>
 /// 스킬 투사체 시스템
 /// 
-/// 목적:
-/// - 원거리 스킬의 투사체 이동 및 충돌 처리
-/// - 데미지 적용 및 시각 효과
-/// - 범위 제한 및 자동 파괴
-/// 
 /// 변경사항:
-/// - AttackInfo를 사용한 데미지 전달
-/// - 히트 VFX 지원
+/// - HitVfxConfig 사용 (GameObject에서 변경)
+/// - Offset, Rotation, Size 지원
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
@@ -29,7 +24,7 @@ public class Projectile : MonoBehaviour
 
     // 런타임 데이터
     private float _damage;
-    private GameObject _hitVfx;
+    private HitVfxConfig _hitVfxConfig;
     private float _maxRange;
     private PlayerCharacter _owner;
     private Vector3 _startPosition;
@@ -47,14 +42,12 @@ public class Projectile : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
 
-        // Rigidbody 설정 확인
         if (!_rigidbody.isKinematic)
         {
             Debug.LogWarning("[Projectile] Rigidbody는 Kinematic이어야 합니다!");
             _rigidbody.isKinematic = true;
         }
 
-        // Collider 설정 확인
         if (!_collider.isTrigger)
         {
             Debug.LogWarning("[Projectile] Collider는 Trigger여야 합니다!");
@@ -65,16 +58,12 @@ public class Projectile : MonoBehaviour
     /// <summary>
     /// 투사체 초기화
     /// </summary>
-    /// <param name="damage">데미지 양</param>
-    /// <param name="maxRange">최대 비행 거리</param>
-    /// <param name="owner">발사한 캐릭터</param>
-    /// <param name="hitVfx">적 히트 VFX 프리팹 (선택)</param>
-    public void Initialize(float damage, float maxRange, PlayerCharacter owner, GameObject hitVfx = null)
+    public void Initialize(float damage, float maxRange, PlayerCharacter owner, HitVfxConfig hitVfxConfig = null)
     {
         _damage = damage;
         _maxRange = maxRange;
         _owner = owner;
-        _hitVfx = hitVfx;
+        _hitVfxConfig = hitVfxConfig;
         _startPosition = transform.position;
         _isInitialized = true;
 
@@ -90,25 +79,16 @@ public class Projectile : MonoBehaviour
         if (!_isInitialized)
             return;
 
-        // 전진 이동
         MoveForward();
-
-        // 범위 체크
         CheckRange();
     }
 
-    /// <summary>
-    /// 투사체 전진 이동
-    /// </summary>
     private void MoveForward()
     {
         Vector3 movement = transform.forward * _speed * Time.deltaTime;
         _rigidbody.MovePosition(_rigidbody.position + movement);
     }
 
-    /// <summary>
-    /// 최대 사거리 체크
-    /// </summary>
     private void CheckRange()
     {
         float distanceTraveled = Vector3.Distance(_startPosition, transform.position);
@@ -124,38 +104,28 @@ public class Projectile : MonoBehaviour
 
     #region 충돌 처리
 
-    /// <summary>
-    /// 적 충돌 처리 - AttackInfo 사용
-    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (!_isInitialized)
             return;
 
-        // Enemy인지 확인
         EnemyController enemy = other.GetComponent<EnemyController>();
         if (enemy == null)
             return;
 
-        // AttackInfo를 사용한 데미지 적용
+        // AttackInfo 생성 (HitVfxConfig 사용)
         AttackInfo attackInfo = AttackInfo.CreatePlayerSkill(
             _damage,
             other.ClosestPoint(transform.position),
-            _hitVfx
+            _hitVfxConfig
         );
         enemy.TakeDamage(attackInfo);
         Debug.Log($"투사체 명중: {enemy.name}에게 {_damage} 데미지");
 
-        // 히트 이펙트 (기본 이펙트)
         SpawnHitEffect(other.ClosestPoint(transform.position));
-
-        // 관통 처리
         HandlePiercing();
     }
 
-    /// <summary>
-    /// 관통 처리
-    /// </summary>
     private void HandlePiercing()
     {
         _currentPierceCount++;
@@ -171,16 +141,12 @@ public class Projectile : MonoBehaviour
 
     #region 시각 효과
 
-    /// <summary>
-    /// 히트 이펙트 생성
-    /// </summary>
     private void SpawnHitEffect(Vector3 position)
     {
         if (_hitEffectPrefab != null)
         {
             GameObject effect = Instantiate(_hitEffectPrefab, position, Quaternion.identity);
 
-            // 파티클 시스템 자동 파괴
             ParticleSystem ps = effect.GetComponent<ParticleSystem>();
             if (ps != null)
             {
@@ -188,63 +154,47 @@ public class Projectile : MonoBehaviour
             }
             else
             {
-                // 파티클 없으면 3초 후 파괴
                 Destroy(effect, 3f);
             }
         }
     }
 
-    /// <summary>
-    /// 투사체 파괴
-    /// </summary>
     private void DestroyProjectile(bool showEffect)
     {
-        // Trail Renderer가 있으면 분리하여 자연스럽게 소멸
         if (_trailRenderer != null)
         {
             _trailRenderer.transform.SetParent(null);
             Destroy(_trailRenderer.gameObject, _trailRenderer.time);
         }
 
-        // 파괴 이펙트
         if (showEffect)
         {
             SpawnHitEffect(transform.position);
         }
 
-        // 투사체 파괴
         Destroy(gameObject);
     }
 
     #endregion
 
-    #region 디버그 & 유틸리티
+    #region 디버그
 
-    /// <summary>
-    /// Gizmo 시각화
-    /// </summary>
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying || !_isInitialized)
             return;
 
-        // 이동 방향 표시
         Gizmos.color = Color.green;
         Gizmos.DrawRay(transform.position, transform.forward * 2f);
 
-        // 최대 사거리 표시
         Vector3 maxRangePos = _startPosition + transform.forward * _maxRange;
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(maxRangePos, 0.5f);
 
-        // 이동 경로 표시
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(_startPosition, transform.position);
     }
 
-    /// <summary>
-    /// 투사체 정보 출력 (디버그용)
-    /// </summary>
     [ContextMenu("Debug: Print Projectile Info")]
     private void DebugPrintInfo()
     {
@@ -262,14 +212,7 @@ public class Projectile : MonoBehaviour
         }
     }
 
-    #endregion
-
-    #region Unity Editor 전용
-
 #if UNITY_EDITOR
-    /// <summary>
-    /// Inspector 값 변경 시 검증
-    /// </summary>
     private void OnValidate()
     {
         _speed = Mathf.Max(1f, _speed);

@@ -89,9 +89,9 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             Debug.Log($"[PlayerCombat] {attackInfo.Type} 공격 받음: {attackInfo.Damage:F1} 데미지");
 
             // 히트 VFX 생성
-            if (attackInfo.HitVfxPrefab != null)
+            if (attackInfo.HitVfxConfig != null && attackInfo.HitVfxConfig.IsValid())
             {
-                SpawnHitVFX(attackInfo.HitVfxPrefab, attackInfo.HitPosition);
+                SpawnHitVFX(attackInfo.HitVfxConfig, attackInfo.HitPosition);
             }
 
             ApplyHitStun();
@@ -99,30 +99,37 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     }
 
     /// <summary>
-    /// 히트 VFX 생성
+    /// 히트 VFX 생성 (Offset, Rotation, Size 적용)
     /// </summary>
-    private void SpawnHitVFX(GameObject vfxPrefab, Vector3 position)
+    private void SpawnHitVFX(HitVfxConfig config, Vector3 basePosition)
     {
-        if (vfxPrefab == null)
+        if (config == null || !config.IsValid())
         {
-            Debug.LogWarning("[PlayerCombat] VFX 프리팹이 null입니다.");
+            Debug.LogWarning("[PlayerCombat] HitVfxConfig가 유효하지 않습니다.");
             return;
         }
 
-        GameObject vfx = Instantiate(vfxPrefab, position, Quaternion.identity);
+        Vector3 spawnPosition = basePosition + config.PositionOffset;
+        Quaternion spawnRotation = Quaternion.Euler(config.RotationOffset);
 
-        ParticleSystem ps = vfx.GetComponent<ParticleSystem>();
-        if (ps != null)
+        GameObject vfx = Instantiate(config.VfxPrefab, spawnPosition, spawnRotation);
+        vfx.transform.localScale *= config.Scale;
+
+        float lifetime = config.Lifetime;
+        if (lifetime <= 0)
         {
-            float lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
-            Destroy(vfx, lifetime);
-        }
-        else
-        {
-            Destroy(vfx, 3f);
+            ParticleSystem ps = vfx.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
+            }
+            else
+            {
+                lifetime = 3f;
+            }
         }
 
-        Debug.Log($"[PlayerCombat] 히트 VFX 생성: {vfxPrefab.name}");
+        Destroy(vfx, lifetime);
     }
 
     public void Die()

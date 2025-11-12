@@ -405,12 +405,12 @@ public class SkillAnimationController : MonoBehaviour
             EnemyController enemy = hit.GetComponent<EnemyController>();
             if (enemy != null)
             {
-                // ✅ 수정: AttackInfo 생성 및 전달
+                // AttackInfo 생성 및 전달
                 Vector3 hitPosition = enemy.transform.position + Vector3.up * 1f;
                 AttackInfo attackInfo = AttackInfo.CreatePlayerSkill(
                     finalDamage,
                     hitPosition,
-                    skill.EnemyHitVfx
+                    skill.EnemyHitVfxConfig
                 );
 
                 enemy.TakeDamage(attackInfo);
@@ -491,6 +491,7 @@ public class SkillAnimationController : MonoBehaviour
         Quaternion spawnRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
 
         GameObject vfxInstance = Instantiate(config.VfxPrefab, spawnPosition, spawnRotation);
+        vfxInstance.transform.localScale *= config.Scale;
 
         if (config.AttachToCharacter)
         {
