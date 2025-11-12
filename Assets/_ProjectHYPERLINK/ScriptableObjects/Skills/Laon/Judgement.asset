@@ -37,12 +37,19 @@ MonoBehaviour:
     _ignoreTags: []
     _damageMultiplier: 1
   _vfxConfigs:
-  - _vfxPrefab: {fileID: 1485466043327710, guid: 3e914ef784028124db1daf7002a87cc8, type: 3}
+  - _vfxPrefab: {fileID: 1485466043327710, guid: 876701c9c2bf200409ab10f77bfa758d, type: 3}
     _spawnTiming: 0.4
     _positionOffset: {x: 0, y: 1, z: 0}
     _rotationOffset: {x: 0, y: 0, z: 180}
+    _scale: 1
     _lifetime: 0.3
     _attachToCharacter: 0
+  _enemyHitVfxConfig:
+    _vfxPrefab: {fileID: 100004, guid: 352bfe72ccda8443dacb88991f4e44f5, type: 3}
+    _positionOffset: {x: 0, y: 1, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _scale: 1.75
+    _lifetime: 0
   _animationDuration: 1
   _useRootMotion: 1
   _dashDistanceMode: 0
@@ -57,3 +64,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 12288
   _wallStopBuffer: 0.5
+  _skillCastSound: {fileID: 0}
+  _skillHitSound: {fileID: 0}

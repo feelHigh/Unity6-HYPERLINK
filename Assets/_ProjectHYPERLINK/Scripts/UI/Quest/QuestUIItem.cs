@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 퀘스트 UI 아이템 (개별 퀘스트 표시) - 안전성 강화 버전
@@ -67,7 +68,7 @@ public class QuestUIItem : MonoBehaviour
         _questProgress = questProgress;
 
         // 기본 정보 설정
-        SetQuestName(questData.QuestName);
+        SetQuestName(questData.QuestID);
         SetQuestDescription(questData.QuestDescription);
         SetBackgroundColor(_activeQuestColor);
         HideCompletionIndicator();
@@ -87,11 +88,13 @@ public class QuestUIItem : MonoBehaviour
     /// <summary>
     /// 퀘스트 이름 설정
     /// </summary>
-    private void SetQuestName(string questName)
+    private void SetQuestName(string questID)
     {
         if (_questNameText != null)
         {
-            _questNameText.text = questName ?? "이름 없음";
+            string nameText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_QUEST", "");
+            _questNameText.text = questID ?? "이름 없음";
         }
         else
         {

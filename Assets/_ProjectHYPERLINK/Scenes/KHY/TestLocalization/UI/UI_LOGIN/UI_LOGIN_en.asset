@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_LOGIN_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 8d8399380a023c24aa0ccdcc423eb017, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 4779872852156416
+    m_Localized: Play Now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293760
+    m_Localized: Or log in to your account
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293761
+    m_Localized: Username
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293762
+    m_Localized: Password
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293763
+    m_Localized: Log in
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293764
+    m_Localized: Sign up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5073630218985472
+    m_Localized: Logging in...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5073630260928512
+    m_Localized: Creating an account...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293768
+    m_Localized: Please enter username
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293769
+    m_Localized: Username must be at least 3 characters long
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293770
+    m_Localized: Please enter password
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4779872898293771
+    m_Localized: Password must be at least 6 characters long
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

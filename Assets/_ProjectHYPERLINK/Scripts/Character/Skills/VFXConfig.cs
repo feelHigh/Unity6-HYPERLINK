@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// VFX 설정 데이터 클래스
 /// 
-/// 용도: 각 VFX 프리팹의 생성 타이밍, 위치, 회전, 수명 설정
+/// 용도: 각 VFX 프리팹의 생성 타이밍, 위치, 회전, 크기, 수명 설정
 /// - 여러 VFX를 독립적으로 제어 가능
 /// - Unity Inspector에서 직관적으로 설정 가능
 /// </summary>
@@ -27,6 +27,11 @@ public class VfxConfig
     [Tooltip("VFX 회전 오프셋 (오일러 각도)")]
     [SerializeField] private Vector3 _rotationOffset = Vector3.zero;
 
+    [Header("크기 설정")]
+    [Tooltip("VFX 크기 배율 (1.0 = 원본 크기, 2.0 = 2배 크기)")]
+    [Range(0.1f, 5f)]
+    [SerializeField] private float _scale = 1f;
+
     [Header("수명 설정")]
     [Tooltip("VFX 자동 제거 시간 (초, 0이면 파티클 시스템 Duration 사용)")]
     [SerializeField] private float _lifetime = 0f;
@@ -40,6 +45,7 @@ public class VfxConfig
     public float SpawnTiming => _spawnTiming;
     public Vector3 PositionOffset => _positionOffset;
     public Vector3 RotationOffset => _rotationOffset;
+    public float Scale => _scale;
     public float Lifetime => _lifetime;
     public bool AttachToCharacter => _attachToCharacter;
 

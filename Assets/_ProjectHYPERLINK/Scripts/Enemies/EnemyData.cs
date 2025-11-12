@@ -36,7 +36,7 @@ public class EnemyData : ScriptableObject
 
     [Header("----- 히트 VFX -----")]
     [Tooltip("기본 공격이 플레이어에게 맞았을 때 표시할 VFX")]
-    [SerializeField] GameObject _baseAttackHitVfx;
+    [SerializeField] HitVfxConfig _baseAttackHitVfx;
 
     [Header("----- 에픽 몬스터 스탯 배수 -----")]
     [SerializeField] bool _canBeEpic;
@@ -75,7 +75,7 @@ public class EnemyData : ScriptableObject
     public int RewardGold => _rewardGold;
     public GameObject ProjectilePrefab => _projectilePrefab;
     public float ProjectileSpeed => _projrctileSpeed;
-    public GameObject BaseAttackHitVfx => _baseAttackHitVfx;
+    public HitVfxConfig BaseAttackHitVfx => _baseAttackHitVfx;
 
     // - 에픽 프로퍼티 - //
     public bool CanBeEpic => _canBeEpic;

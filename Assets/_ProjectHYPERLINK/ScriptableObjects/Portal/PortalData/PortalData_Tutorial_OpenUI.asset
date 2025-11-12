@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9c9bed5cfb442049935a899d33ba465, type: 3}
   m_Name: PortalData_Tutorial_OpenUI
   m_EditorClassIdentifier: 
-  _portalName: TutorialPortal2
+  _portalName: TutorialPortal
   _portalType: 2
   _targetSceneName: 
   _targetSpawnPointName: 
