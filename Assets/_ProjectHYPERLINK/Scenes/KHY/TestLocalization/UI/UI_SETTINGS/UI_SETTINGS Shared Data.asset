@@ -19,8 +19,8 @@ MonoBehaviour:
     m_Key: SETTINGS_TITLE
     m_Metadata:
       m_Items: []
-  - m_Id: 56672658432000
-    m_Key: New Entry
+  - m_Id: 306730677039104
+    m_Key: New Entry 5
     m_Metadata:
       m_Items: []
   - m_Id: 56672658432001
@@ -31,8 +31,8 @@ MonoBehaviour:
     m_Key: SETTINGS_BTN_ACCEPT
     m_Metadata:
       m_Items: []
-  - m_Id: 56672658432003
-    m_Key: New Entry 1
+  - m_Id: 306730677039105
+    m_Key: New Entry 6
     m_Metadata:
       m_Items: []
   - m_Id: 56672658432004
@@ -47,8 +47,8 @@ MonoBehaviour:
     m_Key: SETTINGS_TAB_GAME
     m_Metadata:
       m_Items: []
-  - m_Id: 56672658432007
-    m_Key: New Entry 2
+  - m_Id: 306730677039106
+    m_Key: New Entry 7
     m_Metadata:
       m_Items: []
   - m_Id: 56672658432008
@@ -75,8 +75,8 @@ MonoBehaviour:
     m_Key: SETTINGS_VIDEO_MODE_FULLSCREEN
     m_Metadata:
       m_Items: []
-  - m_Id: 56672658432014
-    m_Key: New Entry 3
+  - m_Id: 306730677039107
+    m_Key: New Entry 8
     m_Metadata:
       m_Items: []
   - m_Id: 56672658432015
@@ -95,8 +95,8 @@ MonoBehaviour:
     m_Key: SETTINGS_AUDIO_MUSIC_VOLUME
     m_Metadata:
       m_Items: []
-  - m_Id: 56672658432019
-    m_Key: New Entry 4
+  - m_Id: 306730677039108
+    m_Key: New Entry 9
     m_Metadata:
       m_Items: []
   - m_Id: 56672658432020
@@ -105,6 +105,26 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 56672658432021
     m_Key: SETTINGS_GAME_LANGUAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432000
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432003
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432007
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432014
+    m_Key: New Entry 3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432019
+    m_Key: New Entry 4
     m_Metadata:
       m_Items: []
   m_Metadata:

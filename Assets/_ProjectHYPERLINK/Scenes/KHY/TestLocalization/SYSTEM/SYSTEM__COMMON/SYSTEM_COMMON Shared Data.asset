@@ -23,8 +23,8 @@ MonoBehaviour:
     m_Key: SYSTEM_NAME_AGENCY
     m_Metadata:
       m_Items: []
-  - m_Id: 285113760653312
-    m_Key: New Entry 11
+  - m_Id: 535251617837056
+    m_Key: New Entry 16
     m_Metadata:
       m_Items: []
   - m_Id: 251942518124546
@@ -39,8 +39,8 @@ MonoBehaviour:
     m_Key: SYSTEM_LANGUAGE_ZH
     m_Metadata:
       m_Items: []
-  - m_Id: 285113769041920
-    m_Key: New Entry 12
+  - m_Id: 535251693334528
+    m_Key: New Entry 17
     m_Metadata:
       m_Items: []
   - m_Id: 251942518124550
@@ -67,8 +67,8 @@ MonoBehaviour:
     m_Key: SYSTEM_TIME_YEARS_AGO
     m_Metadata:
       m_Items: []
-  - m_Id: 285113769041921
-    m_Key: New Entry 13
+  - m_Id: 535251693334529
+    m_Key: New Entry 18
     m_Metadata:
       m_Items: []
   - m_Id: 251942518124557
@@ -83,8 +83,16 @@ MonoBehaviour:
     m_Key: SYSTEM_TIME_SECOND
     m_Metadata:
       m_Items: []
-  - m_Id: 285113769041922
-    m_Key: New Entry 14
+  - m_Id: 535251693334530
+    m_Key: New Entry 19
+    m_Metadata:
+      m_Items: []
+  - m_Id: 535251693334531
+    m_Key: SYSTEM_COMMON_LENGTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 535251693334532
+    m_Key: New Entry 20
     m_Metadata:
       m_Items: []
   - m_Id: 251942518124561
@@ -99,8 +107,8 @@ MonoBehaviour:
     m_Key: SYSTEM_COMMON_TELEPORT
     m_Metadata:
       m_Items: []
-  - m_Id: 285113769041923
-    m_Key: New Entry 15
+  - m_Id: 535251693334533
+    m_Key: New Entry 21
     m_Metadata:
       m_Items: []
   - m_Id: 251942518124565
@@ -109,6 +117,26 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 251942518124566
     m_Key: SYSTEM_MAP_VILLAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 285113760653312
+    m_Key: New Entry 11
+    m_Metadata:
+      m_Items: []
+  - m_Id: 285113769041920
+    m_Key: New Entry 12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 285113769041921
+    m_Key: New Entry 13
+    m_Metadata:
+      m_Items: []
+  - m_Id: 285113769041922
+    m_Key: New Entry 14
+    m_Metadata:
+      m_Items: []
+  - m_Id: 285113769041923
+    m_Key: New Entry 15
     m_Metadata:
       m_Items: []
   - m_Id: 252243425882112

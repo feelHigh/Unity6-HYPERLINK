@@ -26,6 +26,78 @@ MonoBehaviour:
     m_Localized: Catchz
     m_Metadata:
       m_Items: []
+  - m_Id: 251942518124546
+    m_Localized: Korean
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124547
+    m_Localized: English
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124548
+    m_Localized: Chinese (Simplified)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124550
+    m_Localized: Just now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124551
+    m_Localized: '{0} minutes ago'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124552
+    m_Localized: '{0} hours ago'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124553
+    m_Localized: '{0} days ago'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124554
+    m_Localized: '{0} weeks ago'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124555
+    m_Localized: '{0} years ago'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124557
+    m_Localized: h
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124558
+    m_Localized: m
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124559
+    m_Localized: s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 535251693334531
+    m_Localized: m
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124561
+    m_Localized: Inventory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124562
+    m_Localized: Quest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124563
+    m_Localized: Teleport
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124565
+    m_Localized: Tutorial Scene
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251942518124566
+    m_Localized: Village
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

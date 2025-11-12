@@ -22,6 +22,74 @@ MonoBehaviour:
     m_Localized: Settings
     m_Metadata:
       m_Items: []
+  - m_Id: 56672658432001
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432002
+    m_Localized: Apply
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432004
+    m_Localized: Video
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432005
+    m_Localized: Audio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432006
+    m_Localized: Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432008
+    m_Localized: Graphics Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432009
+    m_Localized: Resolution
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432010
+    m_Localized: Display Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432011
+    m_Localized: Windowed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432012
+    m_Localized: Borderless Window
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432013
+    m_Localized: Fullscreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432015
+    m_Localized: Audio Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432016
+    m_Localized: Master Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432017
+    m_Localized: SFX Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432018
+    m_Localized: Music Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432020
+    m_Localized: Game Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56672658432021
+    m_Localized: Language
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
