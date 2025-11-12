@@ -6990,7 +6990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 188177021f9948c4c8a3d56bc11f15a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _portalData: {fileID: 11400000, guid: 3a0313d8853e73b46a4fd0f171ad2e30, type: 2}
+  _portalData: {fileID: 11400000, guid: 9a9718b14f8dfb647aef599267891cf9, type: 2}
   _requiredQuestID: tutorial_complete
   _teleportUIWindow: {fileID: 0}
   _portalEffect: {fileID: 0}
@@ -9702,6 +9702,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 12
       objectReference: {fileID: 0}
+    - target: {fileID: 5329595524201259597, guid: bd6871f18252d234b827a8a44ea9b629, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5712264589001424089, guid: bd6871f18252d234b827a8a44ea9b629, type: 3}
       propertyPath: m_Layer
       value: 12
@@ -10388,6 +10392,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enableDebugLogs: 1
+  _maxRetries: 5
+  _retryDelay: 0.5
 --- !u!1 &775216620
 GameObject:
   m_ObjectHideFlags: 0
@@ -10772,7 +10778,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 24640
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0

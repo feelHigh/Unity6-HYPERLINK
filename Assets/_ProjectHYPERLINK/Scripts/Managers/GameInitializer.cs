@@ -36,6 +36,10 @@ public class GameInitializer : MonoBehaviour
         "TheFirstStage",
         "Billage",
         "TestScene1",
+        "Tutorial",
+        "Act1_1",
+        "Act1_2",
+        "BossStage",
     };
 
     [Header("퀘스트 설정")]

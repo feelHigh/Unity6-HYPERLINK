@@ -111,7 +111,6 @@ public class ItemSpawner : MonoBehaviour
 
         string generatedName = GenerateItemName(data.ItemName, quality, stats);
         data.SetName(generatedName);
-        Debug.Log("아이템 나옴");
         return data;
     }
 
