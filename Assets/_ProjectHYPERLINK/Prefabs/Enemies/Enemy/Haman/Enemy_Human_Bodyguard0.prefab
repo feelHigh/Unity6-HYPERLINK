@@ -827,14 +827,14 @@ MonoBehaviour:
   _disableAfterEffect: 0
   _disableDuration: 0
   _enableObjectControl: 1
-  _objectDisableDelay: 1.5
+  _objectDisableDelay: 0
   _objectsToDisable:
   - {fileID: 4530793286713180347}
-  _objectSpawnDelay: 0.5
+  _objectSpawnDelay: 0
   _objectsToSpawn:
   - {fileID: 2234308903018406735, guid: 768f0361512861b4e9e9e6984a643f56, type: 3}
   _spawnOffset: {x: 0, y: 0, z: 0}
-  _destroyAfterDuration: 0
+  _destroyAfterDuration: 2
   _enableFadeOut: 0
   _fadeOutDelay: 0
   _disableShadows: 0
@@ -866,7 +866,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _shaderGraphPropertyName: _Alpha
-  _enablePositionChange: 1
+  _enablePositionChange: 0
   _isUsingLocalPosition: 0
   _positionChangeDelay: 0
   _targetModel: {fileID: 0}
