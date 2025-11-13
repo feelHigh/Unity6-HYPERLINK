@@ -170,18 +170,14 @@ public class SkillAnimationController : MonoBehaviour
         {
             _navAgent.isStopped = true;
             _navAgent.ResetPath();
-            _navAgent.updateRotation = false;
-        }
-
-        if (_skillCoroutine != null)
-        {
-            StopCoroutine(_skillCoroutine);
-            _skillCoroutine = null;
+            _navAgent.updateRotation = false; // ⭐ 회전 비활성화
         }
 
         CleanupAllVfxCoroutines();
         CleanupAllHitAreaCoroutines();
         CleanupDashTween();
+
+        Log("플레이어 사망 - 스킬 시스템 정지");
     }
 
     #endregion
@@ -530,6 +526,29 @@ public class SkillAnimationController : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// 리스폰 후 스킬 시스템 초기화
+    /// </summary>
+    public void ResetAfterRespawn()
+    {
+        _isPerformingSkill = false;
+        _currentSkill = null;
+
+        // NavMeshAgent 회전 재활성화
+        if (_navAgent != null && _navAgent.enabled && _navAgent.isOnNavMesh)
+        {
+            _navAgent.updateRotation = true; // ⭐ 회전 재활성화
+            _navAgent.isStopped = false;
+        }
+
+        // 남은 VFX/코루틴 정리
+        CleanupAllVfxCoroutines();
+        CleanupAllHitAreaCoroutines();
+        CleanupDashTween();
+
+        Log("리스폰 후 스킬 시스템 초기화 완료");
+    }
 
     #region 디버그
 

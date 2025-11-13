@@ -158,11 +158,10 @@ public class PlayerNavController : MonoBehaviour
         {
             _agent.isStopped = true;
             _agent.ResetPath();
+            _agent.updateRotation = false;
         }
 
-        // 실행 중인 코루틴 정지
         StopAllCoroutines();
-
         _pendingInteraction = null;
         _interactionCoroutine = null;
 
@@ -645,6 +644,44 @@ public class PlayerNavController : MonoBehaviour
     }
 
     #endregion
+
+    /// <summary>
+    /// 리스폰 시 상태 초기화 (스마트 이동 포함)
+    /// </summary>
+    public void ResetAfterRespawn()
+    {
+        _isDead = false;
+        _isPerformingSkill = false;
+
+        // 상호작용 초기화
+        if (_interactionCoroutine != null)
+        {
+            StopCoroutine(_interactionCoroutine);
+            _interactionCoroutine = null;
+        }
+        _pendingInteraction = null;
+
+        // ⭐ 스마트 이동 상태 초기화
+        _lastMovementDirection = Vector3.zero;
+        _isCurrentlyMoving = false;
+
+        // NavMeshAgent 완전 재활성화
+        if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+        {
+            _agent.isStopped = false;
+            _agent.updateRotation = true;
+            _agent.velocity = Vector3.zero;
+            _agent.ResetPath();
+        }
+
+        // Animator 초기화
+        if (_animator != null)
+        {
+            _animator.SetFloat(SPEED_HASH, 0f);
+        }
+
+        Log("리스폰 후 상태 초기화 완료 - 스마트 이동 포함");
+    }
 
     #region 애니메이션
 
