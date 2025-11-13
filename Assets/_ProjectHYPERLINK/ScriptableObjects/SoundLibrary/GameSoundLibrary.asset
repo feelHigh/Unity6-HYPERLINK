@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56cd94bfda62414cb3923cb2ca34dc2, type: 3}
   m_Name: GameSoundLibrary
   m_EditorClassIdentifier: 
-  _playerBasicAttack: {fileID: 0}
+  _playerBasicAttack: {fileID: 8300000, guid: f66282767e69b7a4bac14b19dede7185, type: 3}
   _playerHit: {fileID: 0}
   _playerDeath: {fileID: 0}
   _playerSkillCast: {fileID: 0}
@@ -21,11 +21,11 @@ MonoBehaviour:
   _enemyHit: {fileID: 0}
   _enemyDeath: {fileID: 0}
   _epicSpawn: {fileID: 0}
-  _epicSpecialAttack: {fileID: 0}
+  _epicSpecialAttack: {fileID: 8300000, guid: 85ef4c9bbd21faa4096c06fec388cf8a, type: 3}
   _bossSpawn: {fileID: 0}
-  _bossAttack: {fileID: 0}
-  _bossSpecialAttack: {fileID: 0}
-  _bossDeath: {fileID: 0}
+  _bossAttack: {fileID: 8300000, guid: 5c75cf630e2eece43b3fe0ac1aa78413, type: 3}
+  _bossSpecialAttack: {fileID: 8300000, guid: acfb7f7fa84467c488a98574c0a378cb, type: 3}
+  _bossDeath: {fileID: 8300000, guid: c81165fe8c4944e42a0b5a657313e2df, type: 3}
   _uiClick: {fileID: 0}
   _uiHover: {fileID: 0}
   _itemPickup: {fileID: 0}
