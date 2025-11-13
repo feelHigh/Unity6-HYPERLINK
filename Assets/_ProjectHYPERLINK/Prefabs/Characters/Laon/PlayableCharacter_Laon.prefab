@@ -179,10 +179,10 @@ MonoBehaviour:
   _vfxSpawnTiming: 0.225
   _vfxLifetime: 0.4
   _baseAttackEnemyHitVfxConfig:
-    _vfxPrefab: {fileID: 100004, guid: af6bd571d18d9468cb59458676e82b4b, type: 3}
+    _vfxPrefab: {fileID: 1347330118340980, guid: a270d4b31a4d11a4b8302acf069f853a, type: 3}
     _positionOffset: {x: 0, y: 1, z: 0}
     _rotationOffset: {x: 0, y: 0, z: 0}
-    _scale: 2
+    _scale: 0.5
     _lifetime: 0.5
   _groundLayer:
     serializedVersion: 2

@@ -5,11 +5,12 @@ using System.Collections;
 using UnityEngine.Localization.Settings;
 
 /// <summary>
-/// 설정 윈도우 (Prefab 호환)
+/// 설정 윈도우 (완전 리팩토링)
 /// 
 /// CanvasGroup 패턴 사용
-/// SettingsManager 초기화 순서 대응
-/// 모든 패널 CanvasGroup으로 관리
+/// 실시간 볼륨 조절 지원
+/// 모든 패널 초기화 및 관리
+/// Cancel 시 볼륨 복원
 /// </summary>
 public class SettingsWindow : MonoBehaviour
 {
@@ -72,6 +73,7 @@ public class SettingsWindow : MonoBehaviour
 
     private CanvasGroup _canvasGroup;
     private SettingsData _tempSettings;
+    private SettingsData _originalSettings; // Cancel 시 복원용
     private bool _isInitialized = false;
 
     #endregion
@@ -83,16 +85,34 @@ public class SettingsWindow : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
+        // 메인 CanvasGroup 가져오기
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
         {
             Debug.LogError("[SettingsWindow] CanvasGroup이 없습니다!");
         }
 
+        // 모든 UI 초기 상태로 숨김
+        InitializeCanvasGroups();
+
+        // 패널 유효성 검증
+        ValidatePanelCanvasGroups();
+    }
+
+    /// <summary>
+    /// 모든 CanvasGroup 초기화 - Awake에서 호출
+    /// </summary>
+    private void InitializeCanvasGroups()
+    {
+        // 메인 윈도우 숨김
         CanvasGroupHelper.SetVisible(_canvasGroup, false);
 
-        // 내부 패널 CanvasGroup 검증
-        ValidatePanelCanvasGroups();
+        // 모든 패널 숨김 처리
+        CanvasGroupHelper.SetVisible(_videoCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_audioCanvasGroup, false);
+        CanvasGroupHelper.SetVisible(_gameCanvasGroup, false);
+
+        Debug.Log("[SettingsWindow] 모든 CanvasGroup 초기화 완료");
     }
 
     private void ValidatePanelCanvasGroups()
@@ -116,6 +136,7 @@ public class SettingsWindow : MonoBehaviour
         else
         {
             InitializeUI();
+            InitializeVolumeTexts();
             _isInitialized = true;
         }
     }
@@ -137,8 +158,25 @@ public class SettingsWindow : MonoBehaviour
         {
             Debug.Log("[SettingsWindow] SettingsManager 준비 완료");
             InitializeUI();
+            InitializeVolumeTexts();
             _isInitialized = true;
         }
+    }
+
+    /// <summary>
+    /// 초기 볼륨 텍스트 설정 - Start에서 호출
+    /// </summary>
+    private void InitializeVolumeTexts()
+    {
+        if (SettingsManager.Instance == null) return;
+
+        var settings = SettingsManager.Instance.AppliedSettings;
+
+        UpdateVolumeText(_masterVolumeText, settings.masterVolume);
+        UpdateVolumeText(_sfxVolumeText, settings.sfxVolume);
+        UpdateVolumeText(_bgmVolumeText, settings.bgmVolume);
+
+        Debug.Log("[SettingsWindow] 초기 볼륨 텍스트 설정 완료");
     }
 
     private void InitializeUI()
@@ -215,7 +253,7 @@ public class SettingsWindow : MonoBehaviour
             _languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
         }
 
-        // 볼륨 슬라이더
+        // 볼륨 슬라이더 - 실시간 조절 지원
         if (_masterVolumeSlider != null)
         {
             _masterVolumeSlider.minValue = 0f;
@@ -256,10 +294,19 @@ public class SettingsWindow : MonoBehaviour
             return;
         }
 
+        // 메인 윈도우 표시
         CanvasGroupHelper.SetVisible(_canvasGroup, true);
 
+        // 현재 적용된 설정을 임시 설정으로 복사
         _tempSettings = SettingsManager.Instance.AppliedSettings.Clone();
+
+        // Cancel 시 복원용으로 원본 저장
+        _originalSettings = SettingsManager.Instance.AppliedSettings.Clone();
+
+        // UI에 설정 로드
         LoadSettingsToUI();
+
+        // Video 패널 표시
         ShowPanel(PanelType.Video);
 
         Debug.Log("[SettingsWindow] 윈도우 열림");
@@ -317,12 +364,14 @@ public class SettingsWindow : MonoBehaviour
     {
         if (_tempSettings == null) return;
 
+        // Video 설정
         if (_resolutionDropdown != null)
             _resolutionDropdown.SetValueWithoutNotify(_tempSettings.resolutionIndex);
 
         if (_displayModeDropdown != null)
             _displayModeDropdown.SetValueWithoutNotify(_tempSettings.displayModeIndex);
 
+        // Audio 설정
         if (_masterVolumeSlider != null)
         {
             _masterVolumeSlider.SetValueWithoutNotify(_tempSettings.masterVolume);
@@ -339,6 +388,7 @@ public class SettingsWindow : MonoBehaviour
             UpdateVolumeText(_bgmVolumeText, _tempSettings.bgmVolume);
         }
 
+        // Game 설정
         if (_languageDropdown != null)
             _languageDropdown.SetValueWithoutNotify(_tempSettings.languageIndex);
     }
@@ -365,30 +415,58 @@ public class SettingsWindow : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Master 볼륨 슬라이더 변경 - 실시간 적용
+    /// </summary>
     private void OnMasterVolumeChanged(float value)
     {
         if (_tempSettings != null)
         {
             _tempSettings.masterVolume = value;
             UpdateVolumeText(_masterVolumeText, value);
+
+            Debug.Log($"AudioManager.Instance null? {AudioManager.Instance == null}");
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.SetMasterVolume(value);
+            }
         }
     }
 
+    /// <summary>
+    /// SFX 볼륨 슬라이더 변경 - 실시간 적용
+    /// </summary>
     private void OnSFXVolumeChanged(float value)
     {
         if (_tempSettings != null)
         {
             _tempSettings.sfxVolume = value;
             UpdateVolumeText(_sfxVolumeText, value);
+
+            // 실시간 볼륨 적용
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.SetSFXVolume(value);
+            }
         }
     }
 
+    /// <summary>
+    /// BGM 볼륨 슬라이더 변경 - 실시간 적용
+    /// </summary>
     private void OnBGMVolumeChanged(float value)
     {
         if (_tempSettings != null)
         {
             _tempSettings.bgmVolume = value;
             UpdateVolumeText(_bgmVolumeText, value);
+
+            // 실시간 볼륨 적용
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.SetBGMVolume(value);
+            }
         }
     }
 
@@ -413,18 +491,37 @@ public class SettingsWindow : MonoBehaviour
 
     #region 버튼 이벤트
 
+    /// <summary>
+    /// Cancel 버튼 - 원래 볼륨으로 복원
+    /// </summary>
     private void OnCancelClicked()
     {
         Debug.Log("[SettingsWindow] Cancel 클릭 - 변경사항 취소");
+
+        // 원래 볼륨으로 복원 (실시간 적용)
+        if (_originalSettings != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetMasterVolume(_originalSettings.masterVolume);
+            AudioManager.Instance.SetSFXVolume(_originalSettings.sfxVolume);
+            AudioManager.Instance.SetBGMVolume(_originalSettings.bgmVolume);
+
+            Debug.Log($"[SettingsWindow] 볼륨 복원 완료 - Master: {_originalSettings.masterVolume:F2}");
+        }
+
         Close();
     }
 
+    /// <summary>
+    /// Accept 버튼 - 설정 저장
+    /// </summary>
     private void OnAcceptClicked()
     {
-        Debug.Log("[SettingsWindow] Accept 클릭 - 설정 적용");
+        Debug.Log("[SettingsWindow] Accept 클릭 - 설정 적용 및 저장");
 
         if (_tempSettings != null && SettingsManager.Instance != null)
         {
+            // 설정 저장 (PlayerPrefs에 저장됨)
+            // 볼륨은 이미 실시간으로 적용되었으므로, 여기서는 저장만 함
             SettingsManager.Instance.ApplyAllSettings(_tempSettings);
         }
 
