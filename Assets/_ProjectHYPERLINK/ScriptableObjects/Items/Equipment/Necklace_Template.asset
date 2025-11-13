@@ -20,7 +20,7 @@ MonoBehaviour:
   _quality: 0
   _equipmentType: 6
   _requiredLevel: 1
-  _itemModel: {fileID: 4016774597164853670, guid: 236c78f128ae26f46a37ce92160f3dc9, type: 3}
+  _itemModel: {fileID: 9056962624517821444, guid: bb9995fa0134fda489155090f5b36fe5, type: 3}
   _gridSizeX: 1
   _gridSizeY: 1
   _baseStats: {fileID: 0}

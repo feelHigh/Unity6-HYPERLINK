@@ -287,7 +287,19 @@ public class MapGenerator : MonoBehaviour
                     }
                     else if ((rnd -= _tile2X2Value) <= 0)
                     {
-                        if (CheckCanPlace(x, y))
+                        if (!CheckCanPlace(x, y)) continue;
+                        bool caniMake = true;
+                        _mapTiles[x, y].HasObject = true;
+                        for (int i = x; i <= x + 1; i++)
+                        {
+                            for (int j = y; j <= y + 1; j++)
+                            {
+                                if (!CheckCanPlace(i, j))  caniMake = false;
+                            }
+                        }
+                        pos.x += _cellSize / 2;
+                        pos.z += _cellSize / 2;
+                        if (caniMake)
                         {
                             for (int i = x; i <= x + 1; i++)
                             {
@@ -296,8 +308,6 @@ public class MapGenerator : MonoBehaviour
                                     _mapTiles[i, j].HasObject = true;
                                 }
                             }
-                            pos.x += _cellSize / 2;
-                            pos.z += _cellSize / 2;
                             if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate2X2(pos, _cellSize, _map.RuntimeParent);
                         }
                         else
