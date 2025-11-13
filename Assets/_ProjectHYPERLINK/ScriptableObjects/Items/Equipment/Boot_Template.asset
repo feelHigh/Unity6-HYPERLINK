@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3aff889a311e8fb49b8bd8b3e87f1a22, type: 3}
   m_Name: Boot_Template
   m_EditorClassIdentifier: 
-  _itemNumber: 2002
-  _itemName: "\uCCA0\uAC11"
-  _description: "\uAC11\uBE60"
-  _itemIcon: {fileID: 0}
+  _itemNumber: 2001
+  _itemName: "\uC2E0\uBC1C"
+  _description: "\uC2E0\uBC1C\uC774\uB2E4."
+  _itemIcon: {fileID: 21300000, guid: 57e55d9ab75fec140a903522d5acf84e, type: 3}
+  _gold: 0
   _quality: 0
-  _equipmentType: 6
+  _equipmentType: 5
   _requiredLevel: 1
-  _itemModel: {fileID: 1052491945685377907, guid: 73bb2744a1ec8b845a2d114259e4ead8, type: 3}
-  _gridSizeX: 1
+  _itemModel: {fileID: 4951428493406186132, guid: b9100aa189d87db49afdd4bcedc14dd3, type: 3}
+  _gridSizeX: 2
   _gridSizeY: 1
   _baseStats: {fileID: 0}
   _proceduralStats: []
