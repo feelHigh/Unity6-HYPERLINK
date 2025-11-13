@@ -621,7 +621,7 @@ MonoBehaviour:
   - {fileID: 1361192381362802041}
   - {fileID: 7727896435381894926}
   - {fileID: 4691613133839209498}
-  _objectSpawnDelay: 1
+  _objectSpawnDelay: 1.5
   _objectsToSpawn:
   - {fileID: 4364383282596128118, guid: 009d79c8b21bb3e4184c1b18596e2a01, type: 3}
   _spawnOffset: {x: 0, y: 0, z: 0}

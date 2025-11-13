@@ -25,9 +25,19 @@ MonoBehaviour:
   _rewardGold: 5
   _projectilePrefab: {fileID: 0}
   _projrctileSpeed: 12
-  _baseAttackHitVfx: {fileID: 3760523717369191613, guid: d6746c7ccf2e8ac478085edb58de393c, type: 3}
+  _baseAttackHitVfx:
+    _vfxPrefab: {fileID: 3760523717369191613, guid: d6746c7ccf2e8ac478085edb58de393c, type: 3}
+    _positionOffset: {x: 0, y: 0, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _scale: 1
+    _lifetime: 0
   _canBeEpic: 1
   _epicHpMultiplier: 2
   _epicAtkMultiplier: 2
   _epicExpMultiplier: 0
   _epicGoldMultiplier: 0
+  _meleeAttackSound: {fileID: 0}
+  _rangedAttackSound: {fileID: 0}
+  _hitSound: {fileID: 0}
+  _deathSound: {fileID: 0}
+  _epicSpawnSound: {fileID: 0}

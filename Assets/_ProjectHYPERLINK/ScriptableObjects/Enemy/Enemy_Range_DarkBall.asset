@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ba03f3a7d3a176409c3c8f8913e59cf, type: 3}
-  m_Name: Enemy_Range_FireBall
+  m_Name: Enemy_Range_DarkBall
   m_EditorClassIdentifier: 
-  _name: "\uC6D0\uAC70\uB9AC(\uD30C\uC774\uC5B4\uBCFC)"
+  _name: "\uC6D0\uAC70\uB9AC(\uC5B4\uB460\uBCFC)"
   _maxHp: 100
   _moveSpeed: 5
-  _atk: 5
+  _atk: 10
   _detectionRange: 8
   _chaseDistance: 10
   _basicAttackType: 1
@@ -23,11 +23,21 @@ MonoBehaviour:
   _attackCoolTime: 3
   _rewardExp: 5
   _rewardGold: 5
-  _projectilePrefab: {fileID: 4273459189357932595, guid: 3e6d7dcbc0fd656439fa04074ebb5162, type: 3}
+  _projectilePrefab: {fileID: 5140824982369331126, guid: 2a76628e37f590743be0e49f9cdbace8, type: 3}
   _projrctileSpeed: 12
-  _baseAttackHitVfx: {fileID: 2473541304445770518, guid: 087a115573234ad45a2f98f1ed3ce5d4, type: 3}
-  _canBeEpic: 0
+  _baseAttackHitVfx:
+    _vfxPrefab: {fileID: 7983885389930954267, guid: 65fe706669b63194490b9c940cbd4158, type: 3}
+    _positionOffset: {x: 0, y: 0, z: 0}
+    _rotationOffset: {x: 0, y: 0, z: 0}
+    _scale: 1
+    _lifetime: 0
+  _canBeEpic: 1
   _epicHpMultiplier: 2
   _epicAtkMultiplier: 2
   _epicExpMultiplier: 0
   _epicGoldMultiplier: 0
+  _meleeAttackSound: {fileID: 0}
+  _rangedAttackSound: {fileID: 0}
+  _hitSound: {fileID: 0}
+  _deathSound: {fileID: 0}
+  _epicSpawnSound: {fileID: 0}
