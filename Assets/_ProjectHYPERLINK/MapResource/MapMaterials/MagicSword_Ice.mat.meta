@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d4d6b1e00f112a847a0b677ed66520ba
+guid: 5b0be96218e756142a2e34319dbed986
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 2100000
@@ -8,8 +8,8 @@ NativeFormatImporter:
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
-  productId: 213789
-  packageName: 80 Luxury Home Furniture Set
+  productId: 97694
+  packageName: Free magic swords
   packageVersion: 1.0
-  assetPath: Assets/home furniture set/Material/chair1.mat
-  uploadId: 482797
+  assetPath: Assets/Hovl Studio/Magic sword/Materials/MagicSword_Ice.mat
+  uploadId: 691225
