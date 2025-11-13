@@ -93,8 +93,8 @@ public class QuestUIItem : MonoBehaviour
         if (_questNameText != null)
         {
             string nameText = LocalizationSettings.StringDatabase.GetLocalizedString(
-                "DATA_QUEST", "");
-            _questNameText.text = questID ?? "이름 없음";
+                "DATA_QUEST", "QUEST_NAME_" + questID.ToUpper());
+            _questNameText.text = nameText ?? "이름 없음";
         }
         else
         {
