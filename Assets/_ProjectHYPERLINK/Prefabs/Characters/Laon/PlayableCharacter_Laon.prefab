@@ -315,7 +315,7 @@ MonoBehaviour:
   _playerCharacter: {fileID: 0}
   _stateController: {fileID: 0}
   _navController: {fileID: 0}
-  _hitStunDuration: 0.7
+  _hitStunDuration: 0.3
 --- !u!114 &341333240480795390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,7 +331,7 @@ MonoBehaviour:
   _animator: {fileID: 0}
   _skillActivationSystem: {fileID: 0}
   _rotateTowardsMouse: 1
-  _enableDebugLogs: 1
+  _enableDebugLogs: 0
   _showDebugGizmos: 1
 --- !u!114 &5488621197481358210
 MonoBehaviour:
