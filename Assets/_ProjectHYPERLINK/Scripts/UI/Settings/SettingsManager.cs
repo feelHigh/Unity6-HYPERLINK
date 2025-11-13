@@ -8,16 +8,7 @@ using Newtonsoft.Json;
 /// 역할:
 /// - 설정 로드/저장 (PlayerPrefs)
 /// - 설정 적용 (해상도, 오디오, 언어)
-/// - 임시 설정과 적용된 설정 분리
-/// 
-/// 사용 흐름:
-/// 1. Awake에서 설정 로드
-/// 2. SettingsWindow에서 임시 설정 수정
-/// 3. Apply 버튼으로 설정 적용 및 저장
-/// 4. Cancel 버튼으로 임시 설정 되돌림
-/// 
-/// PlayerPrefs 키:
-/// - "GameSettings": JSON 직렬화된 설정 데이터
+/// - AudioManager를 통한 볼륨 제어
 /// </summary>
 public class SettingsManager : MonoBehaviour
 {
@@ -191,19 +182,24 @@ public class SettingsManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 오디오 설정 적용
+    /// 오디오 설정 적용 - AudioManager를 통해 모든 볼륨 제어
     /// </summary>
     private void ApplyAudioSettings(SettingsData settings)
     {
-        // Unity Audio Mixer 사용 시 여기서 적용
-        // AudioMixer.SetFloat("MasterVolume", Mathf.Log10(settings.masterVolume) * 20);
+        // AudioManager를 통해 모든 볼륨 설정 적용
+        // AudioManager가 Audio Mixer 또는 AudioSource를 직접 제어
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetMasterVolume(settings.masterVolume);
+            AudioManager.Instance.SetSFXVolume(settings.sfxVolume);
+            AudioManager.Instance.SetBGMVolume(settings.bgmVolume);
 
-        // 또는 AudioListener 볼륨 (간단한 방법)
-        AudioListener.volume = settings.masterVolume;
-
-        Debug.Log($"[SettingsManager] 오디오 설정 적용 - Master: {settings.masterVolume:F2}, SFX: {settings.sfxVolume:F2}, BGM: {settings.bgmVolume:F2}");
-
-        // TODO: SFX와 BGM은 AudioMixer를 통해 개별 적용 권장
+            Debug.Log($"[SettingsManager] 오디오 설정 적용 - Master: {settings.masterVolume:F2}, SFX: {settings.sfxVolume:F2}, BGM: {settings.bgmVolume:F2}");
+        }
+        else
+        {
+            Debug.LogWarning("[SettingsManager] AudioManager를 찾을 수 없어 오디오 설정을 적용하지 못했습니다.");
+        }
     }
 
     /// <summary>

@@ -22625,7 +22625,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6686ab3bd559156478b040581a881adf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _sceneBGM: {fileID: 0}
+  _sceneBGM: {fileID: 8300000, guid: 2b6d82868af7c334ab22bf77f2581c52, type: 3}
   _useFadeIn: 1
   _fadeInDuration: 2
   _stopPreviousBGM: 1
