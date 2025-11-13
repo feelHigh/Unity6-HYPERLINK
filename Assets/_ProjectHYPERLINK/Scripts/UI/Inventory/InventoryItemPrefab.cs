@@ -66,7 +66,7 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
         Vector2 newPos = (firstPos + lastPos) / 2f;
 
         _ownerSlot = firstSlot;
-
+        _image.sprite = _data.ItemIcon;
         // 아이템 크기 설정
         float xsize = _data.GridSize.x * _slotSize;
         float ysize = _data.GridSize.y * _slotSize;

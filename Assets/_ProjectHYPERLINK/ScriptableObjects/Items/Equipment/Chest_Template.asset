@@ -13,15 +13,16 @@ MonoBehaviour:
   m_Name: Chest_Template
   m_EditorClassIdentifier: 
   _itemNumber: 2002
-  _itemName: "\uCCA0\uAC11"
-  _description: "\uAC11\uBE60"
-  _itemIcon: {fileID: 0}
+  _itemName: "\uCCA0\uAC11\uC637"
+  _description: "\uAC11\uC637\uC774\uB2E4."
+  _itemIcon: {fileID: 21300000, guid: c720139856ac0f44d894498956e1b55f, type: 3}
+  _gold: 0
   _quality: 0
   _equipmentType: 3
   _requiredLevel: 1
-  _itemModel: {fileID: 1052491945685377907, guid: 73bb2744a1ec8b845a2d114259e4ead8, type: 3}
-  _gridSizeX: 1
-  _gridSizeY: 1
+  _itemModel: {fileID: 1002876618934304661, guid: bcb60191cf3897949be226267745ed3e, type: 3}
+  _gridSizeX: 2
+  _gridSizeY: 2
   _baseStats: {fileID: 0}
   _proceduralStats: []
   _useProceduralStats: 0

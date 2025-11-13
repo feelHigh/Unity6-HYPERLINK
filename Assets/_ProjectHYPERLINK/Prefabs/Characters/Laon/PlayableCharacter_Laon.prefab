@@ -285,7 +285,7 @@ MonoBehaviour:
   _overlapRadius: 3
   _interactableLayer:
     serializedVersion: 2
-    m_Bits: 4096
+    m_Bits: 36864
   _enableDebugLogs: 0
   _showDebugRay: 1
 --- !u!114 &1237584802716128544
