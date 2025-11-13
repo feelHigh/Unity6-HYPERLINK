@@ -64,5 +64,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 12288
   _wallStopBuffer: 0.5
-  _skillCastSound: {fileID: 0}
-  _skillHitSound: {fileID: 0}
+  _skillCastSound: {fileID: 8300000, guid: c7afd86aee79720419478415dc7bd43c, type: 3}
+  _skillHitSound: {fileID: 8300000, guid: c7afd86aee79720419478415dc7bd43c, type: 3}

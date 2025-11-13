@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56cd94bfda62414cb3923cb2ca34dc2, type: 3}
   m_Name: GameSoundLibrary
   m_EditorClassIdentifier: 
-  _playerBasicAttack: {fileID: 0}
-  _playerHit: {fileID: 8300000, guid: 965534a486662c6428a4a38c2316f10d, type: 3}
-  _playerDeath: {fileID: 8300000, guid: 646637eb3f719d54184e6de27737c2e1, type: 3}
+  _playerBasicAttack: {fileID: 8300000, guid: f66282767e69b7a4bac14b19dede7185, type: 3}
+  _playerHit: {fileID: 0}
+  _playerDeath: {fileID: 0}
   _playerSkillCast: {fileID: 0}
   _enemyMeleeAttack: {fileID: 0}
   _enemyRangedAttack: {fileID: 0}
