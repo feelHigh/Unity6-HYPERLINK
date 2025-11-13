@@ -37,8 +37,7 @@ public class BossAI : MonoBehaviour
     [SerializeField] TargetDetector _comboDetector;     //3연타 감지
 
     [Header("----- 이펙트 -----")]
-    [SerializeField] GameObject _slamEffect;     //내려찍기 경고 이펙트
-    [SerializeField] GameObject _breathEffect;          //화염 브레스 이펙트
+    [SerializeField] GameObject _breath;                //화염 브레스
     [SerializeField] Transform _breathSpawnPos;         //브레스 발사 위치
 
     //상태
@@ -398,9 +397,9 @@ public class BossAI : MonoBehaviour
 
         //이펙트 생성
         GameObject slamEffect = null;
-        if (_slamEffect != null)
+        if (_data.SlamEffect != null)
         {
-            slamEffect = Instantiate(_slamEffect, transform.position, Quaternion.identity);
+            slamEffect = Instantiate(_data.SlamEffect, transform.position, Quaternion.identity);
         }
 
         yield return new WaitForSeconds(_data.SlamPrepareTime);
@@ -675,11 +674,11 @@ public class BossAI : MonoBehaviour
         Debug.Log("[BossAI] 화염 브레스 발사!");
 
         //브레스 이펙트 생성
-        if (_breathEffect != null && _breathSpawnPos != null)
+        if (_breath != null && _breathSpawnPos != null)
         {
             Quaternion breatRot = Quaternion.LookRotation(transform.forward);
 
-            GameObject breathEffect = Instantiate(_breathEffect, _breathSpawnPos.position, breatRot);
+            GameObject breathEffect = Instantiate(_breath, _breathSpawnPos.position, breatRot);
 
             WaveAttackController waveAttackController = breathEffect.GetComponent<WaveAttackController>();
             if (waveAttackController != null)

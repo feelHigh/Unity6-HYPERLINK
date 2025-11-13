@@ -1,0 +1,232 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: DATA_CHAR_STAT Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: DATA_CHAR_STAT
+  m_TableCollectionNameGuidString: b690c940536714e4fb44e3a114288600
+  m_Entries:
+  - m_Id: 634938180018176
+    m_Key: STAT_NAME_Strength
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938188406784
+    m_Key: STAT_NAME_Dexterity
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938188406785
+    m_Key: STAT_NAME_Intelligence
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938188406786
+    m_Key: STAT_NAME_Vitality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601088
+    m_Key: New Entry 4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601089
+    m_Key: STAT_NAME_PhysicalAttack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601090
+    m_Key: STAT_NAME_MagicalAttack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601091
+    m_Key: STAT_NAME_Armor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601092
+    m_Key: STAT_NAME_AllResistance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601093
+    m_Key: New Entry 5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601094
+    m_Key: STAT_NAME_CriticalChance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601095
+    m_Key: STAT_NAME_CriticalDamage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601096
+    m_Key: STAT_NAME_AttackSpeed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601097
+    m_Key: STAT_NAME_MovementSpeed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601098
+    m_Key: New Entry 6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601099
+    m_Key: STAT_NAME_HEALTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601100
+    m_Key: STAT_NAME_MANA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601101
+    m_Key: New Entry 7
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601102
+    m_Key: STAT_NAME_MaxHealth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601103
+    m_Key: STAT_NAME_CurrentHealth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601104
+    m_Key: STAT_NAME_MaxMana
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601105
+    m_Key: STAT_NAME_CurrentMana
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601106
+    m_Key: STAT_NAME_HealthRegeneration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601107
+    m_Key: STAT_NAME_ManaRegeneration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 634938192601108
+    m_Key: New Entry 8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203669
+    m_Key: STAT_NAME_LEVEL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203670
+    m_Key: STAT_NAME_EXPERIENCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203671
+    m_Key: STAT_NAME_RED_SODA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203672
+    m_Key: STAT_NAME_GOLD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616433426432
+    m_Key: STAT_NAME_STRENGTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203648
+    m_Key: STAT_NAME_DEXTERITY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203649
+    m_Key: STAT_NAME_INTERLLIGENCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203650
+    m_Key: STAT_NAME_VITALITY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203651
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203652
+    m_Key: STAT_NAME_PHYSICAL_ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203653
+    m_Key: STAT_NAME_MAGICAL_ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203654
+    m_Key: STAT_NAME_ARMOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203655
+    m_Key: STAT_NAME_ALL_RESISTANCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203656
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203657
+    m_Key: STAT_NAME_CRITICAL_CHANCE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203658
+    m_Key: STAT_NAME_CRITICAL_DAMAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203659
+    m_Key: STAT_NAME_ATTACK_SPEED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203660
+    m_Key: STAT_NAME_MOVEMENT_SPEED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203661
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203662
+    m_Key: STAT_NAME_MAX_HEALTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203663
+    m_Key: STAT_NAME_CURRENT_HEALTH
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203664
+    m_Key: STAT_NAME_MAX_MANA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203665
+    m_Key: STAT_NAME_CURRENT_MANA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203666
+    m_Key: STAT_NAME_HEALTH_REGENERATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203667
+    m_Key: STAT_NAME_MANA_REGENERATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272616450203668
+    m_Key: New Entry 3
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 3716726690045493296
+  references:
+    version: 2
+    RefIds:
+    - rid: 3716726690045493296
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1762845302752

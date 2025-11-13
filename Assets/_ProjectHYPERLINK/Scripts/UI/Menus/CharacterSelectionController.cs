@@ -194,7 +194,7 @@ public class CharacterSelectionController : MonoBehaviour
         // 마지막 씬 정보 추가
         string lastPlayText = LocalizationSettings.StringDatabase.GetLocalizedString(
             "UI_CHAR_SELECT",
-            "SELECT_TXT_PLAYTIME");
+            "SELECT_TXT_LASTPLAY");
         //TODO : 씬 이름
         string lastScene = !string.IsNullOrEmpty(data.position?.scene) ? data.position.scene : _gameScene;
         _lastPlayedText.text = $"{lastPlayText}: {FormatTimeSince(timeSince)} ({lastScene})";

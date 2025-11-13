@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_CHAR_SELECT_ko
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: ko
+  m_SharedData: {fileID: 11400000, guid: 1133796a39a7b9a4fbdf05809934c151, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 301639448436736
+    m_Localized: "\uCD1D \uD50C\uB808\uC774 \uC2DC\uAC04"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825344
+    m_Localized: "\uCD5C\uADFC \uD50C\uB808\uC774"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825345
+    m_Localized: "\uD50C\uB808\uC774"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825346
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0AD\uC81C"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825347
+    m_Localized: "\uD074\uB798\uC2A4 \uC120\uD0DD"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825348
+    m_Localized: "\uB2C9\uB124\uC784"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825349
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0DD\uC131"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825350
+    m_Localized: "\uCE90\uB9AD\uD130 \uC774\uB984\uC744 \uC785\uB825\uD558\uC138\uC694"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825351
+    m_Localized: "\uCE90\uB9AD\uD130 \uC774\uB984\uC740 3\uC790 \uC774\uC0C1\uC774\uC5B4\uC57C
+      \uD569\uB2C8\uB2E4"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825352
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0DD\uC131 \uC911\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825353
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0DD\uC131 \uC2E4\uD328"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825354
+    m_Localized: "\uCE90\uB9AD\uD130\uB97C \uC601\uAD6C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825355
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0AD\uC81C \uC911\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825356
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0AD\uC81C \uC644\uB8CC"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825357
+    m_Localized: "\uCE90\uB9AD\uD130 \uC0AD\uC81C \uC2E4\uD328"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 665111264796672
+    m_Localized: "\uCD1D \uD50C\uB808\uC774 \uC2DC\uAC04"
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

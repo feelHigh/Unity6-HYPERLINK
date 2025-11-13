@@ -253,18 +253,12 @@ public class MapGenerator : MonoBehaviour
     /// <summary>
     /// 맵 생성 (타일 오브젝트 배치)
     /// </summary>
-    private void GenerateMap()
+    public void GenerateMap()
     {
-        // 문 위치에 오브젝트 배치 방지 플래그 설정
         foreach (var tile in _mapTiles)
         {
-            if (tile.xWall == WallType.Door || tile.yWall == WallType.Door)
-            {
-                tile.HasObject = true;
-            }
+            if (tile.xWall == WallType.Door || tile.yWall == WallType.Door) tile.HasObject = true;
         }
-
-        // 모든 타일 순회하며 오브젝트 배치
         for (int x = 0; x < _mapTiles.GetLength(0); x++)
         {
             for (int y = 0; y < _mapTiles.GetLength(1); y++)
@@ -272,111 +266,81 @@ public class MapGenerator : MonoBehaviour
                 if (_mapTiles[x, y].Type != TileType.Empty)
                 {
                     if (_mapTiles[x, y].HasObject) continue;
-
                     Vector3 pos = _startPos + new Vector3(x * _cellSize, 0, y * _cellSize);
                     _mapTiles[x, y].HasObject = true;
-
-                    // 문 근처는 건너뛰기
-                    if (x > 0 && _mapTiles[x - 1, y].xWall == WallType.Door) continue;
-                    if (y > 0 && _mapTiles[x, y - 1].yWall == WallType.Door) continue;
-
-                    // 타일 타입별로 오브젝트 생성
-                    PlaceTileObject(x, y, pos);
-                }
-            }
-        }
-
-        Log("맵 생성 완료");
-    }
-
-    /// <summary>
-    /// 특정 위치에 타일 오브젝트 배치
-    /// </summary>
-    private void PlaceTileObject(int x, int y, Vector3 pos)
-    {
-        int rnd = Random.Range(0, _tileNoneValue + _tile2X2Value + _tile1X1Value);
-        TileType type = _mapTiles[x, y].Type;
-
-        // 타일 생성 확률 체크
-        if ((rnd -= _tileNoneValue) <= 0)
-        {
-            // 빈 타일
-        }
-        else if ((rnd -= _tile2X2Value) <= 0)
-        {
-            // 2x2 타일
-            if (CheckCanPlace(x, y))
-            {
-                // 2x2 영역 마킹
-                for (int i = x; i <= x + 1; i++)
-                {
-                    for (int j = y; j <= y + 1; j++)
+                    if (x > 0 && _mapTiles[x - 1, y].xWall == WallType.Door)
                     {
-                        _mapTiles[i, j].HasObject = true;
+
+                        continue;
                     }
-                }
+                    if (y > 0 && _mapTiles[x, y - 1].yWall == WallType.Door)
+                    {
 
-                pos.x += _cellSize / 2;
-                pos.z += _cellSize / 2;
+                        continue;
+                    }
+                    int rnd = Random.Range(0, _tileNoneValue + _tile2X2Value + _tile1X1Value);
+                    TileType type = _mapTiles[x, y].Type;
 
-                if (_generatorDic.ContainsKey(type))
-                {
-                    _generatorDic[type].Generate2X2(pos, _cellSize, _map.RuntimeParent);
+                    if ((rnd -= _tileNoneValue) <= 0)
+                    {
+
+                    }
+                    else if ((rnd -= _tile2X2Value) <= 0)
+                    {
+                        if (CheckCanPlace(x, y))
+                        {
+                            for (int i = x; i <= x + 1; i++)
+                            {
+                                for (int j = y; j <= y + 1; j++)
+                                {
+                                    _mapTiles[i, j].HasObject = true;
+                                }
+                            }
+                            pos.x += _cellSize / 2;
+                            pos.z += _cellSize / 2;
+                            if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate2X2(pos, _cellSize, _map.RuntimeParent);
+                        }
+                        else
+                        {
+                            if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
+                        }
+                    }
+                    else if ((rnd -= _tile1X1Value) <= 0)
+                    {
+                        if (_generatorDic.ContainsKey(type)) _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
+                    }
+
                 }
-            }
-            else
-            {
-                // 2x2 배치 불가능 → 1x1로 폴백
-                if (_generatorDic.ContainsKey(type))
-                {
-                    _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
-                }
-            }
-        }
-        else if ((rnd -= _tile1X1Value) <= 0)
-        {
-            // 1x1 타일
-            if (_generatorDic.ContainsKey(type))
-            {
-                _generatorDic[type].Generate1X1(pos, _cellSize, _map.RuntimeParent);
             }
         }
     }
 
-    /// <summary>
-    /// 2x2 타일 배치 가능 여부 체크
-    /// </summary>
-    private bool CheckCanPlace(int x, int y)
+    bool CheckCanPlace(int x, int y)
     {
-        // 경계 체크
         if (x + 1 >= _mapTiles.GetLength(0) || y + 1 >= _mapTiles.GetLength(1))
         {
+
             return false;
         }
-
         int roomNum = _mapTiles[x, y].RoomNum;
-
-        // 2x2 영역 체크
         for (int i = x; i <= x + 1; i++)
         {
             for (int j = y; j <= y + 1; j++)
             {
                 if (i == x && j == y) continue;
-
-                // 같은 방인지 체크
                 if (_mapTiles[i, j].RoomNum != roomNum)
                 {
+
                     return false;
                 }
-
-                // 이미 오브젝트가 있는지 체크
                 if (_mapTiles[i, j].HasObject)
                 {
+
                     return false;
                 }
+
             }
         }
-
         return true;
     }
 

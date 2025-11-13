@@ -86,6 +86,20 @@ public class BossData : ScriptableObject
     [SerializeField] int _rewardExp = 1000;
     [SerializeField] int _rewardGold = 500;
 
+    [Header("----- 이펙트 -----")]
+    [Tooltip("기본 공격 이펙트")]
+    [SerializeField] private GameObject _basicAattackEffect;
+    [Tooltip("포효 이펙트")]
+    [SerializeField] private GameObject _roarEffect;
+    [Tooltip("패턴 1: 내려찍기 이펙트")]
+    [SerializeField] private GameObject _slamEffect;
+    [Tooltip("패턴 2: 돌진 이펙트")]
+    [SerializeField] private GameObject _chargeEffect;
+    [Tooltip("패턴 3: 3연타 이펙트")]
+    [SerializeField] private GameObject _comboEffect;
+    [Tooltip("패턴 4: 브레스 이펙트")]
+    [SerializeField] private GameObject _breathEffect;
+
     [Header("----- 사운드 오버라이드 (선택사항) -----")]
     [Tooltip("보스 스폰 사운드 (비어있으면 GameSoundLibrary 기본값 사용)")]
     [SerializeField] private AudioClip _spawnSound;
@@ -160,6 +174,14 @@ public class BossData : ScriptableObject
     //보상
     public int RewardExp => _rewardExp;
     public int RewardGold => _rewardGold;
+
+    //이펙트
+    public GameObject BasicAttackEffect => _basicAattackEffect;
+    public GameObject RoarEffect => _roarEffect;
+    public GameObject SlamEffect => _slamEffect;
+    public GameObject ChargeEffect => _chargeEffect;
+    public GameObject ComboEffect => _comboEffect;
+    public GameObject BreathEffect => _breathEffect;
 
     //사운드 오버라이드 프로퍼티
     public AudioClip SpawnSound => _spawnSound;

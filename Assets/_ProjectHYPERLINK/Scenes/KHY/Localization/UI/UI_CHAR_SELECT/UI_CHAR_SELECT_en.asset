@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_CHAR_SELECT_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 1133796a39a7b9a4fbdf05809934c151, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 301639448436736
+    m_Localized: Total Play Time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825344
+    m_Localized: Last Played
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825345
+    m_Localized: Play
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825346
+    m_Localized: Delete Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825347
+    m_Localized: Select Class
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825348
+    m_Localized: Nickname
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825349
+    m_Localized: Create Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825350
+    m_Localized: Please enter a character name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825351
+    m_Localized: Character name must be at least 3 characters
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825352
+    m_Localized: Creating character...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825353
+    m_Localized: Failed to create character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825354
+    m_Localized: Are you sure you want to permanently delete this character?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825355
+    m_Localized: Deleting character...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825356
+    m_Localized: Character deleted successfully
+    m_Metadata:
+      m_Items: []
+  - m_Id: 301639456825357
+    m_Localized: Failed to delete character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 665111264796672
+    m_Localized: Total Play Time
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

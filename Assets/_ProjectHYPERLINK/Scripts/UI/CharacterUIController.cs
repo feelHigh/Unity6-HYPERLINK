@@ -326,35 +326,35 @@ public class CharacterUIController : MonoBehaviour
         {
             string dexterityText = LocalizationSettings.StringDatabase.GetLocalizedString(
                 "DATA_CHAR_STAT", "STAT_NAME_Dexterity");
-            _strengthText.text = $"{dexterityText}: {stats.Dexterity}";
+            _dexterityText.text = $"{dexterityText}: {stats.Dexterity}";
         }
 
         if (_intelligenceText != null)
         {
             string intelligenceText = LocalizationSettings.StringDatabase.GetLocalizedString(
                 "DATA_CHAR_STAT", "STAT_NAME_Intelligence");
-            _strengthText.text = $"{intelligenceText}: {stats.Intelligence}";
+            _intelligenceText.text = $"{intelligenceText}: {stats.Intelligence}";
         }
 
         if (_vitalityText != null)
         {
             string vitalityText = LocalizationSettings.StringDatabase.GetLocalizedString(
                 "DATA_CHAR_STAT", "STAT_NAME_Vitality");
-            _strengthText.text = $"{vitalityText}: {stats.Vitality}";
+            _vitalityText.text = $"{vitalityText}: {stats.Vitality}";
         }
 
         if (_critChanceText != null)
         {
             string critChanceText = LocalizationSettings.StringDatabase.GetLocalizedString(
                 "DATA_CHAR_STAT", "STAT_NAME_CriticalChance");
-            _strengthText.text = $"{critChanceText}: {stats.CriticalChance:F1}%";
+            _critChanceText.text = $"{critChanceText}: {stats.CriticalChance:F1}%";
         }
 
         if (_critDamageText != null)
         {
             string critDamageText = LocalizationSettings.StringDatabase.GetLocalizedString(
                 "DATA_CHAR_STAT", "STAT_NAME_CriticalDamage");
-            _strengthText.text = $"{critDamageText}: {stats.CriticalDamage:F1}%";
+            _critDamageText.text = $"{critDamageText}: {stats.CriticalDamage:F1}%";
         }
     }
 
