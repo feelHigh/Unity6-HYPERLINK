@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 씬별 목적지 그룹 UI
@@ -31,6 +32,9 @@ public class TeleportSceneGroup : MonoBehaviour
         // 씬 이름 라벨 설정
         if (_sceneNameLabel != null)
         {
+            string sceneNameText = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_PORTAL", "PORTAL_SCENENAME_" + sceneName.ToUpper());
+
             _sceneNameLabel.text = GetSceneDisplayName(sceneName);
         }
 

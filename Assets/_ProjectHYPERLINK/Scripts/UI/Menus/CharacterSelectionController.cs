@@ -333,8 +333,7 @@ public class CharacterSelectionController : MonoBehaviour
 
         string deletingMsg = LocalizationSettings.StringDatabase.GetLocalizedString(
             "UI_CHAR_SELCT", "SELECT_STATUS_DELETING_CHAR");
-        ShowError(deletingMsg);
-        ShowLoading("캐릭터 삭제 중...");
+        ShowLoading(deletingMsg);
 
         try
         {

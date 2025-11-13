@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 설정 윈도우 (Prefab 호환)
@@ -179,9 +180,17 @@ public class SettingsWindow : MonoBehaviour
         {
             _displayModeDropdown.ClearOptions();
             var optionsList = new System.Collections.Generic.List<TMP_Dropdown.OptionData>();
-            optionsList.Add(new TMP_Dropdown.OptionData("창 모드"));
-            optionsList.Add(new TMP_Dropdown.OptionData("전체화면 창 모드"));
-            optionsList.Add(new TMP_Dropdown.OptionData("전체화면"));
+
+            string windowed = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_SETTINGS", "SETTINGS_VIDEO_MODE_WINDOWED");
+            string borderless = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_SETTINGS", "SETTINGS_VIDEO_MODE_BORDERLESS");
+            string fullScreen = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "UI_SETTINGS", "SETTINGS_VIDEO_MODE_FULLSCREEN");
+
+            optionsList.Add(new TMP_Dropdown.OptionData(windowed));
+            optionsList.Add(new TMP_Dropdown.OptionData(borderless));
+            optionsList.Add(new TMP_Dropdown.OptionData(fullScreen));
             _displayModeDropdown.AddOptions(optionsList);
             _displayModeDropdown.onValueChanged.AddListener(OnDisplayModeChanged);
         }
@@ -191,9 +200,17 @@ public class SettingsWindow : MonoBehaviour
         {
             _languageDropdown.ClearOptions();
             var optionsList = new System.Collections.Generic.List<TMP_Dropdown.OptionData>();
-            optionsList.Add(new TMP_Dropdown.OptionData("English"));
-            optionsList.Add(new TMP_Dropdown.OptionData("한국어"));
-            optionsList.Add(new TMP_Dropdown.OptionData("简体中文"));
+
+            string english = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_LANGUAGE_EN");
+            string korean = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_LANGUAGE_KR");
+            string chinese = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "SYSTEM_COMMON", "SYSTEM_LANGUAGE_ZH");
+
+            optionsList.Add(new TMP_Dropdown.OptionData(english));
+            optionsList.Add(new TMP_Dropdown.OptionData(korean));
+            optionsList.Add(new TMP_Dropdown.OptionData(chinese));
             _languageDropdown.AddOptions(optionsList);
             _languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
         }
