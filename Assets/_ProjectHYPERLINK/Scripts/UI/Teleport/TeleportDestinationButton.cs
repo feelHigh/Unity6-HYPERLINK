@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 텔레포트 목적지 버튼
@@ -59,7 +60,10 @@ public class TeleportDestinationButton : MonoBehaviour
         // 이름 텍스트
         if (_nameText != null)
         {
-            _nameText.text = _destination.DisplayName;
+            string name = LocalizationSettings.StringDatabase.GetLocalizedString(
+                "DATA_PORTAL", "PORTAL_NAME_" + _destination.DisplayName.ToUpper());
+
+            _nameText.text = name;
             _nameText.color = isUnlocked ? Color.white : Color.gray;
         }
 
@@ -68,11 +72,15 @@ public class TeleportDestinationButton : MonoBehaviour
         {
             if (isUnlocked)
             {
-                _descriptionText.text = _destination.Description;
+                string desc = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "DATA_PORTAL", "PORTAL_DESC_" + _destination.DisplayName.ToUpper());
+                _descriptionText.text = desc;
             }
             else
             {
-                _descriptionText.text = "잠김 - 퀘스트 완료 필요";
+                string text = LocalizationSettings.StringDatabase.GetLocalizedString(
+                    "UI_PLAY", "PLAY_MSG_PORTAL_LOCKED");
+                _descriptionText.text = text;
             }
             _descriptionText.color = isUnlocked ? new Color(0.8f, 0.8f, 0.8f) : Color.gray;
         }

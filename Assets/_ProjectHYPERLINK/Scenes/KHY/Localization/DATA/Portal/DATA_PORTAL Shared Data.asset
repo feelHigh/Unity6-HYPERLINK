@@ -15,6 +15,58 @@ MonoBehaviour:
   m_TableCollectionName: DATA_PORTAL
   m_TableCollectionNameGuidString: d4d9ec5a94041f14a901fbce168fd810
   m_Entries:
+  - m_Id: 439427372195840
+    m_Key: PORTAL_SCENENAME_ACT1_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721792
+    m_Key: PORTAL_SCENENAME_ACT1_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721793
+    m_Key: PORTAL_SCENENAME_BILLAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721794
+    m_Key: PORTAL_SCENENAME_BOSSSTAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721795
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721796
+    m_Key: PORTAL_NAME_3FLOOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721797
+    m_Key: PORTAL_DESC_3FLOOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721798
+    m_Key: PORTAL_NAME_2FLOOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721799
+    m_Key: PORTAL_DESC_2FLOOR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721800
+    m_Key: PORTAL_NAME_SAFEZONE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721801
+    m_Key: PORTAL_DESC_SAFEZONE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721802
+    m_Key: PORTAL_NAME_BOSS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721803
+    m_Key: PORTAL_DESC_BOSS
+    m_Metadata:
+      m_Items: []
   - m_Id: 37639410196480
     m_Key: PORTAL_NAME_TUTORIAL_1
     m_Metadata:
