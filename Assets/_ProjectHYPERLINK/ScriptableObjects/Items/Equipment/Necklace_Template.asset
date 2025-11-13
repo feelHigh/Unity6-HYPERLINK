@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3aff889a311e8fb49b8bd8b3e87f1a22, type: 3}
   m_Name: Necklace_Template
   m_EditorClassIdentifier: 
-  _itemNumber: 2002
-  _itemName: "\uCCA0\uAC11"
-  _description: "\uAC11\uBE60"
-  _itemIcon: {fileID: 0}
+  _itemNumber: 2005
+  _itemName: "\uBAA9\uAC78\uC774"
+  _description: "\uBAA9\uAC78\uC774\uC774\uB2E4."
+  _itemIcon: {fileID: 21300000, guid: 94a253c6219cb5841b614e71b6b657fa, type: 3}
+  _gold: 0
   _quality: 0
   _equipmentType: 6
   _requiredLevel: 1
-  _itemModel: {fileID: 1052491945685377907, guid: 73bb2744a1ec8b845a2d114259e4ead8, type: 3}
+  _itemModel: {fileID: 4016774597164853670, guid: 236c78f128ae26f46a37ce92160f3dc9, type: 3}
   _gridSizeX: 1
   _gridSizeY: 1
   _baseStats: {fileID: 0}

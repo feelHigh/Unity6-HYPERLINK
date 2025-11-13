@@ -285,7 +285,7 @@ MonoBehaviour:
   _overlapRadius: 3
   _interactableLayer:
     serializedVersion: 2
-    m_Bits: 4096
+    m_Bits: 36864
   _enableDebugLogs: 0
   _showDebugRay: 1
 --- !u!114 &1237584802716128544
@@ -443,6 +443,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4633755226754946211, guid: fcac9217d65ec7e48b917678e613fbf6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4733153831705741872, guid: fcac9217d65ec7e48b917678e613fbf6, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}

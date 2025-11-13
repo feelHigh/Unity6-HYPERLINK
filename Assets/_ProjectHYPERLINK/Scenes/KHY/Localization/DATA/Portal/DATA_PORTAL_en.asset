@@ -17,7 +17,55 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: d4d9ec5a94041f14a901fbce168fd810, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 439427372195840
+    m_Localized: Act1_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721792
+    m_Localized: Act1_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721793
+    m_Localized: Billage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721794
+    m_Localized: BossStage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721796
+    m_Localized: 3Floor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721797
+    m_Localized: Portal to 3F
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721798
+    m_Localized: 2Floor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721799
+    m_Localized: Portal to 2F
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721800
+    m_Localized: SafeZone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721801
+    m_Localized: Portal to Safe zone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721802
+    m_Localized: Boss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721803
+    m_Localized: Portal to 1F
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

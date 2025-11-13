@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 3
   tags:
   - Enemy
+  - Head
+  - Customization
+  - Body
+  - HeadLevel
   layers:
   - Default
   - TransparentFX
@@ -21,7 +25,7 @@ TagManager:
   - Door
   - Wall
   - Obstacle
-  - 
+  - Portal
   - 
   - 
   - 

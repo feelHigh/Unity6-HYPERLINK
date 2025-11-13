@@ -17,7 +17,55 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: d4d9ec5a94041f14a901fbce168fd810, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 439427372195840
+    m_Localized: "\u7B2C\u4E00\u7AE0 - 1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721792
+    m_Localized: "\u7B2C\u4E00\u7AE0 - 2"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721793
+    m_Localized: "\u6751\u5E84"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721794
+    m_Localized: "Boss\u5173\u5361"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721796
+    m_Localized: "3\u697C"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721797
+    m_Localized: "\u901A\u5F803\u697C\u7684\u4F20\u9001\u95E8"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721798
+    m_Localized: "2\u697C"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721799
+    m_Localized: "\u901A\u5F802\u697C\u7684\u4F20\u9001\u95E8"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721800
+    m_Localized: "\u5B89\u5168\u533A"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721801
+    m_Localized: "\u901A\u5F80\u5B89\u5168\u533A\u7684\u4F20\u9001\u95E8"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721802
+    m_Localized: Boss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 439427426721803
+    m_Localized: "\u901A\u5F801\u697C\u7684\u4F20\u9001\u95E8"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

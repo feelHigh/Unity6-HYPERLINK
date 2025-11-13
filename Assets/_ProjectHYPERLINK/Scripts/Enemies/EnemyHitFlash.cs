@@ -244,24 +244,21 @@ public class EnemyHitFlash : MonoBehaviour
         //원래 색상으로 복구
         for (int i = 0; i < _materials.Count; i++)
         {
-            var mat = _materials[i];
-            if (mat == null) continue;
+            if (_materials[i] == null) continue;
 
-            //쉐이더 그래프 용
-            foreach (var hitProp in _hitStrengthProps)
+            try
             {
-                if (mat.HasProperty(hitProp))
+                _materials[i].SetColor(_colorPropertyNames[i], _originalColors[i]);
+
+                if (_materials[i].HasProperty("_EmissionColor"))
                 {
-                    mat.SetFloat(hitProp, 0f);
+                    _materials[i].SetColor("_EmissionColor", Color.black);
                 }
             }
-
-            string prop = _colorPropertyNames[i];
-            if (!string.IsNullOrEmpty(prop))
-                mat.SetColor(prop, _originalColors[i]);
-
-            if (mat.HasProperty("_EmissionColor"))
-                mat.SetColor("_EmissionColor", Color.white);
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[HitFlash] 색상 복구 실패: {_materials[i].name} - {e.Message}");
+            }
         }
 
         _flashCoroutine = null;

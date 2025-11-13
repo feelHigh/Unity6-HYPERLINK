@@ -63,6 +63,7 @@ public class TeleportUIWindow : MonoBehaviour
         _isOpen = false;
     }
 
+    /*  인스펙터에서 설정
     private void Start()
     {
         // 타이틀 설정
@@ -71,6 +72,7 @@ public class TeleportUIWindow : MonoBehaviour
             _titleText.text = "텔레포트";
         }
     }
+    */
 
     private void Update()
     {
