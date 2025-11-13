@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using EasyTransition;
 
 /// <summary>
 /// 포탈 시스템 (리팩토링됨 - TeleportUIWindow 참조 개선)
@@ -53,6 +54,9 @@ public class Portal : MonoBehaviour, IInteractable
 
     [Header("포탈 위치")]
     [SerializeField] string _portalLocation;
+
+    [Header("씬 전환 설정")]
+    [SerializeField] TransitionSettings _transition;
 
     // 내부 상태
     private Collider _collider;
@@ -386,7 +390,7 @@ public class Portal : MonoBehaviour, IInteractable
         // === 4단계: 씬 전환 실행 ===
 
         Log($"모든 데이터 저장 완료. 씬 전환 시작: {targetScene}");
-        SceneManager.LoadScene(targetScene);
+        TransitionManager.Instance().Transition(targetScene, _transition, 0);
     }
 
     /// <summary>
