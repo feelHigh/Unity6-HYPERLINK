@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3aff889a311e8fb49b8bd8b3e87f1a22, type: 3}
   m_Name: Helmet_Template
   m_EditorClassIdentifier: 
-  _itemNumber: 2001
-  _itemName: "\uCCA0 \uD22C\uAD6C"
-  _description: "\uB69D\uBC30\uAE30"
-  _itemIcon: {fileID: 0}
+  _itemNumber: 2004
+  _itemName: "\uBAA8\uC790"
+  _description: "\uBAA8\uC790\uC774\uB2E4."
+  _itemIcon: {fileID: 21300000, guid: c3d7abc009f1f574daaa5cd896fd477d, type: 3}
+  _gold: 0
   _quality: 0
   _equipmentType: 2
   _requiredLevel: 1
-  _itemModel: {fileID: 1052491945685377907, guid: db4ba9bc04c376749b6a469796cc6edb, type: 3}
+  _itemModel: {fileID: 5022657052725837192, guid: c1a9e250888370344ab747e7bd256695, type: 3}
   _gridSizeX: 1
   _gridSizeY: 1
   _baseStats: {fileID: 0}

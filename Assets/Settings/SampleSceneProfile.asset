@@ -303,10 +303,10 @@ MonoBehaviour:
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   anamorphicFlaresIntensity:
     m_OverrideState: 0
-    m_Value: 0.25
+    m_Value: 1.22
   anamorphicFlaresThreshold:
     m_OverrideState: 0
-    m_Value: 1.08
+    m_Value: 3.25
   anamorphicFlaresConservativeThreshold:
     m_OverrideState: 0
     m_Value: 1
@@ -318,7 +318,7 @@ MonoBehaviour:
     m_Value: 1
   anamorphicFlaresSpread:
     m_OverrideState: 0
-    m_Value: 0.843
+    m_Value: 1
   anamorphicFlaresMaxBrightness:
     m_OverrideState: 0
     m_Value: 1000
@@ -330,7 +330,7 @@ MonoBehaviour:
     m_Value: 0
   anamorphicFlaresExcludeLayers:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   anamorphicFlaresLayersFilterMethod:
     m_OverrideState: 0
     m_Value: 1
@@ -592,7 +592,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   depthOfFieldDownsampling:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 2
   depthOfFieldMaxSamples:
     m_OverrideState: 0
