@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using EasyTransition;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Settings;
@@ -52,7 +53,11 @@ public class CharacterSelectionController : MonoBehaviour
     [SerializeField] private Button _errorOkButton;
 
     [Header("씬 설정")]
-    [SerializeField] private string _gameScene = "TheFirstStage";
+    [SerializeField] private string _gameScene = "Tutorial";
+
+    [Header("씬 전환 설정")]
+    [SerializeField] private TransitionSettings _transition;
+    [SerializeField] private float _transTime;
 
     [Header("캐릭터 기본 스탯 (Unity 에디터 설정)")]
     [SerializeField] private CharacterStats _laonBaseStats;   // Laon(Warrior) 기본 스탯
@@ -422,12 +427,12 @@ public class CharacterSelectionController : MonoBehaviour
         if (string.IsNullOrEmpty(lastScene))
         {
             Debug.Log($"[CharacterSelection] 씬 정보 없음 - 기본 씬 로드: {_gameScene}");
-            SceneManager.LoadScene(_gameScene);
+            TransitionManager.Instance().Transition(_gameScene, _transition, _transTime);
         }
         else
         {
             Debug.Log($"[CharacterSelection] 마지막 씬 로드: {lastScene}");
-            SceneManager.LoadScene(lastScene);
+            TransitionManager.Instance().Transition(lastScene, _transition, _transTime);
         }
     }
 
