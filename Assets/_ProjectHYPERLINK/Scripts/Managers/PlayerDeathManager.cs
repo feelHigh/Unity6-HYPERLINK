@@ -2,16 +2,12 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// 플레이어 사망 및 리스폰 관리자
+/// 플레이어 사망 및 리스폰 관리자 (완전 수정 버전)
 /// 
-/// 역할:
-/// - 사망 처리 통합 관리
-/// - 리스폰 로직 실행
-/// - Animator Dead 트리거
-/// - 입력 차단
-/// - 상태 초기화
-/// 
-/// 싱글톤 패턴 사용
+/// 수정 사항:
+/// - NavController 회전 초기화 추가
+/// - SkillAnimationController 초기화 추가
+/// - 플레이어 동적 검색 개선
 /// </summary>
 public class PlayerDeathManager : MonoBehaviour
 {
@@ -37,6 +33,8 @@ public class PlayerDeathManager : MonoBehaviour
     private Animator _animator;
     private PlayerStateController _stateController;
     private PlayerInputController _inputController;
+    private PlayerNavController _navController; // ⭐ 추가
+    private SkillAnimationController _skillAnimController; // ⭐ 추가
 
     // 상태 플래그
     private bool _isDead = false;
@@ -58,29 +56,43 @@ public class PlayerDeathManager : MonoBehaviour
         }
         Instance = this;
 
-        // 플레이어 자동 검색
-        if (_playerObject == null)
+        // Awake에서는 플레이어를 검색하지 않음 (런타임 생성)
+    }
+
+    private IEnumerator Start()
+    {
+        // 플레이어 생성 대기
+        float timeout = 5f;
+        float elapsed = 0f;
+
+        while (_playerObject == null && elapsed < timeout)
         {
             _playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (_playerObject == null)
+
+            if (_playerObject != null)
             {
-                LogWarning("Player GameObject를 찾을 수 없습니다");
+                CachePlayerComponents();
+                Log("플레이어 참조 및 컴포넌트 캐싱 완료");
+                break;
             }
+
+            elapsed += 0.1f;
+            yield return new WaitForSeconds(0.1f);
         }
 
-        // 컴포넌트 캐시
-        CachePlayerComponents();
+        if (_playerObject == null)
+        {
+            LogWarning("플레이어를 찾을 수 없습니다 (타임아웃)");
+        }
     }
 
     private void OnEnable()
     {
-        // 사망 이벤트 구독
         PlayerCharacter.OnPlayerDead += OnPlayerDiedHandler;
     }
 
     private void OnDisable()
     {
-        // 이벤트 구독 해제
         PlayerCharacter.OnPlayerDead -= OnPlayerDiedHandler;
     }
 
@@ -90,13 +102,18 @@ public class PlayerDeathManager : MonoBehaviour
     private void CachePlayerComponents()
     {
         if (_playerObject == null)
+        {
+            LogWarning("플레이어 오브젝트가 null입니다");
             return;
+        }
 
         _playerCharacter = _playerObject.GetComponent<PlayerCharacter>();
         _playerCombat = _playerObject.GetComponent<PlayerCombat>();
         _animator = _playerObject.GetComponent<Animator>();
         _stateController = _playerObject.GetComponent<PlayerStateController>();
         _inputController = _playerObject.GetComponent<PlayerInputController>();
+        _navController = _playerObject.GetComponent<PlayerNavController>(); // ⭐ 추가
+        _skillAnimController = _playerObject.GetComponent<SkillAnimationController>(); // ⭐ 추가
 
         // 검증
         if (_playerCharacter == null)
@@ -104,15 +121,18 @@ public class PlayerDeathManager : MonoBehaviour
 
         if (_animator == null)
             LogError("Animator를 찾을 수 없습니다!");
+
+        if (_navController == null)
+            LogWarning("PlayerNavController를 찾을 수 없습니다!");
+
+        if (_skillAnimController == null)
+            LogWarning("SkillAnimationController를 찾을 수 없습니다!");
     }
 
     #endregion
 
     #region 사망 처리
 
-    /// <summary>
-    /// 플레이어 사망 이벤트 핸들러
-    /// </summary>
     private void OnPlayerDiedHandler()
     {
         if (_isDead)
@@ -121,28 +141,30 @@ public class PlayerDeathManager : MonoBehaviour
             return;
         }
 
+        // 플레이어 참조가 없으면 지금 찾기
+        if (_playerObject == null)
+        {
+            _playerObject = GameObject.FindGameObjectWithTag("Player");
+            CachePlayerComponents();
+        }
+
+        if (_playerObject == null)
+        {
+            LogError("플레이어를 찾을 수 없습니다!");
+            return;
+        }
+
         Log("플레이어 사망 처리 시작");
         _isDead = true;
-
-        // 사망 처리 실행
         HandleDeath();
     }
 
-    /// <summary>
-    /// 사망 처리 로직
-    /// </summary>
     private void HandleDeath()
     {
-        // 1. Animator Dead 트리거
         TriggerDeathAnimation();
-
-        // 2. 입력 차단
         DisablePlayerInput();
-
-        // 3. 상태 초기화 (디버프 제거)
         ClearPlayerStates();
 
-        // 4. PlayerCombat.Die() 호출 (사운드 재생)
         if (_playerCombat != null)
         {
             _playerCombat.Die();
@@ -151,9 +173,6 @@ public class PlayerDeathManager : MonoBehaviour
         Log("사망 처리 완료 - UI 대기 중");
     }
 
-    /// <summary>
-    /// 사망 애니메이션 트리거
-    /// </summary>
     private void TriggerDeathAnimation()
     {
         if (_animator != null)
@@ -168,9 +187,6 @@ public class PlayerDeathManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 플레이어 입력 차단
-    /// </summary>
     private void DisablePlayerInput()
     {
         if (_inputController != null)
@@ -179,16 +195,12 @@ public class PlayerDeathManager : MonoBehaviour
             Log("입력 차단 완료");
         }
 
-        // StateController도 비활성화
         if (_stateController != null)
         {
             _stateController.ResetAllStates();
         }
     }
 
-    /// <summary>
-    /// 플레이어 상태 초기화
-    /// </summary>
     private void ClearPlayerStates()
     {
         if (_stateController != null)
@@ -208,9 +220,6 @@ public class PlayerDeathManager : MonoBehaviour
 
     #region 리스폰 처리
 
-    /// <summary>
-    /// 플레이어 리스폰 (DeathUIPanel에서 호출)
-    /// </summary>
     public void RespawnPlayer()
     {
         if (!_isDead)
@@ -223,66 +232,67 @@ public class PlayerDeathManager : MonoBehaviour
         StartCoroutine(RespawnCoroutine());
     }
 
-    /// <summary>
-    /// 리스폰 코루틴
-    /// </summary>
     private IEnumerator RespawnCoroutine()
     {
-        // 1. 페이드 효과 (옵션)
         if (_useRespawnFadeEffect)
         {
-            // TODO: 화면 페이드 효과 추가
             yield return new WaitForSeconds(0.3f);
         }
 
-        // 2. 체력/마나 완전 회복
+        // 1. 체력/마나 회복 + 사망 상태 해제
         RestorePlayerResources();
 
-        // 3. 스폰 포인트로 이동
+        // 2. 스폰 포인트로 이동
         TeleportToSpawnPoint();
 
-        // 4. Animator 상태 복구
+        // 3. Animator 상태 복구
         ResetAnimatorState();
 
-        // 5. 입력 재활성화
+        // 4. 입력 재활성화
         EnablePlayerInput();
 
-        // 6. 사망 상태 해제
+        // ⭐ 5. NavController 상태 초기화 (회전 포함)
+        if (_navController != null)
+        {
+            _navController.ResetAfterRespawn();
+        }
+        else
+        {
+            LogWarning("NavController가 null입니다");
+        }
+
+        // ⭐ 6. SkillAnimationController 상태 초기화
+        if (_skillAnimController != null)
+        {
+            _skillAnimController.ResetAfterRespawn();
+        }
+
+        // 7. 사망 상태 해제
         _isDead = false;
 
         Log("플레이어 리스폰 완료");
 
-        // 7. 무적 시간 부여 (옵션)
         if (_respawnInvincibilityDuration > 0f)
         {
             yield return StartCoroutine(GrantRespawnInvincibility());
         }
     }
 
-    /// <summary>
-    /// 체력/마나 완전 회복
-    /// </summary>
-    /// <summary>
-    /// 플레이어 부활 (체력/마나 회복 + 사망 상태 해제)
-    /// </summary>
     private void RestorePlayerResources()
     {
         if (_playerCharacter == null)
             return;
-        
+
+        // Revive() 메서드 사용 (사망 플래그 + 리소스 회복)
         _playerCharacter.Revive();
 
-        Log($"플레이어 부활 완료 - HP: {_playerCharacter.CurrentHealth}/{_playerCharacter.MaxHealth}");
+        Log($"체력/마나 회복 완료 - HP: {_playerCharacter.CurrentHealth}/{_playerCharacter.MaxHealth}");
     }
 
-    /// <summary>
-    /// 스폰 포인트로 이동
-    /// </summary>
     private void TeleportToSpawnPoint()
     {
         if (PlayerSpawner.Instance != null)
         {
-            // PlayerSpawner의 TeleportToSpawnPoint 사용 (기존 플레이어 유지)
             PlayerSpawner.Instance.TeleportToSpawnPoint();
             Log("플레이어를 기본 스폰 포인트로 이동");
         }
@@ -292,31 +302,24 @@ public class PlayerDeathManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Animator 상태 복구
-    /// </summary>
     private void ResetAnimatorState()
     {
         if (_animator != null)
         {
-            // Revive 트리거 (있다면)
+            // Revive 트리거가 있으면 사용, 없으면 강제 전환
             if (HasParameter(_animator, HASH_REVIVE))
             {
                 _animator.SetTrigger(HASH_REVIVE);
+                Log("Animator Revive 트리거 실행");
             }
             else
             {
-                // Idle 상태로 강제 전환
                 _animator.Play("Idle", 0, 0f);
+                Log("Animator 강제 Idle 전환");
             }
-
-            Log("Animator 상태 복구 완료");
         }
     }
 
-    /// <summary>
-    /// 입력 재활성화
-    /// </summary>
     private void EnablePlayerInput()
     {
         if (_inputController != null)
@@ -326,17 +329,10 @@ public class PlayerDeathManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 리스폰 후 무적 시간 부여
-    /// </summary>
     private IEnumerator GrantRespawnInvincibility()
     {
         Log($"무적 시간 시작 ({_respawnInvincibilityDuration}초)");
-
-        // TODO: 무적 상태 플래그 추가 및 IDamageable 체크 로직 수정 필요
-        // 임시로 딜레이만 부여
         yield return new WaitForSeconds(_respawnInvincibilityDuration);
-
         Log("무적 시간 종료");
     }
 
@@ -344,9 +340,6 @@ public class PlayerDeathManager : MonoBehaviour
 
     #region 유틸리티
 
-    /// <summary>
-    /// Animator에 특정 파라미터가 있는지 확인
-    /// </summary>
     private bool HasParameter(Animator animator, int paramHash)
     {
         if (animator == null)
@@ -361,9 +354,6 @@ public class PlayerDeathManager : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 현재 사망 상태 확인
-    /// </summary>
     public bool IsDead => _isDead;
 
     #endregion
