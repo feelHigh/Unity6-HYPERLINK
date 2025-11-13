@@ -240,7 +240,6 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         Debug.Log("[상태이상] 빙결 시작");
 
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
-        _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
 
         if (_stateController != null)
         {
@@ -255,13 +254,14 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
 
         CleanupDebuffEffect();
-        CleanupAdditionalEffect();
 
         float slowPercent = attack.SlowPercent;
         float slowDuration = attack.SlowDuration;
 
         if (slowDuration > 0 && slowPercent > 0)
         {
+            _currentAdditionalEffect = SpawnDebuffEffect(attack.AdditionalEffect);
+
             if (_stateController != null)
             {
                 _stateController.SetSlow(true, slowPercent);
@@ -276,6 +276,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _stateController.SetSlow(false, 0f);
             }
 
+            CleanupAdditionalEffect();
             Debug.Log("[둔화] 종료");
         }
 
@@ -306,7 +307,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         // 침묵 효과 (수정: SetSilence 사용)
         if (attack.SilenceDuration > 0)
         {
-            _currentAdditionalEffect = SpawnDebuffEffect(attack.DebuffEffect);
+            _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
             if (_stateController != null)
             {
@@ -322,7 +323,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _stateController.SetSilence(false);
             }
 
-            CleanupAdditionalEffect();
+            CleanupDebuffEffect();
             Debug.Log("[침묵] 종료");
         }
 

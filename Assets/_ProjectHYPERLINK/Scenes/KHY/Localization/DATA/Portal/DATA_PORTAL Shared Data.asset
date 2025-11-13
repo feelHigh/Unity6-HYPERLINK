@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: DATA_PORTAL Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: DATA_PORTAL
+  m_TableCollectionNameGuidString: d4d9ec5a94041f14a901fbce168fd810
+  m_Entries:
+  - m_Id: 37639410196480
+    m_Key: PORTAL_NAME_TUTORIAL_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585088
+    m_Key: PORTAL_DESC_TUTORIAL_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585089
+    m_Key: PORTAL_NAME_TUTORIAL_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585090
+    m_Key: PORTAL_DESC_TUTORIAL_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 399952772374528
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585092
+    m_Key: PORTAL_NAME_VILLAGE_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585093
+    m_Key: PORTAL_DESC_VILLAGE_1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585094
+    m_Key: PORTAL_NAME_VILLAGE_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585095
+    m_Key: PORTAL_DESC_VILLAGE_2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37639418585091
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 4080357187099820813
+  references:
+    version: 2
+    RefIds:
+    - rid: 4080357187099820813
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1762901348799
