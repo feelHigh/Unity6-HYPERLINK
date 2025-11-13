@@ -50,6 +50,8 @@ public class PlayerCharacter : MonoBehaviour
     private float _maxHealth;
     private float _maxMana;
 
+    private bool _isDead = false;
+
     private float _healthRegenTimer = 0f;
     private float _manaRegenTimer = 0f;
     private const float REGEN_TICK_INTERVAL = 1f;
@@ -65,7 +67,7 @@ public class PlayerCharacter : MonoBehaviour
     public float MaxMana => _maxMana;
     public int RedSoda => _redSoda;
     public List<SkillData> UnlockedSkills => _unlockedSkills;
-    public bool IsAlive => _currentHealth > 0;
+    public bool IsAlive => !_isDead && _currentHealth > 0;
     public float HealthPercentage => _maxHealth > 0 ? _currentHealth / _maxHealth : 0f;
     public float ManaPercentage => _maxMana > 0 ? _currentMana / _maxMana : 0f;
     public int CurrentGold => _currentGold;
@@ -143,7 +145,7 @@ public class PlayerCharacter : MonoBehaviour
         OnStatsChanged?.Invoke(GetTotalStats());
     }
 
-    private void ClearAllTemporaryBuffs()
+    public void ClearAllTemporaryBuffs()
     {
         _temporaryBuffs.Clear();
         RecalculateStats();
@@ -443,6 +445,13 @@ public class PlayerCharacter : MonoBehaviour
     /// </summary>
     public void TakeDamage(float amount)
     {
+        // 사망 상태 체크
+        if (_isDead)
+        {
+            Debug.LogWarning("[PlayerCharacter] 이미 사망한 상태입니다. 데미지 무시.");
+            return;
+        }
+
         if (!IsAlive) return;
 
         // 1. 방어력 기반 데미지 감소 계산
@@ -467,7 +476,8 @@ public class PlayerCharacter : MonoBehaviour
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
         OnPlayerHit?.Invoke(finalDamage);
 
-        if (_currentHealth <= 0)
+        // 4. 사망 체크
+        if (_currentHealth <= 0 && !_isDead) // ⭐ 수정: _isDead 체크 추가
         {
             Die();
         }
@@ -486,12 +496,26 @@ public class PlayerCharacter : MonoBehaviour
 
     public void Heal(float amount)
     {
+        // 사망 중에는 회복 불가
+        if (_isDead)
+        {
+            Debug.LogWarning("[PlayerCharacter] 사망 중에는 회복할 수 없습니다.");
+            return;
+        }
+
         _currentHealth = Mathf.Min(_currentHealth + amount, _maxHealth);
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
 
     public void RestoreMana(float amount)
     {
+        // 사망 중에는 회복 불가
+        if (_isDead)
+        {
+            Debug.LogWarning("[PlayerCharacter] 사망 중에는 마나를 회복할 수 없습니다.");
+            return;
+        }
+
         _currentMana = Mathf.Min(_currentMana + amount, _maxMana);
         OnManaChanged?.Invoke(_currentMana, _maxMana);
     }
@@ -536,9 +560,50 @@ public class PlayerCharacter : MonoBehaviour
 
     private void Die()
     {
+        // 중복 사망 방지
+        if (_isDead)
+        {
+            Debug.LogWarning("[PlayerCharacter] Die() 중복 호출 방지");
+            return;
+        }
+
+        _isDead = true; // 사망 상태 설정
+
         Debug.Log("플레이어 사망!");
         ClearAllTemporaryBuffs();
         OnPlayerDead?.Invoke();
+    }
+
+    /// <summary>
+    /// 플레이어 부활 (PlayerDeathManager에서 호출)
+    /// 
+    /// 역할:
+    /// - 사망 상태 플래그 해제
+    /// - 체력/마나 회복
+    /// - 이벤트 발생 (선택 사항)
+    /// 
+    /// 호출 위치: PlayerDeathManager.RespawnCoroutine()
+    /// </summary>
+    public void Revive()
+    {
+        if (!_isDead)
+        {
+            Debug.LogWarning("[PlayerCharacter] 이미 살아있는 상태입니다.");
+            return;
+        }
+
+        // 사망 상태 해제
+        _isDead = false;
+
+        // 체력/마나 완전 회복
+        _currentHealth = _maxHealth;
+        _currentMana = _maxMana;
+
+        // UI 업데이트
+        OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        OnManaChanged?.Invoke(_currentMana, _maxMana);
+
+        Debug.Log("[PlayerCharacter] 플레이어 부활 완료");
     }
 
     #endregion
