@@ -295323,6 +295323,7 @@ MonoBehaviour:
   _rotationSpeed: 5
   _enableDebugLogs: 1
   _portalLocation: WayPoint
+  _transition: {fileID: 11400000, guid: 06fa0ad2bc756f44ab258bc74947381d, type: 2}
 --- !u!1 &7751062991325964849
 GameObject:
   m_ObjectHideFlags: 0
@@ -356050,6 +356051,10 @@ PrefabInstance:
       propertyPath: _portalData
       value: 
       objectReference: {fileID: 11400000, guid: b7e7eee5eedc32a438f5807d22a118d0, type: 2}
+    - target: {fileID: 6845208204105470062, guid: bdf679f931145bb49a6e4fa8eb1af6ce, type: 3}
+      propertyPath: _transition
+      value: 
+      objectReference: {fileID: 11400000, guid: 06fa0ad2bc756f44ab258bc74947381d, type: 2}
     - target: {fileID: 7958875367254608765, guid: bdf679f931145bb49a6e4fa8eb1af6ce, type: 3}
       propertyPath: m_LocalPosition.x
       value: -47.5
@@ -356127,6 +356132,10 @@ PrefabInstance:
       propertyPath: _portalData
       value: 
       objectReference: {fileID: 11400000, guid: b733f50625b94624eb24354538cd72c5, type: 2}
+    - target: {fileID: 6845208204105470062, guid: c02ffad49a101db4e91dc8bc59fe902d, type: 3}
+      propertyPath: _transition
+      value: 
+      objectReference: {fileID: 11400000, guid: 06fa0ad2bc756f44ab258bc74947381d, type: 2}
     - target: {fileID: 7958875367254608765, guid: c02ffad49a101db4e91dc8bc59fe902d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -47.5
