@@ -141,6 +141,45 @@ public class PlayerSpawner : MonoBehaviour
     }
 
     /// <summary>
+    /// 리스폰: 기존 플레이어를 유지하면서 위치만 이동
+    /// 
+    /// 사용처:
+    /// - PlayerDeathManager.RespawnPlayer()에서 호출
+    /// - 플레이어 사망 후 리스폰 시 사용
+    /// 
+    /// 차이점:
+    /// - SpawnPlayer(): 기존 플레이어 삭제 후 새로 생성
+    /// - TeleportToSpawnPoint(): 기존 플레이어 유지하고 이동만
+    /// </summary>
+    public void TeleportToSpawnPoint()
+    {
+        if (_currentPlayer == null)
+        {
+            LogError("현재 플레이어가 없습니다!");
+            return;
+        }
+
+        if (_defaultSpawnPoint == null)
+        {
+            LogError("Default spawn point not set!");
+            return;
+        }
+
+        // 위치 및 회전 설정
+        _currentPlayer.transform.position = _defaultSpawnPoint.position;
+        _currentPlayer.transform.rotation = _defaultSpawnPoint.rotation;
+
+        // NavMeshAgent가 있다면 워프
+        UnityEngine.AI.NavMeshAgent agent = _currentPlayer.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.Warp(_defaultSpawnPoint.position);
+        }
+
+        Log($"플레이어를 스폰 포인트로 이동: {_defaultSpawnPoint.position}");
+    }
+
+    /// <summary>
     /// GameSessionManager의 캐릭터 데이터에서 직업에 맞는 프리팹 반환
     /// </summary>
     private GameObject GetPrefabForSelectedClass()
