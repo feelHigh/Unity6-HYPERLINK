@@ -462,10 +462,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _characterSelectionScene: CharacterSelectionScene
   _gameScenes:
-  - TutorialScene
-  - ForestScene
-  - CaveScene
-  - BossArena
+  - Tutorial
+  - Billage
+  - Act1_1
+  - Act1_2
+  - BossStage
   _autoStartQuestIDs:
   - tutorial_complete
   - field_complete
