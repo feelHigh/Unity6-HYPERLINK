@@ -29,14 +29,8 @@ public class GameInitializer : MonoBehaviour
     [SerializeField]
     private string[] _gameScenes = new string[]
     {
-        "TutorialScene",
-        "TestPortal",
-        "CaveScene",
-        "BossArena",
-        "TheFirstStage",
-        "Billage",
-        "TestScene1",
         "Tutorial",
+        "Billage",
         "Act1_1",
         "Act1_2",
         "BossStage",

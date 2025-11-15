@@ -36,6 +36,12 @@ public class LoginController : MonoBehaviour
     [Header("씬 설정")]
     [SerializeField] private string _characterSelectionScene = "CharacterSelectionScene";
 
+    [Header("초기화 설정")]
+    [SerializeField] private float _initializationTimeout = 5f; // 초기화 최대 대기 시간
+
+    [Header("디버그")]
+    [SerializeField] private bool _enableDebugLogs = true;
+
     private void Start()
     {
         SetupButtonListeners();
@@ -45,14 +51,27 @@ public class LoginController : MonoBehaviour
 
     private void OnEnable()
     {
-        AuthenticationManager.OnSignInSuccess += HandleSignInSuccess;
-        AuthenticationManager.OnSignInFailed += HandleSignInFailed;
+        // 이벤트 구독 - null 체크 추가
+        if (AuthenticationManager.Instance != null)
+        {
+            AuthenticationManager.OnSignInSuccess += HandleSignInSuccess;
+            AuthenticationManager.OnSignInFailed += HandleSignInFailed;
+            Log("AuthenticationManager 이벤트 구독 완료");
+        }
+        else
+        {
+            LogWarning("AuthenticationManager.Instance가 null - 이벤트 구독 건너뜀");
+        }
     }
 
     private void OnDisable()
     {
-        AuthenticationManager.OnSignInSuccess -= HandleSignInSuccess;
-        AuthenticationManager.OnSignInFailed -= HandleSignInFailed;
+        // 이벤트 구독 해제 - null 체크 추가
+        if (AuthenticationManager.Instance != null)
+        {
+            AuthenticationManager.OnSignInSuccess -= HandleSignInSuccess;
+            AuthenticationManager.OnSignInFailed -= HandleSignInFailed;
+        }
     }
 
     private void Update()
@@ -96,6 +115,49 @@ public class LoginController : MonoBehaviour
     }
 
     /// <summary>
+    /// AuthenticationManager 초기화 대기
+    /// 
+    /// Returns:
+    ///     true: AuthenticationManager 사용 가능
+    ///     false: 초기화 실패 또는 타임아웃
+    /// </summary>
+    private async Task<bool> EnsureAuthenticationManager()
+    {
+        // 이미 존재하면 즉시 반환
+        if (AuthenticationManager.Instance != null)
+        {
+            Log("AuthenticationManager 사용 가능");
+            return true;
+        }
+
+        Log("AuthenticationManager 초기화 대기 중...");
+
+        // 초기화 대기 (최대 5초)
+        float elapsedTime = 0f;
+        while (AuthenticationManager.Instance == null && elapsedTime < _initializationTimeout)
+        {
+            await Task.Delay(100); // 0.1초마다 체크
+            elapsedTime += 0.1f;
+        }
+
+        // 초기화 성공 여부 확인
+        if (AuthenticationManager.Instance != null)
+        {
+            Log("AuthenticationManager 초기화 완료!");
+
+            // 이벤트 재구독 (OnEnable에서 실패했을 수 있음)
+            AuthenticationManager.OnSignInSuccess += HandleSignInSuccess;
+            AuthenticationManager.OnSignInFailed += HandleSignInFailed;
+
+            return true;
+        }
+
+        // 타임아웃 발생
+        LogError($"AuthenticationManager 초기화 실패 (타임아웃: {_initializationTimeout}초)");
+        return false;
+    }
+
+    /// <summary>
     /// 익명 로그인 (Play Now)
     /// </summary>
     private async void OnPlayNowClicked()
@@ -107,6 +169,15 @@ public class LoginController : MonoBehaviour
         HideError();
         ShowLoading(text);
         SetButtonsInteractable(false);
+
+        // AuthenticationManager 초기화 대기
+        if (!await EnsureAuthenticationManager())
+        {
+            ShowError("시스템 초기화 실패. 게임을 재시작해주세요.");
+            HideLoading();
+            SetButtonsInteractable(true);
+            return;
+        }
 
         bool success = await AuthenticationManager.Instance.SignInAnonymouslyAsync();
 
@@ -138,6 +209,16 @@ public class LoginController : MonoBehaviour
         ShowLoading(text);
         SetButtonsInteractable(false);
 
+        // AuthenticationManager 초기화 대기
+        if (!await EnsureAuthenticationManager())
+        {
+            ShowError("시스템 초기화 실패. 게임을 재시작해주세요.");
+            HideLoading();
+            SetButtonsInteractable(true);
+            return;
+        }
+
+        // AuthenticationManager가 확실히 존재함
         bool success = await AuthenticationManager.Instance.SignInWithUsernamePasswordAsync(username, password);
 
         if (!success)
@@ -168,6 +249,16 @@ public class LoginController : MonoBehaviour
         ShowLoading(text);
         SetButtonsInteractable(false);
 
+        // AuthenticationManager 초기화 대기
+        if (!await EnsureAuthenticationManager())
+        {
+            ShowError("시스템 초기화 실패. 게임을 재시작해주세요.");
+            HideLoading();
+            SetButtonsInteractable(true);
+            return;
+        }
+
+        // AuthenticationManager가 확실히 존재함
         bool success = await AuthenticationManager.Instance.SignUpWithUsernamePasswordAsync(username, password);
 
         if (!success)
@@ -304,4 +395,29 @@ public class LoginController : MonoBehaviour
         _loginButton.interactable = interactable;
         _signUpButton.interactable = interactable;
     }
+
+    #region 로깅
+
+    private void Log(string message)
+    {
+        if (_enableDebugLogs)
+        {
+            Debug.Log($"[LoginController] {message}");
+        }
+    }
+
+    private void LogWarning(string message)
+    {
+        if (_enableDebugLogs)
+        {
+            Debug.LogWarning($"[LoginController] {message}");
+        }
+    }
+
+    private void LogError(string message)
+    {
+        Debug.LogError($"[LoginController] {message}");
+    }
+
+    #endregion
 }
