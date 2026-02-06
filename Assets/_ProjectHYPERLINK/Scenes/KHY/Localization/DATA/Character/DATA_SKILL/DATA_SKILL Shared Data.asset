@@ -99,6 +99,42 @@ MonoBehaviour:
     m_Key: SKILL_DESC_CONVICTION
     m_Metadata:
       m_Items: []
+  - m_Id: 31528850267832320
+    m_Key: New Entry 5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528853438726144
+    m_Key: SKILL_NAME_CombatMastery_Passive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528863882543104
+    m_Key: SKILL_DESC_CombatMastery_Passive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528865736425472
+    m_Key: SKILL_NAME_ExecutionersBlade_T2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528866336210944
+    m_Key: SKILL_DESC_ExecutionersBlade_T2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528866885664768
+    m_Key: SKILL_NAME_SwiftSlash_T2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528867594502144
+    m_Key: SKILL_DESC_SwiftSlash_T2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31529003737415680
+    m_Key: SKILL_NAME_WhirlwindOfFaith_T2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31529005255753728
+    m_Key: SKILL_DESC_WhirlwindOfFaith_T2
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

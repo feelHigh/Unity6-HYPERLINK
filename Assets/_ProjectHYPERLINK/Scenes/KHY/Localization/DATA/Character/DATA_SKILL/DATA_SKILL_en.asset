@@ -88,6 +88,40 @@ MonoBehaviour:
       to all nearby enemies upon landing.
     m_Metadata:
       m_Items: []
+  - m_Id: 31528853438726144
+    m_Localized: Combat Mastery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528863882543104
+    m_Localized: Combat experience enhances base stats.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528865736425472
+    m_Localized: Executioner's Blade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528866336210944
+    m_Localized: Delivers a devastating strike, dealing heavy damage to the enemy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528866885664768
+    m_Localized: Swift Slash
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31528867594502144
+    m_Localized: Unleashes a flurry of rapid slashes, dealing damage to surrounding
+      enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31529003737415680
+    m_Localized: Whirlwind of Faith
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31529005255753728
+    m_Localized: Spins with conviction, sweeping all nearby enemies for wide-area
+      damage.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
