@@ -84,3 +84,8 @@ sysinfo.txt
 .cache/
 fmod.log
 fmod_editor.log
+
+# External
+*.md
+*.gitignore
+*.gitattributes
