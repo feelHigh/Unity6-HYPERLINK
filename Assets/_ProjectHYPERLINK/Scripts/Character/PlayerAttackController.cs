@@ -354,7 +354,7 @@ public class PlayerAttackController : MonoBehaviour
         StartCoroutine(SpawnAttackVFXCoroutine());
 
         // 애니메이션 재생 대기
-        yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
+        yield return WaitForSecondsCache.Get(ATTACK_DAMAGE_TIMING);
 
         // 데미지 적용 (AttackInfo 사용)
         if (_playerCharacter != null)
@@ -380,7 +380,7 @@ public class PlayerAttackController : MonoBehaviour
 
         // 애니메이션 완료 대기
         float remainingTime = _attackAnimationDuration - ATTACK_DAMAGE_TIMING;
-        yield return new WaitForSeconds(remainingTime);
+        yield return WaitForSecondsCache.Get(remainingTime);
 
         // 공격 종료
         _isAttacking = false;
@@ -403,7 +403,7 @@ public class PlayerAttackController : MonoBehaviour
         Log("공격 완료");
 
         // 쿨다운 시작
-        yield return new WaitForSeconds(_currentAttackCooldown);
+        yield return WaitForSecondsCache.Get(_currentAttackCooldown);
         _isOnCooldown = false;
 
         Log("쿨다운 완료");
@@ -416,7 +416,7 @@ public class PlayerAttackController : MonoBehaviour
     {
         // VFX 생성 타이밍까지 대기
         float delay = _attackAnimationDuration * _vfxSpawnTiming;
-        yield return new WaitForSeconds(delay);
+        yield return WaitForSecondsCache.Get(delay);
 
         // 플레이어 위치에 공격 VFX 생성
         SpawnAttackVFX(transform.position);

@@ -239,7 +239,7 @@ public class EnemyHitFlash : MonoBehaviour
         }
 
         //지속 시간 만큼 대기
-        yield return new WaitForSeconds(_flashDuration);
+        yield return WaitForSecondsCache.Get(_flashDuration);
 
         //원래 색상으로 복구
         for (int i = 0; i < _materials.Count; i++)

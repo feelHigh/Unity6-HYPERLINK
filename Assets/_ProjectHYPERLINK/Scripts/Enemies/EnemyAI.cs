@@ -59,6 +59,13 @@ public class EnemyAI : MonoBehaviour
     bool _isFlakingToAttack = false;//우회 이동 중인지 여부
     Vector3 _curFlankTarget;        //현재 우회 목표 위치
 
+    // 성능 최적화 필드 //
+    private float _idleDetectionTimer;                     //Idle 물리 탐지 주기 타이머
+    private const float IDLE_DETECTION_INTERVAL = 0.3f;    //Idle 물리 탐지 간격 (초)
+    private Collider[] _idleOverlapBuffer = new Collider[5]; //Idle OverlapSphere 버퍼
+    private NavMeshPath _cachedPath;                       //NavMeshPath 재사용 캐시
+    private float _lastMoveSpeedValue = -1f;               //애니메이터 MoveSpeed 변경 감지용
+
     // 애니메이터 파라미터 해시값 //
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");               //이동
     private readonly int _hashAttack = Animator.StringToHash("Attack");                     //일반 공격
@@ -76,6 +83,7 @@ public class EnemyAI : MonoBehaviour
         _controller.OnDie += OnDeath;
 
         _spawnPos = transform.position;
+        _cachedPath = new NavMeshPath();
     }
 
     /// <summary>
@@ -124,7 +132,12 @@ public class EnemyAI : MonoBehaviour
                 break;
         }
 
-        _animator.SetFloat(_hashMoveSpeed, (float)(_agent.velocity.magnitude / _agent.speed));
+        float newMoveSpeed = _agent.velocity.magnitude / _agent.speed;
+        if (Mathf.Abs(newMoveSpeed - _lastMoveSpeedValue) > 0.01f)
+        {
+            _lastMoveSpeedValue = newMoveSpeed;
+            _animator.SetFloat(_hashMoveSpeed, newMoveSpeed);
+        }
     }
 
     #region 상태 별 행동 함수
@@ -133,27 +146,33 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     void UpdateIdleState()
     {
-        //감지 범위 내에서 플레이어를 찾는다.
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _data.DetectionRange, _playerLayerMask);
-
-        //플레이어를 찾으면
-        if (colliders.Length > 0)
+        //감지 범위 내에서 플레이어를 찾는다 (0.3초 간격으로 제한)
+        _idleDetectionTimer += Time.deltaTime;
+        if (_idleDetectionTimer >= IDLE_DETECTION_INTERVAL)
         {
-            //플레이어를 타겟으로 설정
-            _target = colliders[0].transform;
+            _idleDetectionTimer = 0f;
 
-            //플레이어를 향한 경로가 유효하면
-            if (CheckPath(_target.position))
+            int hitCount = Physics.OverlapSphereNonAlloc(transform.position, _data.DetectionRange, _idleOverlapBuffer, _playerLayerMask);
+
+            //플레이어를 찾으면
+            if (hitCount > 0)
             {
-                //상태를 추격 상태로 바꾸기
-                ChangeState(EnemyState.Chase);
+                //플레이어를 타겟으로 설정
+                _target = _idleOverlapBuffer[0].transform;
 
-                //그룹에 타겟 공유
-                if (_controller.Group != null)
+                //플레이어를 향한 경로가 유효하면
+                if (CheckPath(_target.position))
                 {
-                    _controller.Group.ShareAggro(_target);
+                    //상태를 추격 상태로 바꾸기
+                    ChangeState(EnemyState.Chase);
+
+                    //그룹에 타겟 공유
+                    if (_controller.Group != null)
+                    {
+                        _controller.Group.ShareAggro(_target);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
@@ -175,7 +194,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (_curState == EnemyState.Idle)
         {
-            Debug.Log("ShareAggro! " + transform.localPosition);
+            DebugHelper.Log("ShareAggro! " + transform.localPosition);
 
             _target = target;
             ChangeState(EnemyState.Chase);
@@ -224,16 +243,16 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        //자신과 타겟 사이의 거리 구하기
-        float distance = Vector3.Distance(transform.position, _target.position);
+        //자신과 타겟 사이의 거리 구하기 (sqrMagnitude로 sqrt 비용 절감)
+        float sqrDistance = (transform.position - _target.position).sqrMagnitude;
 
         //그룹이 null이 아니고, 어그로 상태가 아닐 때
         if (_controller.Group != null && !_controller.Group.HasAggro)
         {
             //자신과 타겟 사이의 거리가 추격 거리보다 크다면
-            if (distance > _data.ChaseDistance)
+            if (sqrDistance > _data.ChaseDistance * _data.ChaseDistance)
             {
-                Debug.Log("타겟을 찾을 수 없음. 추격 중지");
+                DebugHelper.Log("타겟을 찾을 수 없음. 추격 중지");
 
                 //상태를 대기 상태로 바꾸고 리턴
                 ChangeState(EnemyState.Idle);
@@ -242,7 +261,7 @@ public class EnemyAI : MonoBehaviour
         }
 
         //자신과 타겟 사이의 거리가 공격 범위보다 작다면
-        if (distance <= _data.AttackRange)
+        if (sqrDistance <= _data.AttackRange * _data.AttackRange)
         {
             //시야가 확보 됐을 때
             if (HasLineOfSight(_target))
@@ -269,16 +288,16 @@ public class EnemyAI : MonoBehaviour
 
                     _agent.SetDestination(_curFlankTarget);
 
-                    Debug.Log("우회 위치로 이동 시도");
+                    DebugHelper.Log("우회 위치로 이동 시도");
                 }
                 //이미 우회 이동 중일 때는 목표 우회 위치 유지
                 else
                 {
-                    float distanceToFlankTarget = Vector3.Distance(transform.position, _curFlankTarget);
+                    float sqrDistToFlank = (transform.position - _curFlankTarget).sqrMagnitude;
 
-                    if (distanceToFlankTarget < 1.5f)
+                    if (sqrDistToFlank < 1.5f * 1.5f)
                     {
-                        Debug.Log("우회 위치 도착, 새 위치 탐색");
+                        DebugHelper.Log("우회 위치 도착, 새 위치 탐색");
 
                         //플래그 초기화
                         _isFlakingToAttack = false;
@@ -305,11 +324,11 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
-        //자신과 타겟 사이의 거리 구하기
-        float distance = Vector3.Distance(transform.position, _target.position);
+        //자신과 타겟 사이의 거리 구하기 (sqrMagnitude로 sqrt 비용 절감)
+        float sqrDistance = (transform.position - _target.position).sqrMagnitude;
 
         //만약 자신과 타겟 사이의 거리가 공격 범위보다 크다면 (공격 범위를 벗어났다면)
-        if (distance > _data.AttackRange)
+        if (sqrDistance > _data.AttackRange * _data.AttackRange)
         {
             //상태를 추격 상태로 바꾸고 리턴
             ChangeState(EnemyState.Chase);
@@ -327,7 +346,7 @@ public class EnemyAI : MonoBehaviour
         //시야 확보 여부 체크
         if (!HasLineOfSight(_target))
         {
-            Debug.Log("시야 확보 불가능, 추격 상태로 전환");
+            DebugHelper.Log("시야 확보 불가능, 추격 상태로 전환");
             ChangeState(EnemyState.Chase);
             return;
         }
@@ -425,7 +444,7 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            Debug.Log("MeleeDetector 없음");
+            DebugHelper.Log("MeleeDetector 없음");
         }
     }
 
@@ -469,7 +488,7 @@ public class EnemyAI : MonoBehaviour
             _agent.ResetPath();
         }
 
-        yield return new WaitForSeconds(3f);
+        yield return WaitForSecondsCache.Get(3f);
 
         _isAttacking = false;
     }
@@ -494,7 +513,7 @@ public class EnemyAI : MonoBehaviour
             //네이게이션 경로 초기화
             _agent.ResetPath();
 
-            Debug.Log("대기 상태 전환 완료");
+            DebugHelper.Log("대기 상태 전환 완료");
         }
     }
 
@@ -505,16 +524,16 @@ public class EnemyAI : MonoBehaviour
     /// <returns></returns>
     bool CheckPath(Vector3 targetPos)
     {
-        NavMeshPath path = new NavMeshPath();
+        _cachedPath.ClearCorners();
 
         //최단 경로를 찾지 못한 경우 바로 false
-        if (!_agent.CalculatePath(targetPos, path))
+        if (!_agent.CalculatePath(targetPos, _cachedPath))
         {
             return false;
         }
 
         //찾은 경로가 막혀잇으면 false, 아무 이상 없으면 true
-        return path.status == NavMeshPathStatus.PathComplete;
+        return _cachedPath.status == NavMeshPathStatus.PathComplete;
     }
 
     /// <summary>
@@ -594,7 +613,7 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        Debug.Log("적절한 우회 위치를 찾지 못함");
+        DebugHelper.Log("적절한 우회 위치를 찾지 못함");
         return targetPos;
     }
     #endregion

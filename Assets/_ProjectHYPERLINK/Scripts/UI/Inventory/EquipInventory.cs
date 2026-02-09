@@ -33,15 +33,11 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     [SerializeField] private EquipSlot[] _slots;
     [SerializeField] private EquipSlot _currentSlot;
 
-    [Header("자동 검색 설정")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20;
+    [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
 
     private EquipmentManager _equipmentManager;
     private bool _isInitialized = false;
-    private int _retryCount = 0;
 
     public EquipSlot CurrentSlot => _currentSlot;
 
@@ -50,43 +46,28 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     private void Start()
     {
         Initialize();
-        InvokeRepeating(nameof(TryFindEquipmentManager), 0.1f, _retryInterval);
     }
 
-    private void OnDestroy()
+    private void OnEnable()
     {
-        CancelInvoke(nameof(TryFindEquipmentManager));
+        PlayerInitializationManager.OnPlayerSpawned += OnPlayerSpawned;
     }
 
-    /// <summary>
-    /// PlayerSpawner로 스폰된 플레이어를 찾기 위한 재시도 로직
-    /// CharacterUIController와 동일한 방식
-    /// </summary>
-    private void TryFindEquipmentManager()
+    private void OnDisable()
     {
-        if (_isInitialized) return;
+        PlayerInitializationManager.OnPlayerSpawned -= OnPlayerSpawned;
+    }
 
-        _retryCount++;
+    private void OnPlayerSpawned(GameObject playerObject)
+    {
+        if (_isInitialized || playerObject == null) return;
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
+        _equipmentManager = playerObject.GetComponent<EquipmentManager>();
 
-        if (playerObject != null)
+        if (_equipmentManager != null)
         {
-            _equipmentManager = playerObject.GetComponent<EquipmentManager>();
-
-            if (_equipmentManager != null)
-            {
-                Log($"EquipmentManager 찾음: {playerObject.name} (시도: {_retryCount}회)");
-                _isInitialized = true;
-                CancelInvoke(nameof(TryFindEquipmentManager));
-                return;
-            }
-        }
-
-        if (_retryCount >= _maxRetries)
-        {
-            LogError($"EquipmentManager를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
-            //CancelInvoke(nameof(TryFindEquipmentManager));
+            Log($"EquipmentManager 찾음: {playerObject.name} (이벤트)");
+            _isInitialized = true;
         }
     }
 

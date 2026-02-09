@@ -23,13 +23,7 @@ using UnityEngine.Localization.Settings;
 public class SkillTreeWindow : MonoBehaviour
 {
     #region UI 참조
-    [Header("자동 검색 설정")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20;
-
     private bool _isInitialized = false;
-    private int _retryCount = 0;
 
     [Header("UI 컴포넌트")]
     [SerializeField] private GameObject _windowRoot;
@@ -92,77 +86,42 @@ public class SkillTreeWindow : MonoBehaviour
 
     private void OnEnable()
     {
+        PlayerInitializationManager.OnPlayerSpawned += OnPlayerSpawned;
+
         // 이벤트 구독
         SkillTreeManager.OnSkillPointsChanged += UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked += OnNodeUnlockedHandler;
-
-        // 스킬 트리 로드 이벤트 구독
         SkillTreeManager.OnSkillTreeLoaded += OnSkillTreeLoadedHandler;
     }
 
     private void OnDisable()
     {
+        PlayerInitializationManager.OnPlayerSpawned -= OnPlayerSpawned;
+
         // 이벤트 구독 해제
         SkillTreeManager.OnSkillPointsChanged -= UpdateSkillPointsDisplay;
         SkillTreeManager.OnNodeUnlocked -= OnNodeUnlockedHandler;
-
-        // 스킬 트리 로드 이벤트 구독 해제
         SkillTreeManager.OnSkillTreeLoaded -= OnSkillTreeLoadedHandler;
-    }
-
-    private void Start()
-    {
-        InvokeRepeating(nameof(TryFindSkillTreeManager), 0.1f, _retryInterval);
     }
 
     private void OnDestroy()
     {
-        CancelInvoke(nameof(TryFindSkillTreeManager));
-        UnsubscribeFromEvents();
+        // OnDisable에서 이미 해제되므로 별도 해제 불필요
     }
 
-    private void TryFindSkillTreeManager()
+    private void OnPlayerSpawned(GameObject playerObject)
     {
-        _retryCount++;
+        if (_isInitialized || playerObject == null) return;
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
+        _skillTreeManager = playerObject.GetComponent<SkillTreeManager>();
 
-        if (playerObject != null)
+        if (_skillTreeManager != null)
         {
-            _skillTreeManager = playerObject.GetComponent<SkillTreeManager>();
+            Debug.Log($"[SkillTreeWindow] SkillTreeManager 찾음 (이벤트)");
 
-            if (_skillTreeManager != null)
-            {
-                Debug.Log($"[SkillTreeWindow] SkillTreeManager 찾음 (시도: {_retryCount}회)");
-
-                SubscribeToEvents();
-                InitializeSkillTree();
-                _isInitialized = true;
-
-                CancelInvoke(nameof(TryFindSkillTreeManager));
-                return;
-            }
+            InitializeSkillTree();
+            _isInitialized = true;
         }
-
-        if (_retryCount >= _maxRetries)
-        {
-            Debug.LogError($"[SkillTreeWindow] SkillTreeManager를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
-            CancelInvoke(nameof(TryFindSkillTreeManager));
-        }
-    }
-
-    private void SubscribeToEvents()
-    {
-        SkillTreeManager.OnSkillPointsChanged += UpdateSkillPointsDisplay;
-        SkillTreeManager.OnNodeUnlocked += OnNodeUnlockedHandler;
-        SkillTreeManager.OnSkillTreeLoaded += OnSkillTreeLoadedHandler;
-    }
-
-    private void UnsubscribeFromEvents()
-    {
-        SkillTreeManager.OnSkillPointsChanged -= UpdateSkillPointsDisplay;
-        SkillTreeManager.OnNodeUnlocked -= OnNodeUnlockedHandler;
-        SkillTreeManager.OnSkillTreeLoaded -= OnSkillTreeLoadedHandler;
     }
 
     #endregion

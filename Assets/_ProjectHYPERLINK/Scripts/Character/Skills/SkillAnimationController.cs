@@ -209,12 +209,12 @@ public class SkillAnimationController : MonoBehaviour
         if (useDOTweenDash)
         {
             float dashStartDelay = skill.AnimationDuration * skill.DashTiming;
-            yield return new WaitForSeconds(dashStartDelay);
+            yield return WaitForSecondsCache.Get(dashStartDelay);
             PerformDOTweenDash(skill);
         }
 
         // 애니메이션 종료 대기
-        yield return new WaitForSeconds(skill.AnimationDuration);
+        yield return WaitForSecondsCache.Get(skill.AnimationDuration);
 
         _animator.applyRootMotion = wasUsingRootMotion;
 
@@ -374,7 +374,7 @@ public class SkillAnimationController : MonoBehaviour
     private IEnumerator ApplySingleHitArea(HitAreaConfig config, float delay, SkillData skill)
     {
         if (delay > 0)
-            yield return new WaitForSeconds(delay);
+            yield return WaitForSecondsCache.Get(delay);
 
         Vector3 centerPosition = transform.position + transform.TransformDirection(config.PositionOffset);
         Collider[] hits;
@@ -481,7 +481,7 @@ public class SkillAnimationController : MonoBehaviour
     private IEnumerator SpawnSingleVFX(VfxConfig config, float delay, string skillName)
     {
         if (delay > 0)
-            yield return new WaitForSeconds(delay);
+            yield return WaitForSecondsCache.Get(delay);
 
         Vector3 spawnPosition = transform.position + transform.TransformDirection(config.PositionOffset);
         Quaternion spawnRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);

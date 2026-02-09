@@ -23,7 +23,7 @@ public class HammerController : MonoBehaviour
 
     IEnumerator AttackCoroutine()
     {
-        yield return new WaitForSeconds(_fallDelay);
+        yield return WaitForSecondsCache.Get(_fallDelay);
 
         //이펙트의 상공에 생성
         Vector3 spawnPos = transform.position;

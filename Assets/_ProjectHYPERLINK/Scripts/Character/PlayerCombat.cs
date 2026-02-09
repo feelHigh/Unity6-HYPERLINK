@@ -222,7 +222,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         while (timer < attack.DotDuration)
         {
-            yield return new WaitForSeconds(tick);
+            yield return WaitForSecondsCache.Get(tick);
             timer += tick;
 
             if (!IsAlive()) break;
@@ -246,7 +246,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _stateController.SetFreeze(true);
         }
 
-        yield return new WaitForSeconds(attack.FreezeDuration);
+        yield return WaitForSecondsCache.Get(attack.FreezeDuration);
 
         if (_stateController != null)
         {
@@ -269,7 +269,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
             Debug.Log($"[둔화] {slowPercent:F0}% 감소, {slowDuration}초");
 
-            yield return new WaitForSeconds(slowDuration);
+            yield return WaitForSecondsCache.Get(slowDuration);
 
             if (_stateController != null)
             {
@@ -294,7 +294,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _stateController.SetFreeze(true);
         }
 
-        yield return new WaitForSeconds(attack.BlindDuration);
+        yield return WaitForSecondsCache.Get(attack.BlindDuration);
 
         if (_stateController != null)
         {
@@ -316,7 +316,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
             Debug.Log($"[침묵] {attack.SilenceDuration}초");
 
-            yield return new WaitForSeconds(attack.SilenceDuration);
+            yield return WaitForSecondsCache.Get(attack.SilenceDuration);
 
             if (_stateController != null)
             {
@@ -346,7 +346,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _navController.ForceStop();
         }
 
-        yield return new WaitForSeconds(attack.RootDuration);
+        yield return WaitForSecondsCache.Get(attack.RootDuration);
 
         if (_stateController != null)
         {
@@ -370,7 +370,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
             Debug.Log($"[약화] 방어력 {debuffPercent:F0}% 감소, {debuffDuration}초");
 
-            yield return new WaitForSeconds(debuffDuration);
+            yield return WaitForSecondsCache.Get(debuffDuration);
 
             if (_stateController != null)
             {
@@ -403,7 +403,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
         }
 
-        yield return new WaitForSeconds(attack.StunDuration);
+        yield return WaitForSecondsCache.Get(attack.StunDuration);
 
         if (_stateController != null)
         {
@@ -434,7 +434,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     {
         _stateController.SetHitStun(true);
 
-        yield return new WaitForSeconds(_hitStunDuration);
+        yield return WaitForSecondsCache.Get(_hitStunDuration);
 
         _stateController.SetHitStun(false);
         _hitStunCoroutine = null;

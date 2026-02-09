@@ -39,15 +39,9 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
     #region 참조
 
-    [Header("자동 검색 설정")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20;
-
     private bool _isInitialized = false;
-    private int _retryCount = 0;
 
-    [Header("시스템 참조 (자동 검색)")]
+    [Header("시스템 참조")]
     private SkillActivationSystem _skillActivationSystem;
 
     #endregion
@@ -79,58 +73,42 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        InvokeRepeating(nameof(TryInitialize), 0.1f, _retryInterval);
+        PlayerInitializationManager.OnPlayerSpawned += OnPlayerSpawned;
+    }
+
+    private void OnDisable()
+    {
+        PlayerInitializationManager.OnPlayerSpawned -= OnPlayerSpawned;
     }
 
     private void OnDestroy()
     {
-        CancelInvoke(nameof(TryInitialize));
-
         if (SkillDragDropHandler.Instance != null)
         {
             SkillDragDropHandler.Instance.UnregisterSkillSlot(this);
         }
     }
 
-    private void TryInitialize()
+    private void OnPlayerSpawned(GameObject playerObject)
     {
-        if (_isInitialized)
+        if (_isInitialized || playerObject == null) return;
+
+        _skillActivationSystem = playerObject.GetComponent<SkillActivationSystem>();
+
+        if (_skillActivationSystem != null)
         {
-            CancelInvoke(nameof(TryInitialize));
-            return;
-        }
+            Debug.Log($"[SkillSlotUI] SkillActivationSystem 찾음 (이벤트)");
 
-        _retryCount++;
-
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
-        if (playerObject != null)
-        {
-            _skillActivationSystem = playerObject.GetComponent<SkillActivationSystem>();
-
-            if (_skillActivationSystem != null)
+            if (_slotIndex < 0)
             {
-                Debug.Log($"[SkillSlotUI] SkillActivationSystem 찾음 (시도: {_retryCount}회)");
-
-                if (_slotIndex < 0)
-                {
-                    _slotIndex = transform.GetSiblingIndex();
-                    Debug.Log($"[SkillSlotUI] {name}의 슬롯 인덱스 자동 설정: {_slotIndex}");
-                }
-
-                _isInitialized = true;
-
-                InitializeDisplay();
-                CancelInvoke(nameof(TryInitialize));
-                return;
+                _slotIndex = transform.GetSiblingIndex();
+                Debug.Log($"[SkillSlotUI] {name}의 슬롯 인덱스 자동 설정: {_slotIndex}");
             }
-        }
 
-        if (_retryCount >= _maxRetries)
-        {
-            Debug.LogError($"[SkillSlotUI] {_maxRetries}회 시도 후에도 SkillActivationSystem을 찾지 못했습니다!");
-            CancelInvoke(nameof(TryInitialize));
+            _isInitialized = true;
+            InitializeDisplay();
         }
     }
 
@@ -344,7 +322,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         Color original = _skillIcon.color;
         _skillIcon.color = Color.red;
-        yield return new WaitForSeconds(0.2f);
+        yield return WaitForSecondsCache.Get(0.2f);
         _skillIcon.color = original;
     }
 

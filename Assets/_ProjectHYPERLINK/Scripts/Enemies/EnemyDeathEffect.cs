@@ -107,7 +107,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //시작 딜레이 대기
         if (_startDelay > 0)
         {
-            yield return new WaitForSeconds(_startDelay);
+            yield return WaitForSecondsCache.Get(_startDelay);
         }
 
         //각 연출 별 코루틴 실행
@@ -130,7 +130,7 @@ public class EnemyDeathEffect : MonoBehaviour
         float maxDuration = CaculateMaxDuration();
         if (maxDuration > 0)
         {
-            yield return new WaitForSeconds(maxDuration);
+            yield return WaitForSecondsCache.Get(maxDuration);
         }
 
         //연출 완료 후 오브젝트 비활성화
@@ -138,7 +138,7 @@ public class EnemyDeathEffect : MonoBehaviour
         {
             if (_disableDuration > 0)
             {
-                yield return new WaitForSeconds(_disableDuration);
+                yield return WaitForSecondsCache.Get(_disableDuration);
             }
 
             gameObject.SetActive(false);
@@ -157,7 +157,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //비활성화 딜레이 대기
         if (_objectDisableDelay > 0)
         {
-            yield return new WaitForSeconds(_objectDisableDelay);
+            yield return WaitForSecondsCache.Get(_objectDisableDelay);
         }
 
         //비활성화
@@ -175,7 +175,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //생성 딜레이 대기
         if (_objectSpawnDelay > 0)
         {
-            yield return new WaitForSeconds(_objectSpawnDelay);
+            yield return WaitForSecondsCache.Get(_objectSpawnDelay);
         }
 
         //생성
@@ -212,7 +212,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_fadeOutDelay > 0)
         {
-            yield return new WaitForSeconds(_fadeOutDelay);
+            yield return WaitForSecondsCache.Get(_fadeOutDelay);
         }
 
         //그림자 비활성화
@@ -243,7 +243,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_shadowDisableDelay > 0)
         {
-            yield return new WaitForSeconds(_shadowDisableDelay);
+            yield return WaitForSecondsCache.Get(_shadowDisableDelay);
         }
 
         //그림자 비활성화
@@ -326,7 +326,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_positionChangeDelay > 0)
         {
-            yield return new WaitForSeconds(_positionChangeDelay);
+            yield return WaitForSecondsCache.Get(_positionChangeDelay);
         }
 
         if (_targetModel == null) yield break;

@@ -34,6 +34,8 @@ public class SkillActivationSystem : MonoBehaviour
 
     // 스킬 쿨다운 추적
     private Dictionary<SkillData, float> _skillCooldowns = new Dictionary<SkillData, float>();
+    private List<SkillData> _cooldownKeysCache = new List<SkillData>();
+    private List<SkillData> _completedCooldowns = new List<SkillData>();
 
     // 키 바인드 목록
     private KeyCode[] _skillKeys;
@@ -250,7 +252,7 @@ public class SkillActivationSystem : MonoBehaviour
         // 쿨다운 시작
         StartCooldown(skill);
 
-        Debug.Log($"{skill.SkillName} 사용!");
+        DebugHelper.Log($"{skill.SkillName} 사용!");
     }
 
     /// <summary>
@@ -268,7 +270,7 @@ public class SkillActivationSystem : MonoBehaviour
                 // SkillAnimationController에서 데미지 처리
                 OnSkillExecuted?.Invoke(skill);
                 OnSkillExecutedWithDamage?.Invoke(skill, damage);
-                Debug.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
+                DebugHelper.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
                 break;
 
             case SkillType.Ranged:
@@ -319,7 +321,7 @@ public class SkillActivationSystem : MonoBehaviour
             projectile.Initialize(damage, skill.Range, _playerCharacter, skill.EnemyHitVfxConfig);
         }
 
-        Debug.Log($"[{skill.SkillName}] 투사체 발사 완료");
+        DebugHelper.Log($"[{skill.SkillName}] 투사체 발사 완료");
     }
 
     #endregion
@@ -343,14 +345,18 @@ public class SkillActivationSystem : MonoBehaviour
             slot.StartCooldown(skill.Cooldown);
         }
 
-        Debug.Log($"[{skill.SkillName}] 쿨다운 시작: {skill.Cooldown}초");
+        DebugHelper.Log($"[{skill.SkillName}] 쿨다운 시작: {skill.Cooldown}초");
     }
 
     private void UpdateCooldowns()
     {
-        List<SkillData> keys = new List<SkillData>(_skillCooldowns.Keys);
+        if (_skillCooldowns.Count == 0) return;
 
-        foreach (SkillData skill in keys)
+        _cooldownKeysCache.Clear();
+        _cooldownKeysCache.AddRange(_skillCooldowns.Keys);
+        _completedCooldowns.Clear();
+
+        foreach (SkillData skill in _cooldownKeysCache)
         {
             if (_skillCooldowns[skill] > 0)
             {
@@ -358,10 +364,15 @@ public class SkillActivationSystem : MonoBehaviour
 
                 if (_skillCooldowns[skill] <= 0)
                 {
-                    _skillCooldowns[skill] = 0;
-                    Debug.Log($"[{skill.SkillName}] 쿨다운 완료");
+                    _completedCooldowns.Add(skill);
                 }
             }
+        }
+
+        foreach (SkillData skill in _completedCooldowns)
+        {
+            _skillCooldowns[skill] = 0;
+            DebugHelper.Log($"[{skill.SkillName}] 쿨다운 완료");
         }
     }
 
@@ -409,10 +420,10 @@ public class SkillActivationSystem : MonoBehaviour
         if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
             damage *= (1f + stats.CriticalDamage / 100f);
-            Debug.Log($"[{skill.SkillName}] 크리티컬 히트!");
+            DebugHelper.Log($"[{skill.SkillName}] 크리티컬 히트!");
         }
 
-        Debug.Log($"[{skill.SkillName}] 데미지 계산: " +
+        DebugHelper.Log($"[{skill.SkillName}] 데미지 계산: " +
                   $"(({characterAttackDamage:F1} × {skillMultiplier:F1}) + {skillBaseDamage:F1}) × " +
                   $"(1 + ({mainStat} × {mainStatDamageIncrease:F2})) = {damage:F1}");
 

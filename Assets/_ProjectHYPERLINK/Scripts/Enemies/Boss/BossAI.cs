@@ -363,7 +363,7 @@ public class BossAI : MonoBehaviour
 
         _animator.SetTrigger(_hashBasicAttack);
 
-        yield return new WaitForSeconds(2f);
+        yield return WaitForSecondsCache.Get(2f);
 
         _isExecutingPattern = false;
     }
@@ -402,11 +402,11 @@ public class BossAI : MonoBehaviour
             slamEffect = Instantiate(_data.SlamEffect, transform.position, Quaternion.identity);
         }
 
-        yield return new WaitForSeconds(_data.SlamPrepareTime);
+        yield return WaitForSecondsCache.Get(_data.SlamPrepareTime);
 
         Debug.Log("[BossAI] 내려찍기 발동!");
 
-        yield return new WaitForSeconds(0.5f);
+        yield return WaitForSecondsCache.Get(0.5f);
 
         //이펙트 제거
         if (slamEffect != null)
@@ -458,7 +458,7 @@ public class BossAI : MonoBehaviour
         _chargeDirection = transform.forward;
         _chargeStartPos = transform.position;
 
-        yield return new WaitForSeconds(0.5f);  // 준비 동작
+        yield return WaitForSecondsCache.Get(0.5f);  // 준비 동작
 
         //돌진 애니메이션
         _animator.SetBool(_hashCharge, true);
@@ -471,7 +471,7 @@ public class BossAI : MonoBehaviour
 
         //돌진은 Update에서 처리
         //여기서는 최대 시간만 대기 (안전장치)
-        yield return new WaitForSeconds(5f);
+        yield return WaitForSecondsCache.Get(5f);
 
         //만약 아직 돌진 중이면 강제 종료
         if (_isCharging)
@@ -572,7 +572,7 @@ public class BossAI : MonoBehaviour
 
         Debug.Log($"[BossAI] 보스 기절 ({duration}초)");
 
-        yield return new WaitForSeconds(duration);
+        yield return WaitForSecondsCache.Get(duration);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -584,7 +584,7 @@ public class BossAI : MonoBehaviour
     IEnumerator PlayerStunCoroutine(PlayerStateController stateController, float duration)
     {
         stateController.SetKnockState(true);
-        yield return new WaitForSeconds(duration);
+        yield return WaitForSecondsCache.Get(duration);
         stateController.SetKnockState(false);
     }
 
@@ -603,7 +603,7 @@ public class BossAI : MonoBehaviour
 
         //포효
         _animator.SetTrigger(_hashRoar);
-        yield return new WaitForSeconds(_data.ComboRoarDuration);
+        yield return WaitForSecondsCache.Get(_data.ComboRoarDuration);
 
         //공격 애니메이션
         _animator.SetTrigger(_hashCombo);
@@ -625,12 +625,12 @@ public class BossAI : MonoBehaviour
                 _agent.SetDestination(hit.position);
             }
 
-            yield return new WaitForSeconds(_data.ComboAttackInterval);
+            yield return WaitForSecondsCache.Get(_data.ComboAttackInterval);
 
             _agent.isStopped = true;
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return WaitForSecondsCache.Get(0.5f);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -664,12 +664,12 @@ public class BossAI : MonoBehaviour
 
         //포효
         _animator.SetTrigger(_hashRoar);
-        yield return new WaitForSeconds(_data.BreathRoarDuration);
+        yield return WaitForSecondsCache.Get(_data.BreathRoarDuration);
 
         //브레스 애니메이션
         _animator.SetTrigger(_hashBreath);
 
-        yield return new WaitForSeconds(1f);
+        yield return WaitForSecondsCache.Get(1f);
 
         Debug.Log("[BossAI] 화염 브레스 발사!");
 
@@ -690,7 +690,7 @@ public class BossAI : MonoBehaviour
 
         Debug.Log("[BossAI] 화염 브레스 종료!");
 
-        yield return new WaitForSeconds(1f);
+        yield return WaitForSecondsCache.Get(1f);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);

@@ -44,6 +44,10 @@ public class PlayerInteractionController : MonoBehaviour
     private IInteractable _currentInteractable;
     private GameObject _currentInteractableObject;
 
+    // 감지 프레임 스킵 (성능 최적화)
+    private int _detectFrameCounter = 0;
+    private const int DETECT_FRAME_SKIP = 3;
+
     // UI 연동 이벤트
     public static event System.Action<IInteractable> OnInteractableDetected;
     public static event System.Action OnInteractableLost;
@@ -62,8 +66,13 @@ public class PlayerInteractionController : MonoBehaviour
 
     private void Update()
     {
-        // 마우스 호버로 상호작용 대상 감지만 수행
-        DetectInteractable();
+        // 매 3프레임마다 감지 (성능 최적화)
+        _detectFrameCounter++;
+        if (_detectFrameCounter >= DETECT_FRAME_SKIP)
+        {
+            _detectFrameCounter = 0;
+            DetectInteractable();
+        }
     }
 
     #region 감지 로직

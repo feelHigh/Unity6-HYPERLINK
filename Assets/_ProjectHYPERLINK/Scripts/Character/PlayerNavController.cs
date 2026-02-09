@@ -204,7 +204,7 @@ public class PlayerNavController : MonoBehaviour
     /// </summary>
     private IEnumerator ResetSkillFlag(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return WaitForSecondsCache.Get(delay);
         _isPerformingSkill = false;
     }
 

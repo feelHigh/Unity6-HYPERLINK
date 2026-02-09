@@ -25,7 +25,7 @@ public class AoEController : MonoBehaviour
     IEnumerator AttackCoroutine()
     {
         //1.5초 대기 (이펙트 재생 중)
-        yield return new WaitForSeconds(_delay);
+        yield return WaitForSecondsCache.Get(_delay);
 
         //범위 내 플레이어 탐지
         Collider[] colliders = Physics.OverlapSphere(transform.position, _radius, _playerLayerMask);

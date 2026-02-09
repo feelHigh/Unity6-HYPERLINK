@@ -56,6 +56,10 @@ public class PlayerCharacter : MonoBehaviour
     private float _manaRegenTimer = 0f;
     private const float REGEN_TICK_INTERVAL = 1f;
 
+    // 스탯 캐싱 (성능 최적화)
+    private CharacterStats _cachedTotalStats;
+    private bool _statsDirty = true;
+
     // 기존 프로퍼티
     public CharacterClass CharacterClass => _characterClass;
     public CharacterStats CurrentStats => GetTotalStats();
@@ -120,6 +124,7 @@ public class PlayerCharacter : MonoBehaviour
         }
 
         _currentStats = _currentStats.AddStats(statGains);
+        _statsDirty = true;
         RecalculateStats();
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
@@ -131,6 +136,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (buffStats == null) return;
         _temporaryBuffs.Add(buffStats);
+        _statsDirty = true;
         RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
@@ -140,6 +146,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (buffStats == null) return;
         _temporaryBuffs.Remove(buffStats);
+        _statsDirty = true;
         RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
@@ -148,6 +155,7 @@ public class PlayerCharacter : MonoBehaviour
     public void ClearAllTemporaryBuffs()
     {
         _temporaryBuffs.Clear();
+        _statsDirty = true;
         RecalculateStats();
         UpdateUI();
     }
@@ -164,6 +172,7 @@ public class PlayerCharacter : MonoBehaviour
             _equipmentStats = equipmentStats;
         }
 
+        _statsDirty = true;
         RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
@@ -171,9 +180,15 @@ public class PlayerCharacter : MonoBehaviour
 
     /// <summary>
     /// 모든 스탯 합산 (기본 + 장비 + 버프 + 파생 스탯)
+    /// dirty flag 기반 캐싱으로 매 프레임 재계산 방지
     /// </summary>
     public CharacterStats GetTotalStats()
     {
+        if (!_statsDirty && _cachedTotalStats != null)
+        {
+            return _cachedTotalStats;
+        }
+
         CharacterStats total = _currentStats;
 
         if (_equipmentStats != null)
@@ -191,6 +206,9 @@ public class PlayerCharacter : MonoBehaviour
 
         CharacterStats derivedStats = CalculateDerivedStats(total);
         total = total.AddStats(derivedStats);
+
+        _cachedTotalStats = total;
+        _statsDirty = false;
 
         return total;
     }
@@ -396,6 +414,7 @@ public class PlayerCharacter : MonoBehaviour
     public void RemoveAllPassiveStats()
     {
         _temporaryBuffs.Clear();
+        _statsDirty = true;
         RecalculateStats();
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
@@ -464,11 +483,11 @@ public class PlayerCharacter : MonoBehaviour
             float defenseMultiplier = _stateController.GetDefenseMultiplier();
             finalDamage = reducedDamage / defenseMultiplier;
 
-            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {reducedDamage:F1} → 약화 적용: {finalDamage:F1}");
+            DebugHelper.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {reducedDamage:F1} → 약화 적용: {finalDamage:F1}");
         }
         else
         {
-            Debug.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {finalDamage:F1}");
+            DebugHelper.Log($"[데미지] 원본: {amount:F1} → 방어 적용: {finalDamage:F1}");
         }
 
         // 3. 체력 차감
@@ -708,6 +727,7 @@ public class PlayerCharacter : MonoBehaviour
                 .Build();
         }
 
+        _statsDirty = true;
         RecalculateStats();
         _currentHealth = data.stats.currentHealth;
         _currentMana = data.stats.currentMana;
