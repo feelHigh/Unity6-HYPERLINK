@@ -34,6 +34,9 @@ public class SkillAnimationController : MonoBehaviour
     private Coroutine _skillCoroutine = null;
     private Tweener _currentDashTween = null;
 
+    // GC 최적화: NonAlloc 버퍼
+    private Collider[] _skillHitBuffer = new Collider[30];
+
     private Dictionary<string, int> _animatorHashCache = new Dictionary<string, int>();
     private static readonly int HASH_HIT = Animator.StringToHash("Hit");
     private static readonly int HASH_DEAD = Animator.StringToHash("Dead");
@@ -377,24 +380,26 @@ public class SkillAnimationController : MonoBehaviour
             yield return WaitForSecondsCache.Get(delay);
 
         Vector3 centerPosition = transform.position + transform.TransformDirection(config.PositionOffset);
-        Collider[] hits;
+        int hitCount;
         int enemyCount = 0;
 
         if (config.Shape == HitAreaShape.Sphere)
         {
-            hits = Physics.OverlapSphere(centerPosition, config.SphereRadius);
+            hitCount = Physics.OverlapSphereNonAlloc(centerPosition, config.SphereRadius, _skillHitBuffer);
         }
         else // Box
         {
             Quaternion boxRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
-            hits = Physics.OverlapBox(centerPosition, config.BoxSize * 0.5f, boxRotation);
+            hitCount = Physics.OverlapBoxNonAlloc(centerPosition, config.BoxSize * 0.5f, _skillHitBuffer, boxRotation);
         }
 
         float baseDamage = CalculateSkillDamage(skill);
         float finalDamage = baseDamage * config.DamageMultiplier;
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = _skillHitBuffer[i];
+
             if (config.ShouldIgnoreTag(hit.tag))
                 continue;
 
@@ -552,6 +557,7 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)

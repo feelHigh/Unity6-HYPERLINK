@@ -353,7 +353,8 @@ public class SkillActivationSystem : MonoBehaviour
         if (_skillCooldowns.Count == 0) return;
 
         _cooldownKeysCache.Clear();
-        _cooldownKeysCache.AddRange(_skillCooldowns.Keys);
+        foreach (var kvp in _skillCooldowns)
+            _cooldownKeysCache.Add(kvp.Key);
         _completedCooldowns.Clear();
 
         foreach (SkillData skill in _cooldownKeysCache)

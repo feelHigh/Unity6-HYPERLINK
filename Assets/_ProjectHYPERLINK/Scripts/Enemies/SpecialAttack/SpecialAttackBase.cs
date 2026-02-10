@@ -9,6 +9,9 @@ using UnityEngine;
 /// </summary>
 public abstract class SpecialAttackBase : ScriptableObject
 {
+    // GC 최적화: 공유 NonAlloc 버퍼 (SpecialAttack 자식 클래스에서 사용)
+    protected static Collider[] _sharedOverlapBuffer = new Collider[10];
+
     [Header("----- 에픽 몬스터 이펙트 -----")]
     [SerializeField] GameObject _epicEffect;
 

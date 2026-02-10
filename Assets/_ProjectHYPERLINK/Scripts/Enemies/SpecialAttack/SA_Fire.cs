@@ -39,9 +39,10 @@ public class SA_Fire : SpecialAttackBase
         GameObject effectGO = Instantiate(_meleeAttackEffect, attacker.position, attacker.rotation, attacker);
 
         //범위 내 플레이어 탐지
-        Collider[] colls = Physics.OverlapSphere(attacker.position, _meleeRadius, _playerLayerMask);
-        foreach (var coll in colls)
+        int count = Physics.OverlapSphereNonAlloc(attacker.position, _meleeRadius, _sharedOverlapBuffer, _playerLayerMask);
+        for (int i = 0; i < count; i++)
         {
+            var coll = _sharedOverlapBuffer[i];
             IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
             if (player != null)
             {

@@ -52,6 +52,9 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     private float _currentCooldown = 0f;
     private int _slotIndex = -1;
 
+    // 쿨다운 텍스트 캐싱 (GC 최적화: 매 프레임 ToString 호출 방지)
+    private int _lastDisplayedCooldownInt = -1;
+
     // 드래그 상태
     private bool _isDragging = false;
     private GameObject _dragVisual;
@@ -172,17 +175,11 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         if (_cooldownText != null)
         {
-            if (_currentCooldown >= 1f)
+            int displayValue = Mathf.CeilToInt(_currentCooldown);
+            if (displayValue != _lastDisplayedCooldownInt)
             {
-                _cooldownText.text = Mathf.Ceil(_currentCooldown).ToString("F0");
-            }
-            else if (_currentCooldown > 0f)
-            {
-                _cooldownText.text = _currentCooldown.ToString("F1");
-            }
-            else
-            {
-                _cooldownText.text = "";
+                _lastDisplayedCooldownInt = displayValue;
+                _cooldownText.text = displayValue > 0 ? displayValue.ToString() : "";
             }
         }
 
@@ -198,6 +195,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
             if (_currentCooldown <= 0f)
             {
                 _currentCooldown = 0f;
+                _lastDisplayedCooldownInt = -1;
             }
 
             UpdateCooldownDisplay();
@@ -216,15 +214,19 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         if (_cooldownText != null)
         {
-            _cooldownText.text = _currentCooldown > 0f
-                ? _currentCooldown.ToString("F1")
-                : "";
+            int displayValue = Mathf.CeilToInt(_currentCooldown);
+            if (displayValue != _lastDisplayedCooldownInt)
+            {
+                _lastDisplayedCooldownInt = displayValue;
+                _cooldownText.text = displayValue > 0 ? displayValue.ToString() : "";
+            }
         }
     }
 
     public void StartCooldown(float cooldownTime)
     {
         _currentCooldown = cooldownTime;
+        _lastDisplayedCooldownInt = -1;
         UpdateCooldownDisplay();
     }
 
@@ -477,6 +479,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         if (_skillData != null)
         {
             _currentCooldown = 0f;
+            _lastDisplayedCooldownInt = -1;
         }
 
         _skillData = skillData;
@@ -507,6 +510,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         string removedSkillName = _skillData.SkillName;
         _skillData = null;
         _currentCooldown = 0f;
+        _lastDisplayedCooldownInt = -1;
 
         if (_skillIcon != null)
         {

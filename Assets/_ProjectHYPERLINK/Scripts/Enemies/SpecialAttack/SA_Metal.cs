@@ -50,9 +50,10 @@ public class SA_Metal : SpecialAttackBase
         GameObject effectGO = Instantiate(_meleeAttackEffect, attacker.position + attacker.forward, attacker.rotation);
 
         // 범위 내 플레이어 탐지
-        Collider[] colls = Physics.OverlapSphere(attacker.position, _meleeRadius, _playerLayerMask);
-        foreach (var coll in colls)
+        int count = Physics.OverlapSphereNonAlloc(attacker.position, _meleeRadius, _sharedOverlapBuffer, _playerLayerMask);
+        for (int i = 0; i < count; i++)
         {
+            var coll = _sharedOverlapBuffer[i];
             IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
             if (player != null)
             {

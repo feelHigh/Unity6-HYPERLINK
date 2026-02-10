@@ -48,6 +48,10 @@ public class EnemyController : MonoBehaviour, IDamageable
     int _expReward;         //보상 경험치
     int _goldReward;        //보상 골드
 
+    // 캐시된 컴포넌트 참조 (GC 최적화) //
+    private ExperienceManager _cachedExpManager;
+    private PlayerCharacter _cachedPlayer;
+
 
     // 프로퍼티 //
     public string EnemyName => _enemyName;
@@ -144,7 +148,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //에픽 크기 변경
         transform.localScale *= 1.2f;
-        Debug.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
+        DebugHelper.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
 
         //오브 생성
         CreateEpicOrbs();
@@ -190,7 +194,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         OnInitialized?.Invoke();
 
-        Debug.Log("[EnemyController.Boss] 보스 초기화 완료!");
+        DebugHelper.Log("[EnemyController.Boss] 보스 초기화 완료!");
     }
 
     /// <summary>
@@ -300,7 +304,7 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         Destroy(vfx, lifetime);
 
-        Debug.Log($"[EnemyController] 히트 VFX 생성: {vfx.name} (Scale: {hitVfxConfig.Scale})");
+        DebugHelper.Log($"[EnemyController] 히트 VFX 생성: {vfx.name} (Scale: {hitVfxConfig.Scale})");
     }
 
     /// <summary>
@@ -422,21 +426,23 @@ public class EnemyController : MonoBehaviour, IDamageable
     void GiveRewards()
     {
         // 경험치
-        ExperienceManager playerExpManager = FindFirstObjectByType<ExperienceManager>();
-        if (playerExpManager != null)
+        if (_cachedExpManager == null)
+            _cachedExpManager = FindFirstObjectByType<ExperienceManager>();
+        if (_cachedExpManager != null)
         {
-            playerExpManager.GainExperience(_expReward);
+            _cachedExpManager.GainExperience(_expReward);
         }
 
         // 골드
-        PlayerCharacter player = FindFirstObjectByType<PlayerCharacter>();
-        if (player != null && _goldReward > 0)
+        if (_cachedPlayer == null)
+            _cachedPlayer = FindFirstObjectByType<PlayerCharacter>();
+        if (_cachedPlayer != null && _goldReward > 0)
         {
-            player.AddGold(_goldReward);
-            Debug.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
+            _cachedPlayer.AddGold(_goldReward);
+            DebugHelper.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
 
             // 귀염뽀짝 포션
-            player.RandomRedSodaDrop();
+            _cachedPlayer.RandomRedSodaDrop();
         }
     }
 
@@ -453,7 +459,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             {
                 //적의 현재 위치에 아이템 드랍
                 ItemSpawner.Instance.SpawnItem(transform.position, _dropTable);
-                Debug.Log($"아이템 드랍!");
+                DebugHelper.Log($"아이템 드랍!");
             }
         }
     }

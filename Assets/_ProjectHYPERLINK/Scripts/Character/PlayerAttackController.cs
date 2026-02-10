@@ -33,6 +33,10 @@ public class PlayerAttackController : MonoBehaviour
     private bool _isAttacking = false;
     private bool _isOnCooldown = false;
 
+    // GC 최적화: 캐시된 리스트 및 NonAlloc 버퍼
+    private readonly List<EnemyController> _enemyConeCache = new List<EnemyController>();
+    private Collider[] _attackOverlapBuffer = new Collider[20];
+
     // 쿨다운 관리
     private float _baseCooldown;
     private float _currentAttackCooldown;
@@ -291,13 +295,13 @@ public class PlayerAttackController : MonoBehaviour
     /// </summary>
     private List<EnemyController> GetEnemiesInFrontCone()
     {
-        List<EnemyController> result = new List<EnemyController>();
+        _enemyConeCache.Clear();
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, _attackRange);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _attackRange, _attackOverlapBuffer);
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < count; i++)
         {
-            EnemyController enemy = hit.GetComponent<EnemyController>();
+            EnemyController enemy = _attackOverlapBuffer[i].GetComponent<EnemyController>();
 
             if (enemy != null)
             {
@@ -306,12 +310,12 @@ public class PlayerAttackController : MonoBehaviour
 
                 if (angle <= _attackAngle / 2f)
                 {
-                    result.Add(enemy);
+                    _enemyConeCache.Add(enemy);
                 }
             }
         }
 
-        return result;
+        return _enemyConeCache;
     }
 
     /// <summary>
@@ -450,6 +454,7 @@ public class PlayerAttackController : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)

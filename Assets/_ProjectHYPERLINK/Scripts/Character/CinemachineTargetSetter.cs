@@ -69,12 +69,14 @@ public class CinemachineTargetSetter : MonoBehaviour
 
     public bool IsTargetSet() => _isTargetSet;
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
             Debug.Log($"[CinemachineTargetSetter] {message}");
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogError(string message)
     {
         Debug.LogError($"[CinemachineTargetSetter] {message}");

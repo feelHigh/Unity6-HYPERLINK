@@ -209,6 +209,7 @@ public class PlayerInteractionController : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)

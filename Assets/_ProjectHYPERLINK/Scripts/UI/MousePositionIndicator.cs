@@ -172,7 +172,7 @@ public class MousePositionIndicator : MonoBehaviour
 
     private IEnumerator DeactivateAfterDelay(GameObject indicator, float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return WaitForSecondsCache.Get(delay);
 
         if (indicator != null)
         {
@@ -184,6 +184,7 @@ public class MousePositionIndicator : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)

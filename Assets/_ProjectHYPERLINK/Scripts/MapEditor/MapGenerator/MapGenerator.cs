@@ -128,7 +128,7 @@ public class MapGenerator : MonoBehaviour
 
             if (_playerSpawner == null)
             {
-                yield return new WaitForSeconds(0.1f);
+                yield return WaitForSecondsCache.Get(0.1f);
                 elapsed += 0.1f;
             }
         }
@@ -408,6 +408,7 @@ public class MapGenerator : MonoBehaviour
     /// </summary>
     public bool IsInitialized() => _isInitialized;
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
@@ -416,6 +417,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
@@ -424,6 +426,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogError(string message)
     {
         Debug.LogError($"[MapGenerator] {message}");

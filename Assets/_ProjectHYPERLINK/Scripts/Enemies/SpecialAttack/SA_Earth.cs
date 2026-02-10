@@ -42,9 +42,10 @@ public class SA_Earth : SpecialAttackBase
 
 
         //범위 내 플레이어 탐지
-        Collider[] colls = Physics.OverlapSphere(attacker.position, _coneRange, _playerLayerMask);
-        foreach (var coll in colls)
+        int count = Physics.OverlapSphereNonAlloc(attacker.position, _coneRange, _sharedOverlapBuffer, _playerLayerMask);
+        for (int i = 0; i < count; i++)
         {
+            var coll = _sharedOverlapBuffer[i];
             //타겟 방향 벡터
             Vector3 dir = (coll.transform.position - attacker.transform.position).normalized;
 

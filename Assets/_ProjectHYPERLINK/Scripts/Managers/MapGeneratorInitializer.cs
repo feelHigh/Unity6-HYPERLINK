@@ -183,6 +183,7 @@ public class MapGeneratorInitializer : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
@@ -191,6 +192,7 @@ public class MapGeneratorInitializer : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogError(string message)
     {
         Debug.LogError($"[MapGeneratorInitializer] {message}");

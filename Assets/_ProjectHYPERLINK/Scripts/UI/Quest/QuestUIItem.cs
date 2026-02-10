@@ -329,6 +329,7 @@ public class QuestUIItem : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
@@ -337,6 +338,7 @@ public class QuestUIItem : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
@@ -345,6 +347,7 @@ public class QuestUIItem : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogError(string message)
     {
         Debug.LogError($"[QuestUIItem] {message}");

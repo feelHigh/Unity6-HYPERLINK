@@ -132,7 +132,7 @@ public class SkillDragDropHandler : MonoBehaviour
                 yield break;
             }
             attempts++;
-            yield return new WaitForSeconds(0.5f);
+            yield return WaitForSecondsCache.Get(0.5f);
         }
 
         if (_skillActivationSystem == null)

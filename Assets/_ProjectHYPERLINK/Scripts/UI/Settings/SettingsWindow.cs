@@ -146,7 +146,7 @@ public class SettingsWindow : MonoBehaviour
         int attempts = 0;
         while (SettingsManager.Instance == null && attempts < 20)
         {
-            yield return new WaitForSeconds(0.2f);
+            yield return WaitForSecondsCache.Get(0.2f);
             attempts++;
         }
 

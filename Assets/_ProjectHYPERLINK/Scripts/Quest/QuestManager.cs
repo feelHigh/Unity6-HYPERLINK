@@ -41,6 +41,7 @@ public class QuestManager : MonoBehaviour
     private List<string> _completedQuestIDs = new List<string>();
     private string _currentSceneName;
     private bool _isInitialized = false; // [NEW] 초기화 상태 추적
+    private readonly List<string> _questsToCompleteCache = new List<string>();
 
     // 이벤트
     public event Action<QuestData, QuestProgress> OnQuestStarted;
@@ -268,7 +269,7 @@ public class QuestManager : MonoBehaviour
         Log($"적 처치: {enemyType} in {sceneName}");
 
         // 모든 활성 퀘스트를 순회하며 진행 상황 업데이트
-        List<string> questsToComplete = new List<string>();
+        _questsToCompleteCache.Clear();
 
         foreach (var kvp in _activeQuests)
         {
@@ -302,18 +303,18 @@ public class QuestManager : MonoBehaviour
                 // 퀘스트 완료 체크
                 if (questData.IsObjectiveComplete(progress))
                 {
-                    questsToComplete.Add(questID);
+                    _questsToCompleteCache.Add(questID);
                 }
             }
         }
 
         // 완료된 퀘스트 처리
-        foreach (var questID in questsToComplete)
+        foreach (var questID in _questsToCompleteCache)
         {
             CompleteQuest(questID);
         }
 
-        if (questsToComplete.Count > 0 || _activeQuests.Count > 0)
+        if (_questsToCompleteCache.Count > 0 || _activeQuests.Count > 0)
         {
             SaveQuestProgress();
         }
@@ -472,6 +473,7 @@ public class QuestManager : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
@@ -480,6 +482,7 @@ public class QuestManager : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
@@ -488,6 +491,7 @@ public class QuestManager : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogError(string message)
     {
         Debug.LogError($"[QuestManager] {message}");

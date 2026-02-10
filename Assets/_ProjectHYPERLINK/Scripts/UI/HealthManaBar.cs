@@ -66,6 +66,10 @@ public class HealthManaBar : MonoBehaviour
     private float _targetHealthFill = 1f;  // 체력 100%로 시작
     private float _targetManaFill = 1f;    // 마나 100%로 시작
 
+    // GC 최적화: 텍스트 갱신 시 정수값이 변하지 않았으면 string 할당 생략
+    private int _lastHealthCurrent = -1, _lastHealthMax = -1;
+    private int _lastManaCurrent = -1, _lastManaMax = -1;
+
     /// <summary>
     /// 이벤트 구독
     /// 
@@ -134,11 +138,17 @@ public class HealthManaBar : MonoBehaviour
         // max가 0이면 0 반환 (0으로 나누기 방지)
         _targetHealthFill = max > 0 ? current / max : 0f;
 
-        // 텍스트 업데이트 (옵션)
+        // 텍스트 업데이트 (옵션) - 정수값이 변경된 경우에만 string 할당
         if (_useTextDisplay && _healthText != null)
         {
-            // 정수로 반올림하여 표시
-            _healthText.text = $"{Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}";
+            int c = Mathf.CeilToInt(current);
+            int m = Mathf.CeilToInt(max);
+            if (c != _lastHealthCurrent || m != _lastHealthMax)
+            {
+                _lastHealthCurrent = c;
+                _lastHealthMax = m;
+                _healthText.text = $"{c} / {m}";
+            }
         }
     }
 
@@ -158,10 +168,17 @@ public class HealthManaBar : MonoBehaviour
         // 마나 비율 계산
         _targetManaFill = max > 0 ? current / max : 0f;
 
-        // 텍스트 업데이트
+        // 텍스트 업데이트 - 정수값이 변경된 경우에만 string 할당
         if (_useTextDisplay && _manaText != null)
         {
-            _manaText.text = $"{Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}";
+            int c = Mathf.CeilToInt(current);
+            int m = Mathf.CeilToInt(max);
+            if (c != _lastManaCurrent || m != _lastManaMax)
+            {
+                _lastManaCurrent = c;
+                _lastManaMax = m;
+                _manaText.text = $"{c} / {m}";
+            }
         }
     }
 
