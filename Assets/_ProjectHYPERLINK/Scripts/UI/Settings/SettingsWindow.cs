@@ -89,7 +89,7 @@ public class SettingsWindow : MonoBehaviour
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
         {
-            Debug.LogError("[SettingsWindow] CanvasGroup이 없습니다!");
+            DebugHelper.LogError("[SettingsWindow] CanvasGroup이 없습니다!");
         }
 
         // 모든 UI 초기 상태로 숨김
@@ -112,7 +112,7 @@ public class SettingsWindow : MonoBehaviour
         CanvasGroupHelper.SetVisible(_audioCanvasGroup, false);
         CanvasGroupHelper.SetVisible(_gameCanvasGroup, false);
 
-        Debug.Log("[SettingsWindow] 모든 CanvasGroup 초기화 완료");
+        DebugHelper.Log("[SettingsWindow] 모든 CanvasGroup 초기화 완료");
     }
 
     private void ValidatePanelCanvasGroups()
@@ -130,7 +130,7 @@ public class SettingsWindow : MonoBehaviour
         // SettingsManager 대기 후 초기화
         if (SettingsManager.Instance == null)
         {
-            Debug.LogWarning("[SettingsWindow] SettingsManager가 아직 준비되지 않음, 재시도 중...");
+            DebugHelper.LogWarning("[SettingsWindow] SettingsManager가 아직 준비되지 않음, 재시도 중...");
             StartCoroutine(WaitForSettingsManager());
         }
         else
@@ -152,11 +152,11 @@ public class SettingsWindow : MonoBehaviour
 
         if (SettingsManager.Instance == null)
         {
-            Debug.LogError("[SettingsWindow] SettingsManager를 찾을 수 없습니다!");
+            DebugHelper.LogError("[SettingsWindow] SettingsManager를 찾을 수 없습니다!");
         }
         else
         {
-            Debug.Log("[SettingsWindow] SettingsManager 준비 완료");
+            DebugHelper.Log("[SettingsWindow] SettingsManager 준비 완료");
             InitializeUI();
             InitializeVolumeTexts();
             _isInitialized = true;
@@ -176,14 +176,14 @@ public class SettingsWindow : MonoBehaviour
         UpdateVolumeText(_sfxVolumeText, settings.sfxVolume);
         UpdateVolumeText(_bgmVolumeText, settings.bgmVolume);
 
-        Debug.Log("[SettingsWindow] 초기 볼륨 텍스트 설정 완료");
+        DebugHelper.Log("[SettingsWindow] 초기 볼륨 텍스트 설정 완료");
     }
 
     private void InitializeUI()
     {
         if (SettingsManager.Instance == null)
         {
-            Debug.LogWarning("[SettingsWindow] SettingsManager가 없어 초기화 불가");
+            DebugHelper.LogWarning("[SettingsWindow] SettingsManager가 없어 초기화 불가");
             return;
         }
 
@@ -279,7 +279,7 @@ public class SettingsWindow : MonoBehaviour
         if (_acceptButton != null)
             _acceptButton.onClick.AddListener(OnAcceptClicked);
 
-        Debug.Log("[SettingsWindow] UI 초기화 완료");
+        DebugHelper.Log("[SettingsWindow] UI 초기화 완료");
     }
 
     #endregion
@@ -290,7 +290,7 @@ public class SettingsWindow : MonoBehaviour
     {
         if (!_isInitialized)
         {
-            Debug.LogWarning("[SettingsWindow] 아직 초기화되지 않음");
+            DebugHelper.LogWarning("[SettingsWindow] 아직 초기화되지 않음");
             return;
         }
 
@@ -309,13 +309,13 @@ public class SettingsWindow : MonoBehaviour
         // Video 패널 표시
         ShowPanel(PanelType.Video);
 
-        Debug.Log("[SettingsWindow] 윈도우 열림");
+        DebugHelper.Log("[SettingsWindow] 윈도우 열림");
     }
 
     public void Close()
     {
         CanvasGroupHelper.SetVisible(_canvasGroup, false);
-        Debug.Log("[SettingsWindow] 윈도우 닫힘");
+        DebugHelper.Log("[SettingsWindow] 윈도우 닫힘");
     }
 
     public bool IsVisible()
@@ -402,7 +402,7 @@ public class SettingsWindow : MonoBehaviour
         if (_tempSettings != null)
         {
             _tempSettings.resolutionIndex = index;
-            Debug.Log($"[SettingsWindow] 해상도 변경: {index}");
+            DebugHelper.Log($"[SettingsWindow] 해상도 변경: {index}");
         }
     }
 
@@ -411,7 +411,7 @@ public class SettingsWindow : MonoBehaviour
         if (_tempSettings != null)
         {
             _tempSettings.displayModeIndex = index;
-            Debug.Log($"[SettingsWindow] 디스플레이 모드 변경: {index}");
+            DebugHelper.Log($"[SettingsWindow] 디스플레이 모드 변경: {index}");
         }
     }
 
@@ -425,7 +425,7 @@ public class SettingsWindow : MonoBehaviour
             _tempSettings.masterVolume = value;
             UpdateVolumeText(_masterVolumeText, value);
 
-            Debug.Log($"AudioManager.Instance null? {AudioManager.Instance == null}");
+            DebugHelper.Log($"AudioManager.Instance null? {AudioManager.Instance == null}");
 
             if (AudioManager.Instance != null)
             {
@@ -475,7 +475,7 @@ public class SettingsWindow : MonoBehaviour
         if (_tempSettings != null)
         {
             _tempSettings.languageIndex = index;
-            Debug.Log($"[SettingsWindow] 언어 변경: {index}");
+            DebugHelper.Log($"[SettingsWindow] 언어 변경: {index}");
         }
     }
 
@@ -496,7 +496,7 @@ public class SettingsWindow : MonoBehaviour
     /// </summary>
     private void OnCancelClicked()
     {
-        Debug.Log("[SettingsWindow] Cancel 클릭 - 변경사항 취소");
+        DebugHelper.Log("[SettingsWindow] Cancel 클릭 - 변경사항 취소");
 
         // 원래 볼륨으로 복원 (실시간 적용)
         if (_originalSettings != null && AudioManager.Instance != null)
@@ -505,7 +505,7 @@ public class SettingsWindow : MonoBehaviour
             AudioManager.Instance.SetSFXVolume(_originalSettings.sfxVolume);
             AudioManager.Instance.SetBGMVolume(_originalSettings.bgmVolume);
 
-            Debug.Log($"[SettingsWindow] 볼륨 복원 완료 - Master: {_originalSettings.masterVolume:F2}");
+            DebugHelper.Log($"[SettingsWindow] 볼륨 복원 완료 - Master: {_originalSettings.masterVolume:F2}");
         }
 
         Close();
@@ -516,7 +516,7 @@ public class SettingsWindow : MonoBehaviour
     /// </summary>
     private void OnAcceptClicked()
     {
-        Debug.Log("[SettingsWindow] Accept 클릭 - 설정 적용 및 저장");
+        DebugHelper.Log("[SettingsWindow] Accept 클릭 - 설정 적용 및 저장");
 
         if (_tempSettings != null && SettingsManager.Instance != null)
         {
@@ -539,16 +539,16 @@ public class SettingsWindow : MonoBehaviour
             return;
 
         if (_videoTabButton == null)
-            Debug.LogWarning("[SettingsWindow] Video Tab Button이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[SettingsWindow] Video Tab Button이 할당되지 않았습니다!");
 
         if (_videoCanvasGroup == null)
-            Debug.LogWarning("[SettingsWindow] Video CanvasGroup이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[SettingsWindow] Video CanvasGroup이 할당되지 않았습니다!");
 
         if (_audioCanvasGroup == null)
-            Debug.LogWarning("[SettingsWindow] Audio CanvasGroup이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[SettingsWindow] Audio CanvasGroup이 할당되지 않았습니다!");
 
         if (_gameCanvasGroup == null)
-            Debug.LogWarning("[SettingsWindow] Game CanvasGroup이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[SettingsWindow] Game CanvasGroup이 할당되지 않았습니다!");
     }
 #endif
 

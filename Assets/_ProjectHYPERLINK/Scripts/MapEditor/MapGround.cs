@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using Unity.AI.Navigation;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.ProBuilder;
-using UnityEngine.UIElements;
 
 public class MapGround : MonoBehaviour
 {
@@ -78,7 +75,7 @@ public class MapGround : MonoBehaviour
         {
             ProBuilderMesh wallMesh = _wallMeshes[_wallMeshes.Count - i];
             wallMesh.gameObject.layer = LayerMask.NameToLayer(_wallLayer);
-            wallMesh.AddComponent<BoxCollider>();
+            wallMesh.gameObject.AddComponent<BoxCollider>();
             wallMesh.transform.SetParent(_wallParent);
             if (i == 1)
             {

@@ -82,7 +82,7 @@ public class SkillTreeNodeUI : MonoBehaviour,
 
         if (_nodeData == null)
         {
-            Debug.LogError("[SkillTreeNodeUI] NodeData가 null입니다!");
+            DebugHelper.LogError("[SkillTreeNodeUI] NodeData가 null입니다!");
             return;
         }
 
@@ -216,7 +216,7 @@ public class SkillTreeNodeUI : MonoBehaviour,
     {
         if (!CanDrag())
         {
-            Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName}은(는) 드래그할 수 없습니다. (언락: {_isUnlocked}, 패시브: {_nodeData.IsPassive})");
+            DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName}은(는) 드래그할 수 없습니다. (언락: {_isUnlocked}, 패시브: {_nodeData.IsPassive})");
             return;
         }
 
@@ -228,7 +228,7 @@ public class SkillTreeNodeUI : MonoBehaviour,
             SkillDragDropHandler.Instance.BeginDrag(_nodeData.SkillData, this);
         }
 
-        Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 시작");
+        DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 시작");
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ public class SkillTreeNodeUI : MonoBehaviour,
             SkillDragDropHandler.Instance.EndDrag(eventData);
         }
 
-        Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 종료");
+        DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 드래그 종료");
     }
 
     #endregion
@@ -288,21 +288,21 @@ public class SkillTreeNodeUI : MonoBehaviour,
         // 이미 언락됨
         if (_isUnlocked)
         {
-            Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName}은(는) 이미 언락되었습니다.");
+            DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName}은(는) 이미 언락되었습니다.");
             return;
         }
 
         // 언락 시도
         if (_skillTreeManager.TryUnlockNode(_nodeData))
         {
-            Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 언락 성공!");
+            DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 언락 성공!");
             RefreshState();
         }
         else
         {
             // 실패 이유 확인
             _skillTreeManager.CanUnlockNode(_nodeData, out string failReason);
-            Debug.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 언락 실패: {failReason}");
+            DebugHelper.Log($"[SkillTreeNodeUI] {_nodeData.NodeName} 언락 실패: {failReason}");
         }
     }
 
@@ -367,23 +367,23 @@ public class SkillTreeNodeUI : MonoBehaviour,
     {
         if (_nodeData == null)
         {
-            Debug.Log("[SkillTreeNodeUI] NodeData가 없습니다!");
+            DebugHelper.Log("[SkillTreeNodeUI] NodeData가 없습니다!");
             return;
         }
 
-        Debug.Log("===== 노드 정보 =====");
-        Debug.Log($"이름: {_nodeData.NodeName}");
-        Debug.Log($"타입: {(_nodeData.IsPassive ? "패시브" : "액티브")}");
-        Debug.Log($"티어: {_nodeData.Tier}");
-        Debug.Log($"필요 SP: {_nodeData.RequiredSkillPoints}");
-        Debug.Log($"필요 레벨: {_nodeData.RequiredLevel}");
-        Debug.Log($"언락 상태: {_isUnlocked}");
-        Debug.Log($"언락 가능: {_canUnlock}");
-        Debug.Log($"드래그 가능: {CanDrag()}");
+        DebugHelper.Log("===== 노드 정보 =====");
+        DebugHelper.Log($"이름: {_nodeData.NodeName}");
+        DebugHelper.Log($"타입: {(_nodeData.IsPassive ? "패시브" : "액티브")}");
+        DebugHelper.Log($"티어: {_nodeData.Tier}");
+        DebugHelper.Log($"필요 SP: {_nodeData.RequiredSkillPoints}");
+        DebugHelper.Log($"필요 레벨: {_nodeData.RequiredLevel}");
+        DebugHelper.Log($"언락 상태: {_isUnlocked}");
+        DebugHelper.Log($"언락 가능: {_canUnlock}");
+        DebugHelper.Log($"드래그 가능: {CanDrag()}");
 
         if (_nodeData.SkillData != null)
         {
-            Debug.Log($"연결된 스킬: {_nodeData.SkillData.SkillName}");
+            DebugHelper.Log($"연결된 스킬: {_nodeData.SkillData.SkillName}");
         }
     }
 

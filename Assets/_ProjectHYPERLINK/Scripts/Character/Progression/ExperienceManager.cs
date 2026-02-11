@@ -67,13 +67,13 @@ public class ExperienceManager : MonoBehaviour
             _playerCharacter = GetComponent<PlayerCharacter>();
             if (_playerCharacter == null)
             {
-                Debug.LogError("[ExperienceManager] PlayerCharacter를 찾을 수 없습니다");
+                DebugHelper.LogError("[ExperienceManager] PlayerCharacter를 찾을 수 없습니다");
             }
         }
 
         if (_levelUpData == null)
         {
-            Debug.LogError("LevelUpData가 할당되지 않았습니다");
+            DebugHelper.LogError("LevelUpData가 할당되지 않았습니다");
         }
     }
 
@@ -81,7 +81,7 @@ public class ExperienceManager : MonoBehaviour
     {
         // 초기 UI 업데이트 - TotalExpRequiredForNextLevel 사용
         OnExperienceChanged?.Invoke(_currentExperience, TotalExpRequiredForNextLevel, _currentLevel);
-        Debug.Log($"[ExperienceManager] 초기화: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
+        DebugHelper.Log($"[ExperienceManager] 초기화: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
     }
 
     /// 경험치 획득
@@ -141,8 +141,8 @@ public class ExperienceManager : MonoBehaviour
         }
 
         // OnLevelUp 이벤트를 통해 SkillTreeManager가 SP를 부여함
-        Debug.Log($"레벨 업! 레벨 {oldLevel} → {_currentLevel}");
-        Debug.Log($"[ExperienceManager] 스킬은 스킬 트리에서 SP로 언락하세요!");
+        DebugHelper.Log($"레벨 업! 레벨 {oldLevel} → {_currentLevel}");
+        DebugHelper.Log($"[ExperienceManager] 스킬은 스킬 트리에서 SP로 언락하세요!");
 
         OnLevelUp?.Invoke(oldLevel, _currentLevel);
     }
@@ -161,7 +161,7 @@ public class ExperienceManager : MonoBehaviour
     {
         if (data == null)
         {
-            Debug.LogError("로드할 데이터가 null입니다");
+            DebugHelper.LogError("로드할 데이터가 null입니다");
             return;
         }
 
@@ -171,7 +171,7 @@ public class ExperienceManager : MonoBehaviour
         // UI 업데이트 - TotalExpRequiredForNextLevel 사용
         OnExperienceChanged?.Invoke(_currentExperience, TotalExpRequiredForNextLevel, _currentLevel);
 
-        Debug.Log($"경험치 시스템 로드 완료: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
+        DebugHelper.Log($"경험치 시스템 로드 완료: 레벨 {_currentLevel}, 경험치 {_currentExperience}/{TotalExpRequiredForNextLevel}");
     }
 
     /// 현재 상태를 CharacterSaveData에 저장
@@ -180,7 +180,7 @@ public class ExperienceManager : MonoBehaviour
     {
         if (data == null)
         {
-            Debug.LogError("저장할 데이터가 null입니다");
+            DebugHelper.LogError("저장할 데이터가 null입니다");
             return;
         }
 

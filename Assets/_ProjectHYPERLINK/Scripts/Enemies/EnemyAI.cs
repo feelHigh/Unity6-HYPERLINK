@@ -66,6 +66,9 @@ public class EnemyAI : MonoBehaviour
     private NavMeshPath _cachedPath;                       //NavMeshPath 재사용 캐시
     private float _lastMoveSpeedValue = -1f;               //애니메이터 MoveSpeed 변경 감지용
 
+    // 우회 이동 시도 각도 배열 (GC 최적화: static readonly로 할당 1회만)
+    private static readonly float[] _flankAngles = { 45f, -45f, 90f, -90f, 135f, -135f, 180f };
+
     // 애니메이터 파라미터 해시값 //
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");               //이동
     private readonly int _hashAttack = Animator.StringToHash("Attack");                     //일반 공격
@@ -394,9 +397,10 @@ public class EnemyAI : MonoBehaviour
         _animator.SetInteger(_hashSpecialAttackID, _specialAttack.SpecialAttackAnim);
 
         // 에픽 특수 공격 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audio = AudioManager.Instance;
+        if (audio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EpicSpecialAttack);
+            audio.PlaySFX(audio.SoundLibrary.EpicSpecialAttack);
         }
     }
 
@@ -424,11 +428,12 @@ public class EnemyAI : MonoBehaviour
         _animator.SetTrigger(_hashAttack);
 
         // 일반 공격 사운드 재생 (공격 타입별)
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audioMgr = AudioManager.Instance;
+        if (audioMgr?.SoundLibrary != null)
         {
-            AudioClip attackSound = _basicAttack == BasicAttackType.Melee ? AudioManager.Instance.SoundLibrary.EnemyMeleeAttack : AudioManager.Instance.SoundLibrary.EnemyRangedAttack;
+            AudioClip attackSound = _basicAttack == BasicAttackType.Melee ? audioMgr.SoundLibrary.EnemyMeleeAttack : audioMgr.SoundLibrary.EnemyRangedAttack;
 
-            AudioManager.Instance.PlaySFX(attackSound);
+            audioMgr.PlaySFX(attackSound);
         }
     }
 
@@ -461,7 +466,7 @@ public class EnemyAI : MonoBehaviour
 
         Vector3 direction = (_target.position - spawnPos).normalized;
 
-        GameObject projectile = Instantiate(_data.ProjectilePrefab, spawnPos, Quaternion.LookRotation(direction));
+        GameObject projectile = GameObjectPool.Instance.Get(_data.ProjectilePrefab, spawnPos, Quaternion.LookRotation(direction));
 
         EnemyProjectile ep = projectile.GetComponent<EnemyProjectile>();
         if (ep != null)
@@ -577,10 +582,7 @@ public class EnemyAI : MonoBehaviour
     /// <returns></returns>
     Vector3 FindFlankPosition(Vector3 targetPos, float radius)
     {
-        //타겟을 중심으로 이동을 시도할 여러 각도
-        float[] angles = { 45f, -45f, 90f, -90f, 135f, -135f, 180f };
-
-        foreach (float angle in angles)
+        foreach (float angle in _flankAngles)
         {
             //타겟 방향 구하기
             Vector3 dirToTarget = (targetPos - transform.position).normalized;

@@ -78,7 +78,7 @@ public class SkillTreeWindow : MonoBehaviour
     {
         // 검증만
         if (_nodeUIPrefab == null)
-            Debug.LogError("[SkillTreeWindow] NodeUI Prefab이 할당되지 않았습니다!");
+            DebugHelper.LogError("[SkillTreeWindow] NodeUI Prefab이 할당되지 않았습니다!");
 
         if (_tooltipPanel != null)
             _tooltipPanel.SetActive(false);
@@ -117,7 +117,7 @@ public class SkillTreeWindow : MonoBehaviour
 
         if (_skillTreeManager != null)
         {
-            Debug.Log($"[SkillTreeWindow] SkillTreeManager 찾음 (이벤트)");
+            DebugHelper.Log($"[SkillTreeWindow] SkillTreeManager 찾음 (이벤트)");
 
             InitializeSkillTree();
             _isInitialized = true;
@@ -134,11 +134,11 @@ public class SkillTreeWindow : MonoBehaviour
     public void InitializeSkillTree()
     {
         if (_skillTreeManager == null)
-            _skillTreeManager = FindObjectOfType<SkillTreeManager>();
+            _skillTreeManager = FindFirstObjectByType<SkillTreeManager>();
 
         if (_skillTreeManager == null)
         {
-            Debug.LogError("[SkillTreeWindow] SkillTreeManager가 없습니다!");
+            DebugHelper.LogError("[SkillTreeWindow] SkillTreeManager가 없습니다!");
             return;
         }
 
@@ -147,7 +147,7 @@ public class SkillTreeWindow : MonoBehaviour
         CreateConnectionLines();
         UpdateSkillPointsDisplay(_skillTreeManager.CurrentSkillPoints);
 
-        Debug.Log($"[SkillTreeWindow] 스킬 트리 UI 생성 완료: {_nodeUIMap.Count}개 노드");
+        DebugHelper.Log($"[SkillTreeWindow] 스킬 트리 UI 생성 완료: {_nodeUIMap.Count}개 노드");
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class SkillTreeWindow : MonoBehaviour
 
         if (nodeUI == null)
         {
-            Debug.LogError($"[SkillTreeWindow] {nodeData.NodeName}의 SkillTreeNodeUI 컴포넌트를 찾을 수 없습니다!");
+            DebugHelper.LogError($"[SkillTreeWindow] {nodeData.NodeName}의 SkillTreeNodeUI 컴포넌트를 찾을 수 없습니다!");
             Destroy(nodeObj);
             return;
         }
@@ -241,7 +241,7 @@ public class SkillTreeWindow : MonoBehaviour
 
         if (lineRenderer == null)
         {
-            Debug.LogError("[SkillTreeWindow] LineRenderer 컴포넌트가 없습니다!");
+            DebugHelper.LogError("[SkillTreeWindow] LineRenderer 컴포넌트가 없습니다!");
             Destroy(lineObj);
             return;
         }
@@ -548,20 +548,20 @@ public class SkillTreeWindow : MonoBehaviour
     /// </summary>
     private void OnSkillTreeLoadedHandler()
     {
-        Debug.Log("[SkillTreeWindow] 스킬 트리 로드 이벤트 수신 - UI 갱신 시작");
+        DebugHelper.Log("[SkillTreeWindow] 스킬 트리 로드 이벤트 수신 - UI 갱신 시작");
 
         // UI가 이미 생성되어 있다면 상태만 갱신
         if (_nodeUIMap.Count > 0)
         {
             RefreshAllNodes();
             UpdateConnectionLines();
-            Debug.Log("[SkillTreeWindow] 기존 UI 갱신 완료");
+            DebugHelper.Log("[SkillTreeWindow] 기존 UI 갱신 완료");
         }
         else
         {
             // UI가 아직 생성되지 않았다면 전체 초기화
             InitializeSkillTree();
-            Debug.Log("[SkillTreeWindow] 전체 UI 재생성 완료");
+            DebugHelper.Log("[SkillTreeWindow] 전체 UI 재생성 완료");
         }
     }
 
@@ -576,7 +576,7 @@ public class SkillTreeWindow : MonoBehaviour
                 nodeUI.RefreshState();
         }
 
-        Debug.Log($"[SkillTreeWindow] {_nodeUIMap.Count}개 노드 UI 상태 갱신 완료");
+        DebugHelper.Log($"[SkillTreeWindow] {_nodeUIMap.Count}개 노드 UI 상태 갱신 완료");
     }
 
     /// <summary>
@@ -596,17 +596,17 @@ public class SkillTreeWindow : MonoBehaviour
     private void DebugRefreshAll()
     {
         RefreshAllNodes();
-        Debug.Log("[DEBUG] 모든 노드 갱신 완료");
+        DebugHelper.Log("[DEBUG] 모든 노드 갱신 완료");
     }
 
     [ContextMenu("Debug: Print Window State")]
     private void DebugPrintState()
     {
-        Debug.Log("===== SkillTreeWindow 상태 =====");
-        Debug.Log($"초기화 완료: {_isInitialized}");
-        Debug.Log($"노드 UI 개수: {_nodeUIMap.Count}");
-        Debug.Log($"연결선 개수: {_connectionLines.Count}");
-        Debug.Log($"SkillTreeManager 연결: {_skillTreeManager != null}");
+        DebugHelper.Log("===== SkillTreeWindow 상태 =====");
+        DebugHelper.Log($"초기화 완료: {_isInitialized}");
+        DebugHelper.Log($"노드 UI 개수: {_nodeUIMap.Count}");
+        DebugHelper.Log($"연결선 개수: {_connectionLines.Count}");
+        DebugHelper.Log($"SkillTreeManager 연결: {_skillTreeManager != null}");
     }
 
     #endregion

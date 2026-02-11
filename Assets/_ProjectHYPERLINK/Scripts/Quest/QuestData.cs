@@ -94,13 +94,13 @@ public class QuestData : ScriptableObject
     {
         if (string.IsNullOrEmpty(_questID))
         {
-            Debug.LogError($"[QuestData] QuestID가 비어있습니다: {name}");
+            DebugHelper.LogError($"[QuestData] QuestID가 비어있습니다: {name}");
             return false;
         }
 
         if (_objectives.Count == 0)
         {
-            Debug.LogError($"[QuestData] 목표가 없습니다: {name}");
+            DebugHelper.LogError($"[QuestData] 목표가 없습니다: {name}");
             return false;
         }
 
@@ -108,13 +108,13 @@ public class QuestData : ScriptableObject
         {
             if (string.IsNullOrEmpty(obj.SceneName))
             {
-                Debug.LogError($"[QuestData] 목표의 씬 이름이 비어있습니다: {name}");
+                DebugHelper.LogError($"[QuestData] 목표의 씬 이름이 비어있습니다: {name}");
                 return false;
             }
 
             if (obj.RequiredCount <= 0)
             {
-                Debug.LogError($"[QuestData] 목표의 필요 처치 수가 0 이하입니다: {name}");
+                DebugHelper.LogError($"[QuestData] 목표의 필요 처치 수가 0 이하입니다: {name}");
                 return false;
             }
         }

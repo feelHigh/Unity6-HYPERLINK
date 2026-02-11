@@ -42,12 +42,12 @@ public class SA_Metal : SpecialAttackBase
     {
         if (_meleeAttackEffect == null)
         {
-            Debug.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
             return;
         }
 
-        // 공격 이펙트 생성
-        GameObject effectGO = Instantiate(_meleeAttackEffect, attacker.position + attacker.forward, attacker.rotation);
+        // 공격 이펙트 생성 (풀 사용)
+        GameObject effectGO = GameObjectPool.Instance.Get(_meleeAttackEffect, attacker.position + attacker.forward, attacker.rotation);
 
         // 범위 내 플레이어 탐지
         int count = Physics.OverlapSphereNonAlloc(attacker.position, _meleeRadius, _sharedOverlapBuffer, _playerLayerMask);
@@ -62,7 +62,7 @@ public class SA_Metal : SpecialAttackBase
             }
         }
 
-        Destroy(effectGO, 2f);
+        GameObjectPool.Instance.Release(effectGO, 2f);
     }
 
     /// <summary>
@@ -72,12 +72,12 @@ public class SA_Metal : SpecialAttackBase
     {
         if (_hammerPrefab == null)
         {
-            Debug.LogError("망치 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("망치 프리팹이 연결되지 않았습니다.");
             return;
         }
 
-        //원거리 공격 이펙트 생성 및 컨트롤러 초기화
-        GameObject hammerGO = Instantiate(_rangedAttackEffect, target.position + Vector3.up, target.rotation);
+        //원거리 공격 이펙트 생성 및 컨트롤러 초기화 (풀 사용)
+        GameObject hammerGO = GameObjectPool.Instance.Get(_rangedAttackEffect, target.position + Vector3.up, target.rotation);
         HammerController hammer = hammerGO.GetComponent<HammerController>();
         if (hammer != null)
         {

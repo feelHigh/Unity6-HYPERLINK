@@ -46,6 +46,22 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
     #endregion
 
+    // 정수→문자열 캐시 (GC 최적화: 쿨다운/마나코스트 ToString() 할당 제거)
+    private static readonly string[] _cachedIntStrings;
+    static SkillSlotUI()
+    {
+        _cachedIntStrings = new string[100];
+        for (int i = 0; i < 100; i++)
+            _cachedIntStrings[i] = i.ToString();
+    }
+
+    private static string IntToStringCached(int value)
+    {
+        return (value >= 0 && value < _cachedIntStrings.Length)
+            ? _cachedIntStrings[value]
+            : value.ToString();
+    }
+
     // 내부 상태
     private SkillData _skillData;
     private bool _isLocked = false;
@@ -59,6 +75,11 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     private bool _isDragging = false;
     private GameObject _dragVisual;
 
+    // GC 최적화: 캐시된 컴포넌트 참조
+    private RectTransform _cachedRectTransform;
+    private Canvas _cachedCanvas;
+    private readonly List<RaycastResult> _raycastResultsCache = new List<RaycastResult>();
+
     // Public 프로퍼티
     public SkillData SkillData => _skillData;
     public bool IsOnCooldown => _currentCooldown > 0f;
@@ -70,6 +91,9 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
     private void Awake()
     {
+        _cachedRectTransform = GetComponent<RectTransform>();
+        _cachedCanvas = GetComponentInParent<Canvas>();
+
         if (SkillDragDropHandler.Instance != null)
         {
             SkillDragDropHandler.Instance.RegisterSkillSlot(this);
@@ -102,12 +126,12 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         if (_skillActivationSystem != null)
         {
-            Debug.Log($"[SkillSlotUI] SkillActivationSystem 찾음 (이벤트)");
+            DebugHelper.Log($"[SkillSlotUI] SkillActivationSystem 찾음 (이벤트)");
 
             if (_slotIndex < 0)
             {
                 _slotIndex = transform.GetSiblingIndex();
-                Debug.Log($"[SkillSlotUI] {name}의 슬롯 인덱스 자동 설정: {_slotIndex}");
+                DebugHelper.Log($"[SkillSlotUI] {name}의 슬롯 인덱스 자동 설정: {_slotIndex}");
             }
 
             _isInitialized = true;
@@ -135,7 +159,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         UpdateKeyBindDisplay();
         RefreshDisplay();
 
-        Debug.Log($"[SkillSlotUI] 슬롯 {slotIndex} 초기화: {(_skillData != null ? _skillData.SkillName : "비어있음")}");
+        DebugHelper.Log($"[SkillSlotUI] 슬롯 {slotIndex} 초기화: {(_skillData != null ? _skillData.SkillName : "비어있음")}");
     }
 
     private void InitializeDisplay()
@@ -179,7 +203,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
             if (displayValue != _lastDisplayedCooldownInt)
             {
                 _lastDisplayedCooldownInt = displayValue;
-                _cooldownText.text = displayValue > 0 ? displayValue.ToString() : "";
+                _cooldownText.text = displayValue > 0 ? IntToStringCached(displayValue) : "";
             }
         }
 
@@ -218,7 +242,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
             if (displayValue != _lastDisplayedCooldownInt)
             {
                 _lastDisplayedCooldownInt = displayValue;
-                _cooldownText.text = displayValue > 0 ? displayValue.ToString() : "";
+                _cooldownText.text = displayValue > 0 ? IntToStringCached(displayValue) : "";
             }
         }
     }
@@ -261,7 +285,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         if (_manaCostText != null)
         {
             _manaCostText.text = hasSkill && _skillData.ManaCost > 0
-                ? _skillData.ManaCost.ToString("F0") : "";
+                ? IntToStringCached((int)_skillData.ManaCost) : "";
         }
 
         UpdateCooldownDisplay();
@@ -403,20 +427,19 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     {
         if (_isLocked)
         {
-            Debug.Log("[SkillSlotUI] 슬롯이 잠겨 있습니다.");
+            DebugHelper.Log("[SkillSlotUI] 슬롯이 잠겨 있습니다.");
             return;
         }
         
-        RectTransform rectTransform = GetComponent<RectTransform>();
         bool isUnderMouse = RectTransformUtility.RectangleContainsScreenPoint(
-            rectTransform,
+            _cachedRectTransform,
             eventData.position,
             eventData.pressEventCamera
         );
 
         if (!isUnderMouse)
         {
-            Debug.LogWarning($"[SkillSlotUI] {name}에 OnDrop 호출되었지만 마우스는 슬롯 밖 - 무시");
+            DebugHelper.LogWarning($"[SkillSlotUI] {name}에 OnDrop 호출되었지만 마우스는 슬롯 밖 - 무시");
             return;
         }
         
@@ -452,13 +475,13 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     {
         if (skillData == null)
         {
-            Debug.LogWarning("[SkillSlotUI] 할당하려는 SkillData가 null입니다!");
+            DebugHelper.LogWarning("[SkillSlotUI] 할당하려는 SkillData가 null입니다!");
             return;
         }
 
         if (_skillData == skillData)
         {
-            Debug.Log($"[SkillSlotUI] {name}에 이미 {skillData.SkillName}이(가) 할당되어 있습니다.");
+            DebugHelper.Log($"[SkillSlotUI] {name}에 이미 {skillData.SkillName}이(가) 할당되어 있습니다.");
             return;
         }
 
@@ -469,7 +492,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
                 SkillSlotUI existingSlot = _skillActivationSystem.FindSlotWithSkill(skillData);
                 if (existingSlot != null && existingSlot != this)
                 {
-                    Debug.LogWarning($"[SkillSlotUI] {skillData.SkillName}은(는) 이미 슬롯 {existingSlot.SlotIndex}에 할당되어 있습니다!");
+                    DebugHelper.LogWarning($"[SkillSlotUI] {skillData.SkillName}은(는) 이미 슬롯 {existingSlot.SlotIndex}에 할당되어 있습니다!");
                     FlashRed();
                     return;
                 }
@@ -492,18 +515,18 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         if (_manaCostText != null)
         {
-            _manaCostText.text = _skillData.ManaCost.ToString("F0");
+            _manaCostText.text = IntToStringCached((int)_skillData.ManaCost);
         }
 
         RefreshDisplay();
-        Debug.Log($"[SkillSlotUI] 슬롯 {_slotIndex} ({name})에 {skillData.SkillName} 할당!");
+        DebugHelper.Log($"[SkillSlotUI] 슬롯 {_slotIndex} ({name})에 {skillData.SkillName} 할당!");
     }
 
     public void RemoveSkill()
     {
         if (_skillData == null)
         {
-            Debug.Log("[SkillSlotUI] 제거할 스킬이 없습니다.");
+            DebugHelper.Log("[SkillSlotUI] 제거할 스킬이 없습니다.");
             return;
         }
 
@@ -523,7 +546,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         }
 
         RefreshDisplay();
-        Debug.Log($"[SkillSlotUI] 슬롯 {_slotIndex}에서 {removedSkillName} 제거!");
+        DebugHelper.Log($"[SkillSlotUI] 슬롯 {_slotIndex}에서 {removedSkillName} 제거!");
     }
 
     #endregion
@@ -547,7 +570,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
 
         CreateDragVisual();
 
-        Debug.Log($"[SkillSlotUI] 슬롯 {_slotIndex}에서 {_skillData.SkillName} 드래그 시작");
+        DebugHelper.Log($"[SkillSlotUI] 슬롯 {_slotIndex}에서 {_skillData.SkillName} 드래그 시작");
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -573,12 +596,12 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
             _dragVisual = null;
         }
 
-        List<RaycastResult> results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
+        _raycastResultsCache.Clear();
+        EventSystem.current.RaycastAll(eventData, _raycastResultsCache);
 
         SkillSlotUI targetSlot = null;
 
-        foreach (RaycastResult result in results)
+        foreach (RaycastResult result in _raycastResultsCache)
         {
             SkillSlotUI slot = result.gameObject.GetComponentInParent<SkillSlotUI>();
 
@@ -592,11 +615,11 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         if (targetSlot != null)
         {
             SwapSkills(targetSlot);
-            Debug.Log($"[SkillSlotUI] 드롭 성공: 슬롯 {_slotIndex} ↔ 슬롯 {targetSlot.SlotIndex}");
+            DebugHelper.Log($"[SkillSlotUI] 드롭 성공: 슬롯 {_slotIndex} ↔ 슬롯 {targetSlot.SlotIndex}");
         }
         else
         {
-            Debug.Log($"[SkillSlotUI] 드래그 취소 (유효한 대상 없음)");
+            DebugHelper.Log($"[SkillSlotUI] 드래그 취소 (유효한 대상 없음)");
         }
     }
 
@@ -604,11 +627,11 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     {
         if (_skillData == null || _skillData.SkillIcon == null) return;
 
-        Canvas canvas = GetComponentInParent<Canvas>();
-        if (canvas == null) return;
+        if (_cachedCanvas == null) _cachedCanvas = GetComponentInParent<Canvas>();
+        if (_cachedCanvas == null) return;
 
         _dragVisual = new GameObject("DragVisual");
-        _dragVisual.transform.SetParent(canvas.transform);
+        _dragVisual.transform.SetParent(_cachedCanvas.transform);
         _dragVisual.transform.SetAsLastSibling();
 
         Image img = _dragVisual.AddComponent<Image>();
@@ -630,7 +653,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         SkillData thisSkill = this._skillData;
         SkillData targetSkill = targetSlot._skillData;
 
-        Debug.Log($"[SkillSlotUI] 교환 시작: 슬롯 {_slotIndex}({thisSkill?.SkillName ?? "Empty"}) ↔ 슬롯 {targetSlot._slotIndex}({targetSkill?.SkillName ?? "Empty"})");
+        DebugHelper.Log($"[SkillSlotUI] 교환 시작: 슬롯 {_slotIndex}({thisSkill?.SkillName ?? "Empty"}) ↔ 슬롯 {targetSlot._slotIndex}({targetSkill?.SkillName ?? "Empty"})");
 
         this._skillData = targetSkill;
         targetSlot._skillData = thisSkill;
@@ -641,7 +664,7 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
         this.RefreshDisplay();
         targetSlot.RefreshDisplay();
 
-        Debug.Log($"[SkillSlotUI] 교환 완료!");
+        DebugHelper.Log($"[SkillSlotUI] 교환 완료!");
     }
 
     #endregion
@@ -651,14 +674,14 @@ public class SkillSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler,
     [ContextMenu("Debug: Print Slot Info")]
     private void DebugPrintInfo()
     {
-        Debug.Log("===== SkillSlotUI 정보 =====");
-        Debug.Log($"GameObject: {name}");
-        Debug.Log($"슬롯 인덱스: {_slotIndex}");
-        Debug.Log($"할당된 스킬: {_skillData?.SkillName ?? "없음"}");
-        Debug.Log($"잠금 상태: {_isLocked}");
-        Debug.Log($"쿨다운: {_currentCooldown:F2}초");
-        Debug.Log($"드래그 중: {_isDragging}");
-        Debug.Log($"초기화 완료: {_isInitialized}");
+        DebugHelper.Log("===== SkillSlotUI 정보 =====");
+        DebugHelper.Log($"GameObject: {name}");
+        DebugHelper.Log($"슬롯 인덱스: {_slotIndex}");
+        DebugHelper.Log($"할당된 스킬: {_skillData?.SkillName ?? "없음"}");
+        DebugHelper.Log($"잠금 상태: {_isLocked}");
+        DebugHelper.Log($"쿨다운: {_currentCooldown:F2}초");
+        DebugHelper.Log($"드래그 중: {_isDragging}");
+        DebugHelper.Log($"초기화 완료: {_isInitialized}");
     }
 
     #endregion

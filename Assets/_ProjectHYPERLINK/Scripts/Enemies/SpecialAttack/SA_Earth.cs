@@ -33,12 +33,12 @@ public class SA_Earth : SpecialAttackBase
     {
         if (_meleeAttackEffect == null)
         {
-            Debug.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
             return;
         }
 
-        //자신 위치에 원뿔 먼지 이펙트 생성
-        GameObject effectGO = Instantiate(_meleeAttackEffect, attacker.position + Vector3.up, attacker.rotation, attacker);
+        //자신 위치에 원뿔 먼지 이펙트 생성 (풀 사용)
+        GameObject effectGO = GameObjectPool.Instance.Get(_meleeAttackEffect, attacker.position + Vector3.up, attacker.rotation, attacker);
 
 
         //범위 내 플레이어 탐지
@@ -63,7 +63,7 @@ public class SA_Earth : SpecialAttackBase
             }
         }
 
-        Destroy(effectGO, 2f);
+        GameObjectPool.Instance.Release(effectGO, 2f);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class SA_Earth : SpecialAttackBase
     {
         if (_projectilePrefab == null)
         {
-            Debug.LogError("발사체 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("발사체 프리팹이 연결되지 않았습니다.");
             return;
         }
 
@@ -88,8 +88,8 @@ public class SA_Earth : SpecialAttackBase
 
         Quaternion spawnRot = Quaternion.LookRotation(dir, Vector3.up);
 
-        //화염구 프리팹 생성
-        GameObject projectileGO = Instantiate(_projectilePrefab, spawnPos, spawnRot);
+        //발사체 프리팹 생성 (풀 사용)
+        GameObject projectileGO = GameObjectPool.Instance.Get(_projectilePrefab, spawnPos, spawnRot);
 
         //생성된 화염구를 초기화
         EnemyProjectile controller = projectileGO.GetComponent<EnemyProjectile>();

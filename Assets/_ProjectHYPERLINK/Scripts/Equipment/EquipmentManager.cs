@@ -52,11 +52,11 @@ public class EquipmentManager : MonoBehaviour
 
             if (_playerCharacter == null)
             {
-                Debug.LogError("[EquipmentManager] PlayerCharacter 컴포넌트를 찾을 수 없습니다");
+                DebugHelper.LogError("[EquipmentManager] PlayerCharacter 컴포넌트를 찾을 수 없습니다");
             }
             else
             {
-                Debug.Log("[EquipmentManager] PlayerCharacter 자동 검색 성공");
+                DebugHelper.Log("[EquipmentManager] PlayerCharacter 자동 검색 성공");
             }
         }
 
@@ -91,7 +91,7 @@ public class EquipmentManager : MonoBehaviour
         {
             if (item == null)
             {
-                Debug.LogWarning("[EquipmentManager] ItemDatabase에 null 아이템 존재");
+                DebugHelper.LogWarning("[EquipmentManager] ItemDatabase에 null 아이템 존재");
                 continue;
             }
 
@@ -102,11 +102,11 @@ public class EquipmentManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[EquipmentManager] 중복 ItemNumber: {key}");
+                DebugHelper.LogWarning($"[EquipmentManager] 중복 ItemNumber: {key}");
             }
         }
 
-        Debug.Log($"[EquipmentManager] 아이템 데이터베이스 로드: {_itemLookup.Count}개");
+        DebugHelper.Log($"[EquipmentManager] 아이템 데이터베이스 로드: {_itemLookup.Count}개");
     }
 
     #endregion
@@ -127,7 +127,7 @@ public class EquipmentManager : MonoBehaviour
         EquipmentSlot slot = FindSlotByType(item.EquipmentType);
         if (slot == null)
         {
-            Debug.LogWarning($"[EquipmentManager] 해당 슬롯 없음: {item.EquipmentType}");
+            DebugHelper.LogWarning($"[EquipmentManager] 해당 슬롯 없음: {item.EquipmentType}");
             return false;
         }
 
@@ -141,7 +141,7 @@ public class EquipmentManager : MonoBehaviour
         slot.equippedItem = item;
         RecalculateEquipmentStats();
 
-        Debug.Log($"[EquipmentManager] 장착: {item.ItemName}");
+        DebugHelper.Log($"[EquipmentManager] 장착: {item.ItemName}");
         return true;
     }
 
@@ -155,7 +155,7 @@ public class EquipmentManager : MonoBehaviour
         slot.equippedItem = null;
         RecalculateEquipmentStats();
 
-        Debug.Log($"[EquipmentManager] 해제: {unequippedItem.ItemName}");
+        DebugHelper.Log($"[EquipmentManager] 해제: {unequippedItem.ItemName}");
         return true;
     }
 
@@ -207,7 +207,7 @@ public class EquipmentManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[EquipmentManager] PlayerCharacter 참조 없음 - 스탯 업데이트 불가");
+            DebugHelper.LogWarning("[EquipmentManager] PlayerCharacter 참조 없음 - 스탯 업데이트 불가");
         }
     }
 
@@ -223,7 +223,7 @@ public class EquipmentManager : MonoBehaviour
             return item;
         }
 
-        Debug.LogWarning($"[EquipmentManager] 아이템을 찾을 수 없음: {itemNumber}");
+        DebugHelper.LogWarning($"[EquipmentManager] 아이템을 찾을 수 없음: {itemNumber}");
         return null;
     }
 
@@ -240,7 +240,7 @@ public class EquipmentManager : MonoBehaviour
     {
         if (data == null || data.equipment == null)
         {
-            Debug.LogError("[EquipmentManager] 로드할 장비 데이터가 없습니다");
+            DebugHelper.LogError("[EquipmentManager] 로드할 장비 데이터가 없습니다");
             return;
         }
 
@@ -261,7 +261,7 @@ public class EquipmentManager : MonoBehaviour
 
         RecalculateEquipmentStats();
 
-        Debug.Log("[EquipmentManager] 장비 데이터 로드 완료");
+        DebugHelper.Log("[EquipmentManager] 장비 데이터 로드 완료");
     }
 
     /// 특정 슬롯에 아이템 로드
@@ -280,7 +280,7 @@ public class EquipmentManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[EquipmentManager] 아이템을 찾을 수 없음: {itemNumber}");
+            DebugHelper.LogWarning($"[EquipmentManager] 아이템을 찾을 수 없음: {itemNumber}");
         }
     }
 
@@ -290,7 +290,7 @@ public class EquipmentManager : MonoBehaviour
     {
         if (data == null || data.equipment == null)
         {
-            Debug.LogError("[EquipmentManager] 저장할 데이터가 null입니다");
+            DebugHelper.LogError("[EquipmentManager] 저장할 데이터가 null입니다");
             return;
         }
 

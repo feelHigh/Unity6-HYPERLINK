@@ -318,7 +318,7 @@ public class LoginController : MonoBehaviour
 
     private void HandleSignInSuccess(string playerId)
     {
-        Debug.Log($"로그인 성공: {playerId}");
+        DebugHelper.Log($"로그인 성공: {playerId}");
 
         string text = LocalizationSettings.StringDatabase.GetLocalizedString(
             "SYSTEM_STATUS",
@@ -398,28 +398,28 @@ public class LoginController : MonoBehaviour
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[LoginController] {message}");
+            DebugHelper.Log($"[LoginController] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[LoginController] {message}");
+            DebugHelper.LogWarning($"[LoginController] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[LoginController] {message}");
+        DebugHelper.LogError($"[LoginController] {message}");
     }
 
     #endregion

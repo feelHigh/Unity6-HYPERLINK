@@ -408,28 +408,28 @@ public class MapGenerator : MonoBehaviour
     /// </summary>
     public bool IsInitialized() => _isInitialized;
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[MapGenerator] {message}");
+            DebugHelper.Log($"[MapGenerator] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[MapGenerator] {message}");
+            DebugHelper.LogWarning($"[MapGenerator] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[MapGenerator] {message}");
+        DebugHelper.LogError($"[MapGenerator] {message}");
     }
 
     #endregion

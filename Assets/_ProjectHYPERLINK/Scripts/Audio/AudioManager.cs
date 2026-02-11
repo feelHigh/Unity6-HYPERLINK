@@ -123,7 +123,7 @@ public class AudioManager : MonoBehaviour
             _sfxSources[i].volume = _sfxVolume;
         }
 
-        Debug.Log($"[AudioManager] 오디오 소스 초기화 완료 - BGM: 1, SFX Pool: {_sfxSourcePoolSize}");
+        DebugHelper.Log($"[AudioManager] 오디오 소스 초기화 완료 - BGM: 1, SFX Pool: {_sfxSourcePoolSize}");
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public class AudioManager : MonoBehaviour
             AudioListener.volume = _masterVolume;
         }
 
-        Debug.Log($"[AudioManager] Master 볼륨 설정: {_masterVolume:F2} ({_masterVolume * 100:F0}%)");
+        DebugHelper.Log($"[AudioManager] Master 볼륨 설정: {_masterVolume:F2} ({_masterVolume * 100:F0}%)");
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class AudioManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[AudioManager] SFX 볼륨 설정: {_sfxVolume:F2} ({_sfxVolume * 100:F0}%)");
+        DebugHelper.Log($"[AudioManager] SFX 볼륨 설정: {_sfxVolume:F2} ({_sfxVolume * 100:F0}%)");
     }
 
     /// <summary>
@@ -233,7 +233,7 @@ public class AudioManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[AudioManager] BGM 볼륨 설정: {_bgmVolume:F2} ({_bgmVolume * 100:F0}%)");
+        DebugHelper.Log($"[AudioManager] BGM 볼륨 설정: {_bgmVolume:F2} ({_bgmVolume * 100:F0}%)");
     }
 
     #endregion
@@ -249,7 +249,7 @@ public class AudioManager : MonoBehaviour
     {
         if (clip == null)
         {
-            Debug.LogWarning("[AudioManager] 재생할 AudioClip이 null입니다.");
+            DebugHelper.LogWarning("[AudioManager] 재생할 AudioClip이 null입니다.");
             return;
         }
 
@@ -271,7 +271,7 @@ public class AudioManager : MonoBehaviour
     {
         if (clip == null)
         {
-            Debug.LogWarning("[AudioManager] 재생할 AudioClip이 null입니다.");
+            DebugHelper.LogWarning("[AudioManager] 재생할 AudioClip이 null입니다.");
             return;
         }
 
@@ -290,7 +290,7 @@ public class AudioManager : MonoBehaviour
     {
         if (clip == null)
         {
-            Debug.LogWarning("[AudioManager] 재생할 BGM이 null입니다.");
+            DebugHelper.LogWarning("[AudioManager] 재생할 BGM이 null입니다.");
             return;
         }
 
@@ -313,7 +313,7 @@ public class AudioManager : MonoBehaviour
             _bgmSource.Play();
         }
 
-        Debug.Log($"[AudioManager] BGM 재생: {clip.name}");
+        DebugHelper.Log($"[AudioManager] BGM 재생: {clip.name}");
     }
 
     /// <summary>

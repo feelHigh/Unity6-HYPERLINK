@@ -36,14 +36,14 @@ public class SA_Wood : SpecialAttackBase
     {
         if (_aoePrefab == null)
         {
-            Debug.LogError("장판 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("장판 프리팹이 연결되지 않았습니다.");
             return;
         }
 
         // 타겟의 현재 위치에 AoE 프리팹 생성
         Vector3 spawnPos = target.position;
         spawnPos.y = 1;
-        GameObject aoeGO = Instantiate(_aoePrefab, spawnPos, Quaternion.identity);
+        GameObject aoeGO = GameObjectPool.Instance.Get(_aoePrefab, spawnPos, Quaternion.identity);
 
         AoEController controller = aoeGO.GetComponent<AoEController>();
         if (controller != null)

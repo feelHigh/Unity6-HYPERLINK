@@ -86,12 +86,12 @@ public abstract class SpecialAttackBase : ScriptableObject
 
         if (firePos == null)
         {
-            Debug.LogWarning($"[{attacker.name}] firePos를 찾을 수 없습니다. 기본 위치에서 발사합니다.");
+            DebugHelper.LogWarning($"[{attacker.name}] firePos를 찾을 수 없습니다. 기본 위치에서 발사합니다.");
             return null;
         }
 
         _cachedFirePos = firePos;
-        Debug.Log("Cached Fire Pos : " + _cachedFirePos);
+        DebugHelper.Log("Cached Fire Pos : " + _cachedFirePos);
 
         return _cachedFirePos;
     }

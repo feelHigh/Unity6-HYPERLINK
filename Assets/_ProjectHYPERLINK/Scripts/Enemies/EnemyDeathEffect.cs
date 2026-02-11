@@ -316,7 +316,7 @@ public class EnemyDeathEffect : MonoBehaviour
             //위의 모든 경우가 아닐 때
             else if (_targetRenderers[i] != null)
             {
-                Debug.LogWarning($"{_targetRenderers[i].gameObject.name}의 Material 알파 조정 불가.");
+                DebugHelper.LogWarning($"{_targetRenderers[i].gameObject.name}의 Material 알파 조정 불가.");
             }
         }
     }

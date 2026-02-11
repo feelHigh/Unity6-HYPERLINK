@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -350,7 +349,7 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
     public void LoadEquipmentUI()
     {
         if (_equipmentManager == null)
-            _equipmentManager = FindObjectOfType<EquipmentManager>();
+            _equipmentManager = FindFirstObjectByType<EquipmentManager>();
 
         if (_equipmentManager == null)
         {
@@ -431,28 +430,28 @@ public class EquipInventory : MonoBehaviour, IPointerEnterHandler
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[EquipInventory] {message}");
+            DebugHelper.Log($"[EquipInventory] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[EquipInventory] {message}");
+            DebugHelper.LogWarning($"[EquipInventory] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[EquipInventory] {message}");
+        DebugHelper.LogError($"[EquipInventory] {message}");
     }
 
     #endregion

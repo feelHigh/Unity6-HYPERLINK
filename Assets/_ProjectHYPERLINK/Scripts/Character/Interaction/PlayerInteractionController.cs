@@ -59,7 +59,7 @@ public class PlayerInteractionController : MonoBehaviour
 
         if (_playerCharacter == null)
         {
-            Debug.LogError("[PlayerInteractionController] PlayerCharacter 컴포넌트가 필요합니다!");
+            DebugHelper.LogError("[PlayerInteractionController] PlayerCharacter 컴포넌트가 필요합니다!");
             enabled = false;
         }
     }
@@ -209,12 +209,12 @@ public class PlayerInteractionController : MonoBehaviour
 
     #region 디버그
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerInteractionController] {message}");
+            DebugHelper.Log($"[PlayerInteractionController] {message}");
         }
     }
 

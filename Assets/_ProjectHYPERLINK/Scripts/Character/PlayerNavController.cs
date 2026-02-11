@@ -48,6 +48,9 @@ public class PlayerNavController : MonoBehaviour
     private Vector3 _lastMovementDirection = Vector3.zero;
     private bool _isCurrentlyMoving = false;
 
+    // 성능 최적화: agent.speed 변경 감지
+    private float _lastTargetSpeed = -1f;
+
     // 넉백 디버그 시각화용
     private Vector3 _lastKnockbackStart;
     private Vector3 _lastKnockbackEnd;
@@ -97,13 +100,13 @@ public class PlayerNavController : MonoBehaviour
 
         if (_stateController == null)
         {
-            Debug.LogError("[PlayerNavController] PlayerStateController가 없습니다!");
+            DebugHelper.LogError("[PlayerNavController] PlayerStateController가 없습니다!");
         }
 
         // 기본값 저장
         _baseSpeed = _agent.speed;
 
-        Debug.Log($"[PlayerNavController] Awake - Base Speed: {_baseSpeed}");
+        DebugHelper.Log($"[PlayerNavController] Awake - Base Speed: {_baseSpeed}");
     }
 
     private void Start()
@@ -114,12 +117,12 @@ public class PlayerNavController : MonoBehaviour
         if (_playerCharacter != null)
         {
             CharacterStats initialStats = _playerCharacter.CurrentStats;
-            Debug.Log($"[PlayerNavController] Start - 초기 스탯 적용");
-            Debug.Log($"  Movement Speed: {initialStats.MovementSpeed:F2}");
+            DebugHelper.Log($"[PlayerNavController] Start - 초기 스탯 적용");
+            DebugHelper.Log($"  Movement Speed: {initialStats.MovementSpeed:F2}");
         }
         else
         {
-            Debug.LogWarning("[PlayerNavController] Start - PlayerCharacter가 null입니다!");
+            DebugHelper.LogWarning("[PlayerNavController] Start - PlayerCharacter가 null입니다!");
         }
     }
 
@@ -228,7 +231,7 @@ public class PlayerNavController : MonoBehaviour
             return;
         }
 
-        // Movement Speed 동적 업데이트
+        // Movement Speed 동적 업데이트 (변경 시에만 적용)
         if (_playerCharacter != null && _agent != null)
         {
             CharacterStats stats = _playerCharacter.CurrentStats;
@@ -237,24 +240,25 @@ public class PlayerNavController : MonoBehaviour
             // 상태이상에 따른 속도 조정
             if (_stateController != null)
             {
-                if (_stateController.IsFrozen)
-                {
-                    targetSpeed = 0f;
-                }
-                else if (_stateController.IsRoot)
+                if (_stateController.IsFrozen || _stateController.IsRoot)
                 {
                     targetSpeed = 0f;
                 }
             }
 
-            _agent.speed = targetSpeed;
+            if (Mathf.Abs(targetSpeed - _lastTargetSpeed) > 0.001f)
+            {
+                _lastTargetSpeed = targetSpeed;
+                _agent.speed = targetSpeed;
+            }
         }
 
-        // 이동 상태 추적
+        // 이동 상태 추적 (velocity.magnitude 한 번만 계산)
         if (_agent != null && _agent.isOnNavMesh)
         {
-            _isCurrentlyMoving = _agent.velocity.magnitude > 0.5f;
-            if (_isCurrentlyMoving && _agent.velocity.magnitude > 0.1f)
+            float velocityMag = _agent.velocity.magnitude;
+            _isCurrentlyMoving = velocityMag > 0.5f;
+            if (_isCurrentlyMoving && velocityMag > 0.1f)
             {
                 _lastMovementDirection = _agent.velocity.normalized;
             }
@@ -616,7 +620,7 @@ public class PlayerNavController : MonoBehaviour
 
             if (_enableDebugLogs && distance >= 0.1f)
             {
-                Debug.Log($"[NavMesh] 보정: {distance:F2}m 이동 ({position} → {hit.position})");
+                DebugHelper.Log($"[NavMesh] 보정: {distance:F2}m 이동 ({position} → {hit.position})");
             }
 
             return distance < 0.5f;
@@ -695,12 +699,12 @@ public class PlayerNavController : MonoBehaviour
 
     #region 디버그
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerNavController] {message}");
+            DebugHelper.Log($"[PlayerNavController] {message}");
         }
     }
 
@@ -776,22 +780,22 @@ public class PlayerNavController : MonoBehaviour
     [ContextMenu("Debug: Print Speed Info")]
     private void DebugPrintSpeedInfo()
     {
-        Debug.Log("===== Movement Speed 정보 =====");
-        Debug.Log($"기본 속도 (_baseSpeed): {_baseSpeed:F2}");
-        Debug.Log($"현재 NavMeshAgent 속도: {_agent.speed:F2}");
+        DebugHelper.Log("===== Movement Speed 정보 =====");
+        DebugHelper.Log($"기본 속도 (_baseSpeed): {_baseSpeed:F2}");
+        DebugHelper.Log($"현재 NavMeshAgent 속도: {_agent.speed:F2}");
 
         if (_playerCharacter != null)
         {
             CharacterStats stats = _playerCharacter.CurrentStats;
-            Debug.Log($"Movement Speed 스탯: {stats.MovementSpeed:F2}");
-            Debug.Log($"Dexterity: {stats.Dexterity}");
+            DebugHelper.Log($"Movement Speed 스탯: {stats.MovementSpeed:F2}");
+            DebugHelper.Log($"Dexterity: {stats.Dexterity}");
 
             float expectedSpeed = _baseSpeed + stats.MovementSpeed;
-            Debug.Log($"예상 속도 (상태이상 없음): {expectedSpeed:F2}");
+            DebugHelper.Log($"예상 속도 (상태이상 없음): {expectedSpeed:F2}");
         }
         else
         {
-            Debug.LogWarning("PlayerCharacter가 null입니다!");
+            DebugHelper.LogWarning("PlayerCharacter가 null입니다!");
         }
     }
 

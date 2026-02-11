@@ -267,19 +267,19 @@ public class PlayerInitializationManager : MonoBehaviour
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerInitializationManager] {message}");
+            DebugHelper.Log($"[PlayerInitializationManager] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[PlayerInitializationManager] {message}");
+        DebugHelper.LogError($"[PlayerInitializationManager] {message}");
     }
 
     #endregion

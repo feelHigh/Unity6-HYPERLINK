@@ -93,7 +93,7 @@ public class EnemySpawner : MonoBehaviour
             EnemyController enemy = enemyGO.GetComponent<EnemyController>();
             if (enemy == null)
             {
-                Debug.LogError($"[Spawner] {data.Name}에 EnemyController가 없습니다.");
+                DebugHelper.LogError($"[Spawner] {data.Name}에 EnemyController가 없습니다.");
                 return;
             }
 

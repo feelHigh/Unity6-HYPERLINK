@@ -237,7 +237,7 @@ public class DeathUIPanel : MonoBehaviour
         yield return StartCoroutine(FadeOut());
 
         // PlayerDeathManager에게 리스폰 요청
-        PlayerDeathManager deathManager = FindObjectOfType<PlayerDeathManager>();
+        PlayerDeathManager deathManager = FindFirstObjectByType<PlayerDeathManager>();
         if (deathManager != null)
         {
             deathManager.RespawnPlayer();
@@ -291,28 +291,28 @@ public class DeathUIPanel : MonoBehaviour
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[DeathUIPanel] {message}");
+            DebugHelper.Log($"[DeathUIPanel] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[DeathUIPanel] {message}");
+            DebugHelper.LogWarning($"[DeathUIPanel] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[DeathUIPanel] {message}");
+        DebugHelper.LogError($"[DeathUIPanel] {message}");
     }
 
     #endregion

@@ -178,7 +178,7 @@ public class SkillData : ScriptableObject
     {
         if (string.IsNullOrWhiteSpace(_animatorTriggerName))
         {
-            Debug.LogWarning($"[{_skillName}] AnimatorTriggerName이 설정되지 않았습니다!", this);
+            DebugHelper.LogWarning($"[{_skillName}] AnimatorTriggerName이 설정되지 않았습니다!");
         }
 
         _manaCost = Mathf.Max(0f, _manaCost);
@@ -199,15 +199,15 @@ public class SkillData : ScriptableObject
 
         if (_skillType == SkillType.Ranged && _projectilePrefab == null)
         {
-            Debug.LogWarning($"[{_skillName}] 원거리 스킬은 Projectile 프리팹이 필요합니다!", this);
+            DebugHelper.LogWarning($"[{_skillName}] 원거리 스킬은 Projectile 프리팹이 필요합니다!");
         }
 
         if (_skillType == SkillType.Buff)
         {
             if (_buffAmount <= 0)
-                Debug.LogWarning($"[{_skillName}] BuffAmount > 0이어야 합니다!", this);
+                DebugHelper.LogWarning($"[{_skillName}] BuffAmount > 0이어야 합니다!");
             if (_buffDuration <= 0)
-                Debug.LogWarning($"[{_skillName}] BuffDuration > 0이어야 합니다!", this);
+                DebugHelper.LogWarning($"[{_skillName}] BuffDuration > 0이어야 합니다!");
         }
 
         if (_projectilePrefab != null && _skillType == SkillType.Ranged)
@@ -215,7 +215,7 @@ public class SkillData : ScriptableObject
             Projectile projectile = _projectilePrefab.GetComponent<Projectile>();
             if (projectile == null)
             {
-                Debug.LogError($"[{_skillName}] 투사체 프리팹에 Projectile 스크립트가 없습니다!", this);
+                DebugHelper.LogError($"[{_skillName}] 투사체 프리팹에 Projectile 스크립트가 없습니다!");
             }
         }
     }

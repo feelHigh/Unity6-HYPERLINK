@@ -242,28 +242,28 @@ public class ItemPickupManager : MonoBehaviour
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[ItemPickupManager] {message}");
+            DebugHelper.Log($"[ItemPickupManager] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[ItemPickupManager] {message}");
+            DebugHelper.LogWarning($"[ItemPickupManager] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[ItemPickupManager] {message}");
+        DebugHelper.LogError($"[ItemPickupManager] {message}");
     }
 
     #endregion

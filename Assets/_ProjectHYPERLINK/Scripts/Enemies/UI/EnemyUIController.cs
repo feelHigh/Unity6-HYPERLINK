@@ -142,15 +142,15 @@ public class EnemyUIController : MonoBehaviour
     {
         if (_damageTextPrefab == null)
         {
-            Debug.LogWarning("[EnemyUI] DamageText 프리팹이 존재하지 않습니다.");
+            DebugHelper.LogWarning("[EnemyUI] DamageText 프리팹이 존재하지 않습니다.");
             return;
         }
 
         //생성 위치 계산
         Vector3 spawnPos = _enemy.transform.position + _spawnOffset;
 
-        //생성
-        GameObject damageTextGO = Instantiate(_damageTextPrefab, spawnPos, Quaternion.identity);
+        //풀에서 가져오기
+        GameObject damageTextGO = GameObjectPool.Instance.Get(_damageTextPrefab, spawnPos, Quaternion.identity);
 
         //초기화
         DamageText damageText = damageTextGO.GetComponent<DamageText>();

@@ -85,7 +85,7 @@ public class PlayerCharacter : MonoBehaviour
         _stateController = GetComponent<PlayerStateController>();
         if (_stateController == null)
         {
-            Debug.LogWarning("[PlayerCharacter] PlayerStateController가 없습니다.");
+            DebugHelper.LogWarning("[PlayerCharacter] PlayerStateController가 없습니다.");
         }
     }
 
@@ -108,7 +108,7 @@ public class PlayerCharacter : MonoBehaviour
         _currentHealth = _maxHealth;
         _currentMana = _maxMana;
 
-        Debug.Log($"[PlayerCharacter] 초기화 완료 - 스킬은 스킬 트리에서 언락하세요!");
+        DebugHelper.Log($"[PlayerCharacter] 초기화 완료 - 스킬은 스킬 트리에서 언락하세요!");
     }
 
     #endregion
@@ -119,7 +119,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (statGains == null)
         {
-            Debug.LogWarning("레벨업 스탯 증가량이 null입니다!");
+            DebugHelper.LogWarning("레벨업 스탯 증가량이 null입니다!");
             return;
         }
 
@@ -164,7 +164,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (equipmentStats == null)
         {
-            Debug.LogWarning("장비 스탯이 null입니다!");
+            DebugHelper.LogWarning("장비 스탯이 null입니다!");
             _equipmentStats = ScriptableObject.CreateInstance<CharacterStats>();
         }
         else
@@ -376,19 +376,19 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (skill == null)
         {
-            Debug.LogWarning("[PlayerCharacter] UnlockSkill: skill이 null입니다!");
+            DebugHelper.LogWarning("[PlayerCharacter] UnlockSkill: skill이 null입니다!");
             return;
         }
 
         if (_unlockedSkills.Contains(skill))
         {
-            Debug.LogWarning($"[PlayerCharacter] {skill.SkillName}은(는) 이미 언락되었습니다!");
+            DebugHelper.LogWarning($"[PlayerCharacter] {skill.SkillName}은(는) 이미 언락되었습니다!");
             return;
         }
 
         _unlockedSkills.Add(skill);
         OnSkillUnlocked?.Invoke(skill);
-        Debug.Log($"[PlayerCharacter] 스킬 언락 (스킬 트리): {skill.SkillName}");
+        DebugHelper.Log($"[PlayerCharacter] 스킬 언락 (스킬 트리): {skill.SkillName}");
     }
 
     /// <summary>
@@ -419,7 +419,7 @@ public class PlayerCharacter : MonoBehaviour
         UpdateUI();
         OnStatsChanged?.Invoke(GetTotalStats());
 
-        Debug.Log("[PlayerCharacter] 모든 패시브 스탯 제거 완료");
+        DebugHelper.Log("[PlayerCharacter] 모든 패시브 스탯 제거 완료");
     }
 
     #endregion
@@ -467,7 +467,7 @@ public class PlayerCharacter : MonoBehaviour
         // 사망 상태 체크
         if (_isDead)
         {
-            Debug.LogWarning("[PlayerCharacter] 이미 사망한 상태입니다. 데미지 무시.");
+            DebugHelper.LogWarning("[PlayerCharacter] 이미 사망한 상태입니다. 데미지 무시.");
             return;
         }
 
@@ -518,7 +518,7 @@ public class PlayerCharacter : MonoBehaviour
         // 사망 중에는 회복 불가
         if (_isDead)
         {
-            Debug.LogWarning("[PlayerCharacter] 사망 중에는 회복할 수 없습니다.");
+            DebugHelper.LogWarning("[PlayerCharacter] 사망 중에는 회복할 수 없습니다.");
             return;
         }
 
@@ -531,7 +531,7 @@ public class PlayerCharacter : MonoBehaviour
         // 사망 중에는 회복 불가
         if (_isDead)
         {
-            Debug.LogWarning("[PlayerCharacter] 사망 중에는 마나를 회복할 수 없습니다.");
+            DebugHelper.LogWarning("[PlayerCharacter] 사망 중에는 마나를 회복할 수 없습니다.");
             return;
         }
 
@@ -543,19 +543,19 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (_redSoda <= 0)
         {
-            Debug.Log("레드 소다가 없습니다!");
+            DebugHelper.Log("레드 소다가 없습니다!");
             return;
         }
 
         if (_currentHealth >= _maxHealth)
         {
-            Debug.Log("체력이 가득 찼습니다!");
+            DebugHelper.Log("체력이 가득 찼습니다!");
             return;
         }
 
         _redSoda--;
         Heal(_redSodaHealAmount);
-        Debug.Log($"레드 소다 사용! (남은 개수: {_redSoda})");
+        DebugHelper.Log($"레드 소다 사용! (남은 개수: {_redSoda})");
         OnRedSodaChanged?.Invoke(_redSoda);
     }
 
@@ -565,7 +565,7 @@ public class PlayerCharacter : MonoBehaviour
             return;
         
         _redSoda += amount;
-        Debug.Log($"레드 소다 {amount}개 획득! (총: {_redSoda})");
+        DebugHelper.Log($"레드 소다 {amount}개 획득! (총: {_redSoda})");
         OnRedSodaChanged?.Invoke(_redSoda);
     }
 
@@ -582,13 +582,13 @@ public class PlayerCharacter : MonoBehaviour
         // 중복 사망 방지
         if (_isDead)
         {
-            Debug.LogWarning("[PlayerCharacter] Die() 중복 호출 방지");
+            DebugHelper.LogWarning("[PlayerCharacter] Die() 중복 호출 방지");
             return;
         }
 
         _isDead = true; // 사망 상태 설정
 
-        Debug.Log("플레이어 사망!");
+        DebugHelper.Log("플레이어 사망!");
         ClearAllTemporaryBuffs();
         OnPlayerDead?.Invoke();
     }
@@ -607,7 +607,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (!_isDead)
         {
-            Debug.LogWarning("[PlayerCharacter] 이미 살아있는 상태입니다.");
+            DebugHelper.LogWarning("[PlayerCharacter] 이미 살아있는 상태입니다.");
             return;
         }
 
@@ -622,7 +622,7 @@ public class PlayerCharacter : MonoBehaviour
         OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
         OnManaChanged?.Invoke(_currentMana, _maxMana);
 
-        Debug.Log("[PlayerCharacter] 플레이어 부활 완료");
+        DebugHelper.Log("[PlayerCharacter] 플레이어 부활 완료");
     }
 
     #endregion
@@ -639,12 +639,12 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (amount <= 0)
         {
-            Debug.LogWarning($"[PlayerCharacter] 잘못된 골드 추가 시도: {amount}");
+            DebugHelper.LogWarning($"[PlayerCharacter] 잘못된 골드 추가 시도: {amount}");
             return;
         }
 
         _currentGold += amount;
-        Debug.Log($"[골드] +{amount} 골드 획득! (현재: {_currentGold})");
+        DebugHelper.Log($"[골드] +{amount} 골드 획득! (현재: {_currentGold})");
         OnGoldChanged?.Invoke(_currentGold);
     }
 
@@ -656,18 +656,18 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (amount <= 0)
         {
-            Debug.LogWarning($"[PlayerCharacter] 잘못된 골드 제거 시도: {amount}");
+            DebugHelper.LogWarning($"[PlayerCharacter] 잘못된 골드 제거 시도: {amount}");
             return false;
         }
 
         if (_currentGold < amount)
         {
-            Debug.Log($"[골드] 골드 부족! 필요: {amount}, 현재: {_currentGold}");
+            DebugHelper.Log($"[골드] 골드 부족! 필요: {amount}, 현재: {_currentGold}");
             return false;
         }
 
         _currentGold -= amount;
-        Debug.Log($"[골드] -{amount} 골드 사용! (현재: {_currentGold})");
+        DebugHelper.Log($"[골드] -{amount} 골드 사용! (현재: {_currentGold})");
         OnGoldChanged?.Invoke(_currentGold);
         return true;
     }
@@ -713,7 +713,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (data == null)
         {
-            Debug.LogError("로드할 데이터가 null입니다!");
+            DebugHelper.LogError("로드할 데이터가 null입니다!");
             return;
         }
 
@@ -737,7 +737,7 @@ public class PlayerCharacter : MonoBehaviour
         if (data.inventory != null)
         {
             _currentGold = data.inventory.gold;
-            Debug.Log($"[PlayerCharacter] 골드 로드: {_currentGold}");
+            DebugHelper.Log($"[PlayerCharacter] 골드 로드: {_currentGold}");
         }
 
         _unlockedSkills.Clear();
@@ -745,11 +745,11 @@ public class PlayerCharacter : MonoBehaviour
         {
             // 스킬 이름으로 복원은 스킬 트리에서 처리
             // 여기서는 저장된 스킬 이름만 보관
-            Debug.Log($"[PlayerCharacter] 저장된 스킬: {data.progression.unlockedSkills.Count}개");
+            DebugHelper.Log($"[PlayerCharacter] 저장된 스킬: {data.progression.unlockedSkills.Count}개");
         }
 
         UpdateUI();
-        Debug.Log($"캐릭터 데이터 로드 완료 (레벨: {data.character.level})");
+        DebugHelper.Log($"캐릭터 데이터 로드 완료 (레벨: {data.character.level})");
     }
 
     /// <summary>
@@ -760,7 +760,7 @@ public class PlayerCharacter : MonoBehaviour
     {
         if (data == null)
         {
-            Debug.LogError("저장할 데이터가 null입니다!");
+            DebugHelper.LogError("저장할 데이터가 null입니다!");
             return;
         }
 
@@ -803,7 +803,7 @@ public class PlayerCharacter : MonoBehaviour
         }
         data.inventory.gold = _currentGold;
 
-        Debug.Log($"캐릭터 데이터 저장 완료 (스킬: {_unlockedSkills.Count}개, 골드: {_currentGold})");
+        DebugHelper.Log($"캐릭터 데이터 저장 완료 (스킬: {_unlockedSkills.Count}개, 골드: {_currentGold})");
     }
 
     #endregion
@@ -813,29 +813,29 @@ public class PlayerCharacter : MonoBehaviour
     [ContextMenu("Debug: Print Character Info")]
     private void DebugPrintInfo()
     {
-        Debug.Log("===== PlayerCharacter 정보 =====");
-        Debug.Log($"클래스: {_characterClass}");
-        Debug.Log($"체력: {_currentHealth:F0}/{_maxHealth:F0}");
-        Debug.Log($"마나: {_currentMana:F0}/{_maxMana:F0}");
-        Debug.Log($"레드 소다: {_redSoda}개");
-        Debug.Log($"골드: {_currentGold}");
+        DebugHelper.Log("===== PlayerCharacter 정보 =====");
+        DebugHelper.Log($"클래스: {_characterClass}");
+        DebugHelper.Log($"체력: {_currentHealth:F0}/{_maxHealth:F0}");
+        DebugHelper.Log($"마나: {_currentMana:F0}/{_maxMana:F0}");
+        DebugHelper.Log($"레드 소다: {_redSoda}개");
+        DebugHelper.Log($"골드: {_currentGold}");
 
         CharacterStats totalStats = GetTotalStats();
-        Debug.Log($"--- 주요 스탯 ---");
-        Debug.Log($"  힘: {totalStats.Strength}");
-        Debug.Log($"  민첩: {totalStats.Dexterity}");
-        Debug.Log($"  지능: {totalStats.Intelligence}");
-        Debug.Log($"  활력: {totalStats.Vitality}");
+        DebugHelper.Log($"--- 주요 스탯 ---");
+        DebugHelper.Log($"  힘: {totalStats.Strength}");
+        DebugHelper.Log($"  민첩: {totalStats.Dexterity}");
+        DebugHelper.Log($"  지능: {totalStats.Intelligence}");
+        DebugHelper.Log($"  활력: {totalStats.Vitality}");
 
-        Debug.Log($"--- 파생 스탯 ---");
-        Debug.Log($"  물리 공격력: {totalStats.PhysicalAttack:F1}");
-        Debug.Log($"  마법 공격력: {totalStats.MagicalAttack:F1}");
-        Debug.Log($"  방어력: {totalStats.Armor:F1}");
-        Debug.Log($"  모든 저항: {totalStats.AllResistance:F1}");
-        Debug.Log($"  크리티컬 확률: {totalStats.CriticalChance:F1}");
-        Debug.Log($"  공격 속도: {totalStats.AttackSpeed:F1}");
-        Debug.Log($"  이동 속도: {totalStats.MovementSpeed:F1}");
-        Debug.Log($"  마나 재생: {totalStats.ManaRegeneration:F1}");
+        DebugHelper.Log($"--- 파생 스탯 ---");
+        DebugHelper.Log($"  물리 공격력: {totalStats.PhysicalAttack:F1}");
+        DebugHelper.Log($"  마법 공격력: {totalStats.MagicalAttack:F1}");
+        DebugHelper.Log($"  방어력: {totalStats.Armor:F1}");
+        DebugHelper.Log($"  모든 저항: {totalStats.AllResistance:F1}");
+        DebugHelper.Log($"  크리티컬 확률: {totalStats.CriticalChance:F1}");
+        DebugHelper.Log($"  공격 속도: {totalStats.AttackSpeed:F1}");
+        DebugHelper.Log($"  이동 속도: {totalStats.MovementSpeed:F1}");
+        DebugHelper.Log($"  마나 재생: {totalStats.ManaRegeneration:F1}");
     }
 
     [ContextMenu("Test: Take Damage (100)")]
@@ -858,7 +858,7 @@ public class PlayerCharacter : MonoBehaviour
             .Build();
 
         AddLevelUpStats(strengthBonus);
-        Debug.Log("[테스트] Strength +10 추가");
+        DebugHelper.Log("[테스트] Strength +10 추가");
     }
 
     [ContextMenu("Test: Add Gold +100")]

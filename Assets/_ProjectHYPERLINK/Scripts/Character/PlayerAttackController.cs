@@ -105,22 +105,22 @@ public class PlayerAttackController : MonoBehaviour
 
         if (_playerCharacter == null)
         {
-            Debug.LogError("[PlayerAttackController] PlayerCharacter가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] PlayerCharacter가 없습니다!");
         }
 
         if (_stateController == null)
         {
-            Debug.LogError("[PlayerAttackController] PlayerStateController가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] PlayerStateController가 없습니다!");
         }
 
         if (_animator == null)
         {
-            Debug.LogError("[PlayerAttackController] Animator가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] Animator가 없습니다!");
         }
 
         if (_agent == null)
         {
-            Debug.LogError("[PlayerAttackController] NavMeshAgent가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] NavMeshAgent가 없습니다!");
         }
 
         // 기본값 저장
@@ -347,9 +347,10 @@ public class PlayerAttackController : MonoBehaviour
         OnAttackTrigger?.Invoke(ATTACK_HASH);
 
         // 기본 공격 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audio = AudioManager.Instance;
+        if (audio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.PlayerBasicAttack);
+            audio.PlaySFX(audio.SoundLibrary.PlayerBasicAttack);
         }
 
         Log($"공격 시작! 타겟: {enemies.Count}마리");
@@ -441,11 +442,11 @@ public class PlayerAttackController : MonoBehaviour
         // 회전 계산
         Quaternion vfxRotation = transform.rotation * Quaternion.Euler(_vfxRotationOffset);
 
-        // VFX 생성
-        GameObject vfx = Instantiate(_baseAttackVfxPrefab, vfxPosition, vfxRotation);
+        // VFX 생성 (풀 사용)
+        GameObject vfx = GameObjectPool.Instance.Get(_baseAttackVfxPrefab, vfxPosition, vfxRotation);
 
-        // 수명 후 제거
-        Destroy(vfx, _vfxLifetime);
+        // 수명 후 풀에 반환
+        GameObjectPool.Instance.Release(vfx, _vfxLifetime);
 
         Log($"VFX 생성: 위치={vfxPosition}, 회전={_vfxRotationOffset}");
     }
@@ -454,12 +455,12 @@ public class PlayerAttackController : MonoBehaviour
 
     #region 디버그
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerAttackController] {message}");
+            DebugHelper.Log($"[PlayerAttackController] {message}");
         }
     }
 
@@ -535,25 +536,25 @@ public class PlayerAttackController : MonoBehaviour
     [ContextMenu("Debug: Print Attack Info")]
     private void DebugPrintAttackInfo()
     {
-        Debug.Log("===== PlayerAttackController 정보 =====");
-        Debug.Log($"기본 쿨다운: {_baseCooldown:F2}초");
-        Debug.Log($"현재 쿨다운: {_currentAttackCooldown:F2}초");
-        Debug.Log($"공격 중: {_isAttacking}");
-        Debug.Log($"쿨다운 중: {_isOnCooldown}");
-        Debug.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
-        Debug.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2}");
+        DebugHelper.Log("===== PlayerAttackController 정보 =====");
+        DebugHelper.Log($"기본 쿨다운: {_baseCooldown:F2}초");
+        DebugHelper.Log($"현재 쿨다운: {_currentAttackCooldown:F2}초");
+        DebugHelper.Log($"공격 중: {_isAttacking}");
+        DebugHelper.Log($"쿨다운 중: {_isOnCooldown}");
+        DebugHelper.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
+        DebugHelper.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2}");
 
         if (_playerCharacter != null)
         {
             CharacterStats stats = _playerCharacter.CurrentStats;
             float attackPower = _playerCharacter.GetAttackPower();
-            Debug.Log($"공격 속도 스탯: {stats.AttackSpeed:F2}");
-            Debug.Log($"최종 공격력: {attackPower:F1}");
+            DebugHelper.Log($"공격 속도 스탯: {stats.AttackSpeed:F2}");
+            DebugHelper.Log($"최종 공격력: {attackPower:F1}");
         }
 
         if (_stateController != null)
         {
-            Debug.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
+            DebugHelper.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
         }
     }
 

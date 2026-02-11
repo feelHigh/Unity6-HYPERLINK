@@ -141,7 +141,7 @@ public class ItemSpawner : MonoBehaviour
             itemData = GetEquipmentTemplate(specificType);
             if (itemData == null)
             {
-                Debug.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {specificType}");
+                DebugHelper.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {specificType}");
                 return null;
             }
 
@@ -151,7 +151,7 @@ public class ItemSpawner : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[ItemSpawner] 아이템 생성 실패 - 프리팹 또는 템플릿 누락");
+            DebugHelper.LogWarning("[ItemSpawner] 아이템 생성 실패 - 프리팹 또는 템플릿 누락");
             return null;
         }
         int gold = Random.Range(_minGold, _maxGold);
@@ -176,7 +176,7 @@ public class ItemSpawner : MonoBehaviour
         ItemData itemData = GetEquipmentTemplate(equipmentType);
         if (itemData == null)
         {
-            Debug.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {equipmentType}");
+            DebugHelper.LogWarning($"[ItemSpawner] 장비 템플릿을 찾을 수 없습니다: {equipmentType}");
             return null;
         }
 
@@ -227,13 +227,13 @@ public class ItemSpawner : MonoBehaviour
                 templates = _ringTemplates;
                 break;
             default:
-                Debug.LogWarning($"[ItemSpawner] 지원하지 않는 장비 타입: {equipmentType}");
+                DebugHelper.LogWarning($"[ItemSpawner] 지원하지 않는 장비 타입: {equipmentType}");
                 return null;
         }
 
         if (templates == null || templates.Length == 0)
         {
-            Debug.LogWarning($"[ItemSpawner] {equipmentType} 템플릿이 비어있습니다!");
+            DebugHelper.LogWarning($"[ItemSpawner] {equipmentType} 템플릿이 비어있습니다!");
             return null;
         }
 
@@ -256,7 +256,7 @@ public class ItemSpawner : MonoBehaviour
 
         if (availableTypes.Count == 0)
         {
-            Debug.LogWarning("[ItemSpawner] 사용 가능한 장비 템플릿이 없습니다!");
+            DebugHelper.LogWarning("[ItemSpawner] 사용 가능한 장비 템플릿이 없습니다!");
             return EquipmentType.None;
         }
 

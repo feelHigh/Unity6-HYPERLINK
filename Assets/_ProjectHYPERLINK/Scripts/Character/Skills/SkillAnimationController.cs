@@ -63,19 +63,19 @@ public class SkillAnimationController : MonoBehaviour
 
         if (_animator == null || _navAgent == null)
         {
-            Debug.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
+            DebugHelper.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
             enabled = false;
         }
 
         if (_attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다!");
+            DebugHelper.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다!");
         }
 
         // StateController 확인
         if (_stateController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] PlayerStateController가 없습니다!");
+            DebugHelper.LogWarning("[SkillAnimationController] PlayerStateController가 없습니다!");
         }
     }
 
@@ -328,7 +328,7 @@ public class SkillAnimationController : MonoBehaviour
     {
         if (skill == null || string.IsNullOrWhiteSpace(skill.AnimatorTriggerName))
         {
-            Debug.LogError($"[SkillAnimationController] 트리거 이름 누락: {skill?.SkillName}");
+            DebugHelper.LogError($"[SkillAnimationController] 트리거 이름 누락: {skill?.SkillName}");
             return;
         }
 
@@ -369,7 +369,7 @@ public class SkillAnimationController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[{skill.SkillName}] 유효하지 않은 HitAreaConfig");
+                DebugHelper.LogWarning($"[{skill.SkillName}] 유효하지 않은 HitAreaConfig");
             }
         }
     }
@@ -443,7 +443,7 @@ public class SkillAnimationController : MonoBehaviour
     {
         if (skill == null || _playerCharacter == null || _attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패");
+            DebugHelper.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패");
             return 0f;
         }
 
@@ -491,8 +491,8 @@ public class SkillAnimationController : MonoBehaviour
         Vector3 spawnPosition = transform.position + transform.TransformDirection(config.PositionOffset);
         Quaternion spawnRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
 
-        GameObject vfxInstance = Instantiate(config.VfxPrefab, spawnPosition, spawnRotation);
-        vfxInstance.transform.localScale *= config.Scale;
+        GameObject vfxInstance = GameObjectPool.Instance.Get(config.VfxPrefab, spawnPosition, spawnRotation);
+        vfxInstance.transform.localScale = config.VfxPrefab.transform.localScale * config.Scale;
 
         if (config.AttachToCharacter)
         {
@@ -515,7 +515,7 @@ public class SkillAnimationController : MonoBehaviour
             }
         }
 
-        Destroy(vfxInstance, lifetime);
+        GameObjectPool.Instance.Release(vfxInstance, lifetime);
     }
 
     private void CleanupAllVfxCoroutines()
@@ -557,12 +557,12 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 디버그
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[SkillAnimationController] {message}");
+            DebugHelper.Log($"[SkillAnimationController] {message}");
         }
     }
 

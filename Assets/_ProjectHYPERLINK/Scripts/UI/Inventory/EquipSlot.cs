@@ -24,7 +24,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
 
         if (_equipInevnetory == null)
         {
-            Debug.LogError($"[EquipSlot] InitializeBoss 실패: equipInventory가 null입니다. 슬롯: {_equipType}");
+            DebugHelper.LogError($"[EquipSlot] InitializeBoss 실패: equipInventory가 null입니다. 슬롯: {_equipType}");
         }
     }
 
@@ -67,7 +67,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
         if (_itemPrefab == null) return;
         if (_equipInevnetory == null)
         {
-            Debug.LogError("[EquipSlot] OnBeginDrag: _equipInevnetory가 null입니다!");
+            DebugHelper.LogError("[EquipSlot] OnBeginDrag: _equipInevnetory가 null입니다!");
             return;
         }
         _equipInevnetory.OnBeginDrag(_itemPrefab, this);
@@ -93,7 +93,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     {
         if (_equipInevnetory == null)
         {
-            Debug.LogError($"[EquipSlot] OnPointerEnter: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
+            DebugHelper.LogError($"[EquipSlot] OnPointerEnter: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
             return;
         }
         _equipInevnetory.SetCurrentSlot(this);
@@ -103,7 +103,7 @@ public class EquipSlot : Slot, IBeginDragHandler, IEndDragHandler, IDragHandler,
     {
         if (_equipInevnetory == null)
         {
-            Debug.LogError($"[EquipSlot] OnPointerExit: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
+            DebugHelper.LogError($"[EquipSlot] OnPointerExit: _equipInevnetory가 null입니다! 슬롯: {_equipType}");
             return;
         }
         _equipInevnetory.SetCurrentSlot(null);

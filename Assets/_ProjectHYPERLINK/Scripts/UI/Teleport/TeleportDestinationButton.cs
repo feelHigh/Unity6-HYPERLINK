@@ -43,7 +43,7 @@ public class TeleportDestinationButton : MonoBehaviour
 
         if (_destination == null)
         {
-            Debug.LogError("[TeleportDestinationButton] Destination이 null입니다");
+            DebugHelper.LogError("[TeleportDestinationButton] Destination이 null입니다");
             return;
         }
 
@@ -108,13 +108,13 @@ public class TeleportDestinationButton : MonoBehaviour
     {
         if (_destination == null)
         {
-            Debug.LogError("[TeleportDestinationButton] Destination이 null입니다");
+            DebugHelper.LogError("[TeleportDestinationButton] Destination이 null입니다");
             return;
         }
 
         if (!_destination.IsUnlocked())
         {
-            Debug.LogWarning("[TeleportDestinationButton] 잠긴 목적지입니다");
+            DebugHelper.LogWarning("[TeleportDestinationButton] 잠긴 목적지입니다");
             return;
         }
 
@@ -132,7 +132,7 @@ public class TeleportDestinationButton : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[TeleportDestinationButton] TeleportManager를 찾을 수 없습니다");
+            DebugHelper.LogError("[TeleportDestinationButton] TeleportManager를 찾을 수 없습니다");
         }
     }
 }

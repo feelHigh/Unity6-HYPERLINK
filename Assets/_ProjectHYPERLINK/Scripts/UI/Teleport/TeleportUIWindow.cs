@@ -27,7 +27,6 @@ public class TeleportUIWindow : MonoBehaviour
     [SerializeField] private GameObject _sceneGroupPrefab;
 
     [Header("설정")]
-    [SerializeField] private bool _closeOnTeleport = true;
     [Tooltip("UI 열릴 때 시간 정지")]
     [SerializeField] private bool _pauseTimeWhenOpen = true;
 
@@ -278,28 +277,28 @@ public class TeleportUIWindow : MonoBehaviour
 
     #region 로깅
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[TeleportUIWindow] {message}");
+            DebugHelper.Log($"[TeleportUIWindow] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[TeleportUIWindow] {message}");
+            DebugHelper.LogWarning($"[TeleportUIWindow] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[TeleportUIWindow] {message}");
+        DebugHelper.LogError($"[TeleportUIWindow] {message}");
     }
 
     #endregion

@@ -397,7 +397,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (QuestManager.Instance != null)
         {
             Log("퀘스트 데이터 저장 중...");
-            QuestManager.Instance.SaveQuestProgressAsync();
+            await QuestManager.Instance.SaveQuestProgressAsync();
             Log("퀘스트 데이터 저장 완료");
         }
 
@@ -510,7 +510,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (!_hasSearchedForUI)
         {
             Log("TeleportUIWindow 검색 중...");
-            _cachedTeleportUI = FindObjectOfType<TeleportUIWindow>(true); // includeInactive = true
+            _cachedTeleportUI = FindFirstObjectByType<TeleportUIWindow>(FindObjectsInactive.Include);
             _hasSearchedForUI = true;
 
             if (_cachedTeleportUI != null)
@@ -593,28 +593,28 @@ public class Portal : MonoBehaviour, IInteractable
 
     #region 디버그
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[Portal '{name}'] {message}");
+            DebugHelper.Log($"[Portal '{name}'] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[Portal '{name}'] {message}");
+            DebugHelper.LogWarning($"[Portal '{name}'] {message}");
         }
     }
 
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[Portal '{name}'] {message}");
+        DebugHelper.LogError($"[Portal '{name}'] {message}");
     }
 
     private void OnDrawGizmos()

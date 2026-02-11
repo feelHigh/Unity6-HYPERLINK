@@ -62,7 +62,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         // 슬롯 배열 검증
         if (_inventory == null || _inventory.Length != 40)
         {
-            Debug.LogError("[ItemInventory] InventorySlot 배열이 60개여야 합니다!");
+            DebugHelper.LogError("[ItemInventory] InventorySlot 배열이 60개여야 합니다!");
         }
     }
 
@@ -134,13 +134,13 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                     slot.GetData(data);
                     PlaceItem(data, slot, true);
 
-                    Debug.Log($"[ItemInventory] 아이템 추가 성공: {data.ItemName}");
+                    DebugHelper.Log($"[ItemInventory] 아이템 추가 성공: {data.ItemName}");
                     return true;
                 }
             }
         }
 
-        Debug.LogWarning($"[ItemInventory] 인벤토리 가득 찬 상태 - {data.ItemName} 추가 실패");
+        DebugHelper.LogWarning($"[ItemInventory] 인벤토리 가득 찬 상태 - {data.ItemName} 추가 실패");
         return false;
     }
 
@@ -200,7 +200,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         if (slotIndex < 0 || slotIndex >= _inventory.Length)
         {
-            Debug.LogError($"[ItemInventory] 잘못된 슬롯 인덱스: {slotIndex}");
+            DebugHelper.LogError($"[ItemInventory] 잘못된 슬롯 인덱스: {slotIndex}");
             return false;
         }
 
@@ -210,7 +210,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
         if (x >= _slots.GetLength(0) || y >= _slots.GetLength(1))
         {
-            Debug.LogError($"[ItemInventory] 슬롯 좌표 범위 초과: ({x}, {y})");
+            DebugHelper.LogError($"[ItemInventory] 슬롯 좌표 범위 초과: ({x}, {y})");
             return false;
         }
 
@@ -230,11 +230,11 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             slot.GetData(data);
             PlaceItem(data, slot, true);
 
-            Debug.Log($"[ItemInventory] 로드 성공: {data.ItemName} → 슬롯 {slotIndex}");
+            DebugHelper.Log($"[ItemInventory] 로드 성공: {data.ItemName} → 슬롯 {slotIndex}");
             return true;
         }
 
-        Debug.LogWarning($"[ItemInventory] 로드 실패: {data.ItemName} → 슬롯 {slotIndex} (공간 부족)");
+        DebugHelper.LogWarning($"[ItemInventory] 로드 실패: {data.ItemName} → 슬롯 {slotIndex} (공간 부족)");
         return false;
     }
 
@@ -259,7 +259,7 @@ public class ItemInventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             slot.IGotItem(false);
         }
 
-        Debug.Log("[ItemInventory] 인벤토리 초기화 완료");
+        DebugHelper.Log("[ItemInventory] 인벤토리 초기화 완료");
     }
 
     public void PlaceItem(ItemData data, InventorySlot slot, bool get)
