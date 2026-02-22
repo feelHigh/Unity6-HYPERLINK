@@ -91,6 +91,12 @@ public class AudioManager : MonoBehaviour
         // 싱글톤 설정
         if (_instance != null && _instance != this)
         {
+            // 기존 인스턴스에 SoundLibrary가 없으면 이 인스턴스에서 전달
+            if (_instance._soundLibrary == null && _soundLibrary != null)
+            {
+                _instance._soundLibrary = _soundLibrary;
+            }
+
             Destroy(gameObject);
             return;
         }
