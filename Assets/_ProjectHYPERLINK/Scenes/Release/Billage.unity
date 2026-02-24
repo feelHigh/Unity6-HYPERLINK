@@ -34084,8 +34084,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shop: {fileID: 1438896982}
-  _name: 
-  _prompt: 
+  _name: Shop
+  _prompt: Shop
   _range: 1
   _interactionType: 3
 --- !u!65 &1746070653

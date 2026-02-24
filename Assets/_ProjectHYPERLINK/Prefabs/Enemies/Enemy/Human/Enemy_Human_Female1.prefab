@@ -4924,7 +4924,7 @@ NavMeshAgent:
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 1000
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -4995,17 +4995,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _controller: {fileID: 4321725715518137763}
   _startDelay: 1.5
-  _middleDelay: 0
   _disableAfterEffect: 0
   _disableDuration: 0
   _enableObjectControl: 1
+  _objectDisableDelay: 0
   _objectsToDisable:
   - {fileID: 2246997968471808764}
+  _objectSpawnDelay: 0
   _objectsToSpawn: []
   _spawnOffset: {x: 0, y: 0, z: 0}
   _destroyAfterDuration: 0
   _enableFadeOut: 0
+  _fadeOutDelay: 0
   _disableShadows: 0
+  _shadowDisableDelay: 0
   _targetRenderers: []
   _fadeDuration: 1
   _fadeCurve:
@@ -5035,6 +5038,7 @@ MonoBehaviour:
   _shaderGraphPropertyName: _Alpha
   _enablePositionChange: 0
   _isUsingLocalPosition: 0
+  _positionChangeDelay: 0
   _targetModel: {fileID: 0}
   _positionOffset: {x: 0, y: -2, z: 0}
   _moveDuration: 1
@@ -9758,6 +9762,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _detectorColl: {fileID: 720639860375733809}
+  _playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  _ignoreLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &7956220676874446730
 GameObject:
   m_ObjectHideFlags: 0
