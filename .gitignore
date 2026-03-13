@@ -90,3 +90,6 @@ fmod_editor.log
 *.gitignore
 *.gitattributes
 *.html
+
+# Claude Code
+.claude/
