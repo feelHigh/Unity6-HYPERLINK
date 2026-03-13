@@ -128,7 +128,7 @@ public class Item : MonoBehaviour
     /// </summary>
     public virtual void OnPickup()
     {
-        Debug.Log($"[Item] 아이템 획득: {ItemName} ({Quality})");
+        DebugHelper.Log($"[Item] 아이템 획득: {ItemName} ({Quality})");
         // 인벤토리 추가는 ItemPickupManager에서 처리
     }
 }

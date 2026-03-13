@@ -183,17 +183,19 @@ public class MapGeneratorInitializer : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[MapGeneratorInitializer] {message}");
+            DebugHelper.Log($"[MapGeneratorInitializer] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[MapGeneratorInitializer] {message}");
+        DebugHelper.LogError($"[MapGeneratorInitializer] {message}");
     }
 
     #endregion

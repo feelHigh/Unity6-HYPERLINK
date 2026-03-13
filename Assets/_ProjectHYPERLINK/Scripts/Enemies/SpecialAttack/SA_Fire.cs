@@ -31,17 +31,18 @@ public class SA_Fire : SpecialAttackBase
     {
         if (_meleeAttackEffect == null)
         {
-            Debug.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("근거리 공격 이펙트 프리팹이 연결되지 않았습니다.");
             return;
         }
 
-        //자신 위치에 화염 방출 이펙트 생성
-        GameObject effectGO = Instantiate(_meleeAttackEffect, attacker.position, attacker.rotation, attacker);
+        //자신 위치에 화염 방출 이펙트 생성 (풀 사용)
+        GameObject effectGO = GameObjectPool.Instance.Get(_meleeAttackEffect, attacker.position, attacker.rotation, attacker);
 
         //범위 내 플레이어 탐지
-        Collider[] colls = Physics.OverlapSphere(attacker.position, _meleeRadius, _playerLayerMask);
-        foreach (var coll in colls)
+        int count = Physics.OverlapSphereNonAlloc(attacker.position, _meleeRadius, _sharedOverlapBuffer, _playerLayerMask);
+        for (int i = 0; i < count; i++)
         {
+            var coll = _sharedOverlapBuffer[i];
             IMonsterDamageable player = coll.GetComponent<IMonsterDamageable>();
             if (player != null)
             {
@@ -49,7 +50,7 @@ public class SA_Fire : SpecialAttackBase
             }
         }
 
-        Destroy(effectGO, 2f);
+        GameObjectPool.Instance.Release(effectGO, 2f);
     }
 
     /// <summary>
@@ -59,7 +60,7 @@ public class SA_Fire : SpecialAttackBase
     {
         if (_projectilePrefab == null)
         {
-            Debug.LogError("발사체 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("발사체 프리팹이 연결되지 않았습니다.");
             return;
         }
 
@@ -74,8 +75,8 @@ public class SA_Fire : SpecialAttackBase
 
         Quaternion spawnRot = Quaternion.LookRotation(dir, Vector3.up);
 
-        //화염구 프리팹 생성
-        GameObject projectileGO = Instantiate(_projectilePrefab, spawnPos, spawnRot);
+        //화염구 프리팹 생성 (풀 사용)
+        GameObject projectileGO = GameObjectPool.Instance.Get(_projectilePrefab, spawnPos, spawnRot);
 
         //생성된 화염구를 초기화
         EnemyProjectile controller = projectileGO.GetComponent<EnemyProjectile>();

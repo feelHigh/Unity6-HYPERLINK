@@ -77,7 +77,7 @@ public class PlayerDeathManager : MonoBehaviour
             }
 
             elapsed += 0.1f;
-            yield return new WaitForSeconds(0.1f);
+            yield return WaitForSecondsCache.Get(0.1f);
         }
 
         if (_playerObject == null)
@@ -236,7 +236,7 @@ public class PlayerDeathManager : MonoBehaviour
     {
         if (_useRespawnFadeEffect)
         {
-            yield return new WaitForSeconds(0.3f);
+            yield return WaitForSecondsCache.Get(0.3f);
         }
 
         // 1. 체력/마나 회복 + 사망 상태 해제
@@ -332,7 +332,7 @@ public class PlayerDeathManager : MonoBehaviour
     private IEnumerator GrantRespawnInvincibility()
     {
         Log($"무적 시간 시작 ({_respawnInvincibilityDuration}초)");
-        yield return new WaitForSeconds(_respawnInvincibilityDuration);
+        yield return WaitForSecondsCache.Get(_respawnInvincibilityDuration);
         Log("무적 시간 종료");
     }
 
@@ -360,25 +360,28 @@ public class PlayerDeathManager : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerDeathManager] {message}");
+            DebugHelper.Log($"[PlayerDeathManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[PlayerDeathManager] {message}");
+            DebugHelper.LogWarning($"[PlayerDeathManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[PlayerDeathManager] {message}");
+        DebugHelper.LogError($"[PlayerDeathManager] {message}");
     }
 
     #endregion

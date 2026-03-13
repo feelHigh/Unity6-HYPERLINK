@@ -199,7 +199,7 @@ public class WorldSpaceInteractionUI : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(200, 50);
         transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
 
-        Debug.Log("WorldSpaceInteractionUI 설정 완료");
+        DebugHelper.Log("WorldSpaceInteractionUI 설정 완료");
     }
 #endif
 

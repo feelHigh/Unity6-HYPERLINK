@@ -190,7 +190,7 @@ public class CharacterSaveData
     {
         if (baseStats == null)
         {
-            Debug.LogError("[CharacterSaveData] baseStats가 null입니다! 기본값으로 초기화합니다.");
+            DebugHelper.LogError("[CharacterSaveData] baseStats가 null입니다! 기본값으로 초기화합니다.");
 
             // Fallback: baseStats가 없을 경우 기본값 반환
             return new CharacterStatsData
@@ -250,8 +250,8 @@ public class CharacterSaveData
             maxMana = (baseStats.Intelligence * 10f) + baseStats.MaxMana
         };
 
-        Debug.Log($"[CharacterSaveData] {baseStats.name} 스탯으로 초기화: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
-        Debug.Log($"[CharacterSaveData] 초기 리소스: HP {stats.currentHealth}/{stats.maxHealth}, Mana {stats.currentMana}/{stats.maxMana}");
+        DebugHelper.Log($"[CharacterSaveData] {baseStats.name} 스탯으로 초기화: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
+        DebugHelper.Log($"[CharacterSaveData] 초기 리소스: HP {stats.currentHealth}/{stats.maxHealth}, Mana {stats.currentMana}/{stats.maxMana}");
 
         return stats;
     }
@@ -263,29 +263,29 @@ public class CharacterSaveData
     /// </summary>
     public void PrintSummary()
     {
-        Debug.Log("===== CharacterSaveData 요약 =====");
-        Debug.Log($"Character: {character.characterName} ({character.characterClass})");
-        Debug.Log($"Level: {character.level} (EXP: {character.experience})");
-        Debug.Log($"Stats: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
-        Debug.Log($"HP: {stats.currentHealth}/{stats.maxHealth}, Mana: {stats.currentMana}/{stats.maxMana}");
-        Debug.Log($"Unlocked Skills: {progression.unlockedSkills.Count}");
-        Debug.Log($"Skill Tree: SP {progression.skillTree.currentSkillPoints}, Nodes {progression.skillTree.unlockedNodeIDs.Count}");
+        DebugHelper.Log("===== CharacterSaveData 요약 =====");
+        DebugHelper.Log($"Character: {character.characterName} ({character.characterClass})");
+        DebugHelper.Log($"Level: {character.level} (EXP: {character.experience})");
+        DebugHelper.Log($"Stats: STR {stats.baseStats.strength}, DEX {stats.baseStats.dexterity}, INT {stats.baseStats.intelligence}, VIT {stats.baseStats.vitality}");
+        DebugHelper.Log($"HP: {stats.currentHealth}/{stats.maxHealth}, Mana: {stats.currentMana}/{stats.maxMana}");
+        DebugHelper.Log($"Unlocked Skills: {progression.unlockedSkills.Count}");
+        DebugHelper.Log($"Skill Tree: SP {progression.skillTree.currentSkillPoints}, Nodes {progression.skillTree.unlockedNodeIDs.Count}");
 
         // 스킬 슬롯 정보
-        Debug.Log($"Skill Slots: {progression.skillSlots.Count}");
+        DebugHelper.Log($"Skill Slots: {progression.skillSlots.Count}");
         foreach (var slotData in progression.skillSlots)
         {
             string skillName = string.IsNullOrEmpty(slotData.assignedSkillID) ?
                 "Empty" : slotData.assignedSkillID;
-            Debug.Log($"  Slot {slotData.slotIndex}: {skillName}");
+            DebugHelper.Log($"  Slot {slotData.slotIndex}: {skillName}");
         }
 
-        Debug.Log($"Play Time: {metadata.playTimeSeconds} seconds");
-        Debug.Log($"Gold: {inventory.gold}");
+        DebugHelper.Log($"Play Time: {metadata.playTimeSeconds} seconds");
+        DebugHelper.Log($"Gold: {inventory.gold}");
 
         // 퀘스트 정보
-        Debug.Log($"Quests Completed: {gameplay.questsCompleted.Count}");
-        Debug.Log($"Quests In Progress: {gameplay.questProgress.Count}");
+        DebugHelper.Log($"Quests Completed: {gameplay.questsCompleted.Count}");
+        DebugHelper.Log($"Quests In Progress: {gameplay.questProgress.Count}");
     }
 
     #endregion

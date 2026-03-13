@@ -109,7 +109,7 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("설명 시작");
+        DebugHelper.Log("설명 시작");
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class InventoryItemPrefab : MonoBehaviour, IPointerEnterHandler, IPointer
     /// </summary>
     public void OnPointerExit(PointerEventData eventData)
     {
-        Debug.Log("설명 끝");
+        DebugHelper.Log("설명 끝");
     }
 
     /// <summary>

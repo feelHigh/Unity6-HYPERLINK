@@ -40,13 +40,13 @@ public class SceneBGMController : MonoBehaviour
     {
         if (_sceneBGM == null)
         {
-            Debug.LogWarning($"[SceneBGMController] {gameObject.scene.name} 씬에 BGM이 설정되지 않았습니다.");
+            DebugHelper.LogWarning($"[SceneBGMController] {gameObject.scene.name} 씬에 BGM이 설정되지 않았습니다.");
             return;
         }
 
         if (AudioManager.Instance == null)
         {
-            Debug.LogError("[SceneBGMController] AudioManager 인스턴스를 찾을 수 없습니다!");
+            DebugHelper.LogError("[SceneBGMController] AudioManager 인스턴스를 찾을 수 없습니다!");
             return;
         }
 
@@ -59,7 +59,7 @@ public class SceneBGMController : MonoBehaviour
         // 새 BGM 재생
         AudioManager.Instance.PlayBGM(_sceneBGM, fadeIn: _useFadeIn, fadeDuration: _fadeInDuration);
 
-        Debug.Log($"[SceneBGMController] {gameObject.scene.name} 씬 BGM 재생: {_sceneBGM.name}");
+        DebugHelper.Log($"[SceneBGMController] {gameObject.scene.name} 씬 BGM 재생: {_sceneBGM.name}");
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class SceneBGMController : MonoBehaviour
     {
         if (newBGM == null)
         {
-            Debug.LogWarning("[SceneBGMController] 변경할 BGM이 null입니다.");
+            DebugHelper.LogWarning("[SceneBGMController] 변경할 BGM이 null입니다.");
             return;
         }
 

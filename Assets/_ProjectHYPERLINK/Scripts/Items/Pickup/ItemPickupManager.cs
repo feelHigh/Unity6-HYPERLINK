@@ -21,17 +21,15 @@ public class ItemPickupManager : MonoBehaviour
     [Header("최적화")]
     [SerializeField] private int _maxColliderResults = 20;
 
-    [Header("자동 검색 설정")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20;
+    [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
 
     private Transform _playerTransform;
     private Collider[] _colliderBuffer;
     private HashSet<Item> _itemsInWorld = new HashSet<Item>();
     private bool _isInitialized = false;
-    private int _retryCount = 0;
+    private float _pickupCheckTimer = 0f;
+    private const float PICKUP_CHECK_INTERVAL = 0.2f;
 
     #region 초기화
 
@@ -47,42 +45,24 @@ public class ItemPickupManager : MonoBehaviour
         _colliderBuffer = new Collider[_maxColliderResults];
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        InvokeRepeating(nameof(TryFindPlayer), 0.1f, _retryInterval);
+        PlayerInitializationManager.OnPlayerSpawned += OnPlayerSpawned;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        CancelInvoke(nameof(TryFindPlayer));
+        PlayerInitializationManager.OnPlayerSpawned -= OnPlayerSpawned;
     }
 
-    /// <summary>
-    /// PlayerSpawner로 스폰된 플레이어 찾기
-    /// </summary>
-    private void TryFindPlayer()
+    private void OnPlayerSpawned(GameObject playerObject)
     {
-        if (_isInitialized) return;
+        if (_isInitialized || playerObject == null) return;
 
-        _retryCount++;
+        _playerTransform = playerObject.transform;
+        _isInitialized = true;
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
-
-        if (playerObject != null)
-        {
-            _playerTransform = playerObject.transform;
-            _isInitialized = true;
-            CancelInvoke(nameof(TryFindPlayer));
-
-            Log($"플레이어 찾음: {playerObject.name} (시도: {_retryCount}회)");
-            return;
-        }
-
-        if (_retryCount >= _maxRetries)
-        {
-            LogError($"플레이어를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
-            CancelInvoke(nameof(TryFindPlayer));
-        }
+        Log($"플레이어 찾음: {playerObject.name} (이벤트)");
     }
 
     #endregion
@@ -121,7 +101,12 @@ public class ItemPickupManager : MonoBehaviour
         if (!_isInitialized || _playerTransform == null)
             return;
 
-        TryPickupNearbyItems();
+        _pickupCheckTimer += Time.deltaTime;
+        if (_pickupCheckTimer >= PICKUP_CHECK_INTERVAL)
+        {
+            _pickupCheckTimer = 0f;
+            TryPickupNearbyItems();
+        }
     }
 
     /// <summary>
@@ -131,7 +116,7 @@ public class ItemPickupManager : MonoBehaviour
     {
         Item closestItem = FindClosestItemOptimized();
 
-        if (closestItem != null && Vector3.Distance(_playerTransform.position, closestItem.transform.position) <= _pickupRange)
+        if (closestItem != null && (_playerTransform.position - closestItem.transform.position).sqrMagnitude <= _pickupRange * _pickupRange)
         {
             if (PickupItem(closestItem))
             {
@@ -156,7 +141,7 @@ public class ItemPickupManager : MonoBehaviour
             return null;
 
         Item closestItem = null;
-        float closestDistance = float.MaxValue;
+        float closestSqrDistance = float.MaxValue;
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -164,11 +149,11 @@ public class ItemPickupManager : MonoBehaviour
             if (item == null)
                 continue;
 
-            float distance = Vector3.Distance(_playerTransform.position, item.transform.position);
+            float sqrDistance = (_playerTransform.position - item.transform.position).sqrMagnitude;
 
-            if (distance < closestDistance)
+            if (sqrDistance < closestSqrDistance)
             {
-                closestDistance = distance;
+                closestSqrDistance = sqrDistance;
                 closestItem = item;
             }
         }
@@ -257,25 +242,28 @@ public class ItemPickupManager : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[ItemPickupManager] {message}");
+            DebugHelper.Log($"[ItemPickupManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[ItemPickupManager] {message}");
+            DebugHelper.LogWarning($"[ItemPickupManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[ItemPickupManager] {message}");
+        DebugHelper.LogError($"[ItemPickupManager] {message}");
     }
 
     #endregion

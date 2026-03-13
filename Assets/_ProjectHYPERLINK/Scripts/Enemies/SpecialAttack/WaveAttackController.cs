@@ -23,6 +23,9 @@ public class WaveAttackController : MonoBehaviour
     bool _isActive = false;     //활성화 여부
     bool _hasHitPlayer = false; //플레이어를 공격했는지 여부
 
+    // Physics NonAlloc 버퍼
+    private Collider[] _overlapBuffer = new Collider[5];
+
     /// <summary>
     /// 파동형 공격을 초기화하는 함수
     /// </summary>
@@ -41,7 +44,7 @@ public class WaveAttackController : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _obstacleLayerMask))
         {
             _targetDistance = hit.distance;
-            Debug.Log($"[WaveAttack] 장애물 감지: {hit.collider.name}, 거리: {_targetDistance:F2}m");
+            DebugHelper.Log($"[WaveAttack] 장애물 감지: {hit.collider.name}, 거리: {_targetDistance:F2}m");
             if (_visualEffect != null)
             {
                 var main = _visualEffect.main;
@@ -64,25 +67,25 @@ public class WaveAttackController : MonoBehaviour
         //플레이어가 공격에 맞지 않았을 때에만
         if (!_hasHitPlayer)
         {
-            //OverlabBox로 범위 내 플레이어 감지
+            //OverlapBox NonAlloc으로 범위 내 플레이어 감지
             Vector3 boxCenter = transform.position + transform.forward * (_curLength * 0.5f);
-            Collider[] colls = Physics.OverlapBox(boxCenter,
+            int collCount = Physics.OverlapBoxNonAlloc(boxCenter,
                 new Vector3(_boxHalfExtents.x, _boxHalfExtents.y, _curLength * 0.5f),
-                transform.rotation, _playerLayerMask);
+                _overlapBuffer, transform.rotation, _playerLayerMask);
 
-            foreach (Collider coll in colls)
+            for (int i = 0; i < collCount; i++)
             {
-                PlayerCombat player = coll.GetComponent<PlayerCombat>();
+                PlayerCombat player = _overlapBuffer[i].GetComponent<PlayerCombat>();
                 if (player != null)
                 {
                     if (_specialAttack != null)
                     {
-                        Debug.Log($"[WaveAttack] 얼음 공격 적중 {coll.name}");
+                        DebugHelper.Log($"[WaveAttack] 얼음 공격 적중 {_overlapBuffer[i].name}");
                         player.ApplySpecialEffect(_specialAttack, transform.position);
                     }
                     else
                     {
-                        Debug.Log($"[WaveAttack] 직접 데미지 공격 적중 {coll.name}");
+                        DebugHelper.Log($"[WaveAttack] 직접 데미지 공격 적중 {_overlapBuffer[i].name}");
                         player.TakeDamage(_damage);
                     }
 

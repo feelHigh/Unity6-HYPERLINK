@@ -49,7 +49,7 @@ public class ItemDropTableData : ScriptableObject
 
         if (Mathf.Abs(total - 100f) > 0.01f)
         {
-            Debug.LogWarning($"[{name}] 드랍 확률 합계가 100%가 아닙니다! 현재: {total}%", this);
+            DebugHelper.LogWarning($"[{name}] 드랍 확률 합계가 100%가 아닙니다! 현재: {total}%");
         }
     }
 }

@@ -76,7 +76,7 @@ public class SettingsManager : MonoBehaviour
         LoadSettings();
         ApplyAllSettings(_appliedSettings);
 
-        Debug.Log("[SettingsManager] 초기화 완료");
+        DebugHelper.Log("[SettingsManager] 초기화 완료");
     }
 
     #endregion
@@ -94,19 +94,19 @@ public class SettingsManager : MonoBehaviour
             {
                 string json = PlayerPrefs.GetString(SETTINGS_KEY);
                 _appliedSettings = JsonConvert.DeserializeObject<SettingsData>(json);
-                Debug.Log("[SettingsManager] 설정 로드 완료");
+                DebugHelper.Log("[SettingsManager] 설정 로드 완료");
             }
             else
             {
                 // 기본 설정 사용
                 _appliedSettings = SettingsData.GetDefault();
                 SaveSettings(_appliedSettings);
-                Debug.Log("[SettingsManager] 기본 설정 생성");
+                DebugHelper.Log("[SettingsManager] 기본 설정 생성");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[SettingsManager] 설정 로드 실패: {e.Message}");
+            DebugHelper.LogError($"[SettingsManager] 설정 로드 실패: {e.Message}");
             _appliedSettings = SettingsData.GetDefault();
         }
     }
@@ -121,11 +121,11 @@ public class SettingsManager : MonoBehaviour
             string json = JsonConvert.SerializeObject(settings, Formatting.None);
             PlayerPrefs.SetString(SETTINGS_KEY, json);
             PlayerPrefs.Save();
-            Debug.Log("[SettingsManager] 설정 저장 완료");
+            DebugHelper.Log("[SettingsManager] 설정 저장 완료");
         }
         catch (Exception e)
         {
-            Debug.LogError($"[SettingsManager] 설정 저장 실패: {e.Message}");
+            DebugHelper.LogError($"[SettingsManager] 설정 저장 실패: {e.Message}");
         }
     }
 
@@ -147,7 +147,7 @@ public class SettingsManager : MonoBehaviour
         SaveSettings(_appliedSettings);
         OnSettingsApplied?.Invoke(_appliedSettings);
 
-        Debug.Log("[SettingsManager] 모든 설정 적용 완료");
+        DebugHelper.Log("[SettingsManager] 모든 설정 적용 완료");
     }
 
     /// <summary>
@@ -165,17 +165,17 @@ public class SettingsManager : MonoBehaviour
             {
                 case DisplayMode.Windowed:
                     Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.Windowed);
-                    Debug.Log($"[SettingsManager] 창 모드 적용: {resolution.displayName}");
+                    DebugHelper.Log($"[SettingsManager] 창 모드 적용: {resolution.displayName}");
                     break;
 
                 case DisplayMode.FullscreenWindowed:
                     Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.FullScreenWindow);
-                    Debug.Log($"[SettingsManager] 전체화면 창 모드 적용: {resolution.displayName}");
+                    DebugHelper.Log($"[SettingsManager] 전체화면 창 모드 적용: {resolution.displayName}");
                     break;
 
                 case DisplayMode.Fullscreen:
                     Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.ExclusiveFullScreen);
-                    Debug.Log($"[SettingsManager] 전체화면 적용: {resolution.displayName}");
+                    DebugHelper.Log($"[SettingsManager] 전체화면 적용: {resolution.displayName}");
                     break;
             }
         }
@@ -194,11 +194,11 @@ public class SettingsManager : MonoBehaviour
             AudioManager.Instance.SetSFXVolume(settings.sfxVolume);
             AudioManager.Instance.SetBGMVolume(settings.bgmVolume);
 
-            Debug.Log($"[SettingsManager] 오디오 설정 적용 - Master: {settings.masterVolume:F2}, SFX: {settings.sfxVolume:F2}, BGM: {settings.bgmVolume:F2}");
+            DebugHelper.Log($"[SettingsManager] 오디오 설정 적용 - Master: {settings.masterVolume:F2}, SFX: {settings.sfxVolume:F2}, BGM: {settings.bgmVolume:F2}");
         }
         else
         {
-            Debug.LogWarning("[SettingsManager] AudioManager를 찾을 수 없어 오디오 설정을 적용하지 못했습니다.");
+            DebugHelper.LogWarning("[SettingsManager] AudioManager를 찾을 수 없어 오디오 설정을 적용하지 못했습니다.");
         }
     }
 
@@ -210,7 +210,7 @@ public class SettingsManager : MonoBehaviour
         Language newLanguage = (Language)settings.languageIndex;
         OnLanguageChanged?.Invoke(newLanguage);
 
-        Debug.Log($"[SettingsManager] 언어 설정: {newLanguage}");
+        DebugHelper.Log($"[SettingsManager] 언어 설정: {newLanguage}");
 
         // TODO: 로컬라이제이션 시스템과 연동
     }

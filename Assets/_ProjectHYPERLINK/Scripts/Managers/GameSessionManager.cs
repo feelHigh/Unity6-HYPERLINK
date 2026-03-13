@@ -59,7 +59,7 @@ public class GameSessionManager : MonoBehaviour
     public void SetCharacterData(CharacterSaveData data)
     {
         _currentCharacterData = data;
-        Debug.Log($"세션 시작: {data.character.characterName}");
+        DebugHelper.Log($"세션 시작: {data.character.characterName}");
     }
 
     public void UpdateCharacterData(CharacterSaveData data)
@@ -91,7 +91,7 @@ public class GameSessionManager : MonoBehaviour
     {
         if (_currentCharacterData == null)
         {
-            Debug.LogWarning("[GameSessionManager] 저장할 캐릭터 데이터가 없습니다");
+            DebugHelper.LogWarning("[GameSessionManager] 저장할 캐릭터 데이터가 없습니다");
             return false;
         }
 
@@ -99,11 +99,11 @@ public class GameSessionManager : MonoBehaviour
 
         if (success)
         {
-            Debug.Log("[GameSessionManager] 캐릭터 데이터 저장 완료");
+            DebugHelper.Log("[GameSessionManager] 캐릭터 데이터 저장 완료");
         }
         else
         {
-            Debug.LogError("[GameSessionManager] 캐릭터 데이터 저장 실패!");
+            DebugHelper.LogError("[GameSessionManager] 캐릭터 데이터 저장 실패!");
         }
 
         return success;
@@ -125,11 +125,11 @@ public class GameSessionManager : MonoBehaviour
 
             if (success)
             {
-                Debug.Log("자동 저장 완료");
+                DebugHelper.Log("자동 저장 완료");
             }
             else
             {
-                Debug.LogError("자동 저장 실패!");
+                DebugHelper.LogError("자동 저장 실패!");
             }
         }
     }

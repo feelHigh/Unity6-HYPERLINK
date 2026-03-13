@@ -18,19 +18,19 @@ public class HammerController : MonoBehaviour
 
         StartCoroutine(AttackCoroutine());
 
-        Destroy(gameObject, 5f);
+        GameObjectPool.Instance.Release(gameObject, 5f);
     }
 
     IEnumerator AttackCoroutine()
     {
-        yield return new WaitForSeconds(_fallDelay);
+        yield return WaitForSecondsCache.Get(_fallDelay);
 
         //이펙트의 상공에 생성
         Vector3 spawnPos = transform.position;
         spawnPos.y = 20f;
 
-        //망치 프리팹 생성
-        GameObject projectileGO = Instantiate(_hammerPrefab, spawnPos, Quaternion.identity);
+        //망치 프리팹 생성 (풀 사용)
+        GameObject projectileGO = GameObjectPool.Instance.Get(_hammerPrefab, spawnPos, Quaternion.identity);
 
         //생성된 망치를 초기화
         EnemyProjectile controller = projectileGO.GetComponent<EnemyProjectile>();

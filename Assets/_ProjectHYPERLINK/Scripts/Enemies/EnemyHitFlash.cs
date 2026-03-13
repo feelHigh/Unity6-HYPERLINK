@@ -1,8 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework.Internal;
-using Unity.VisualScripting;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 /// <summary>
@@ -21,6 +18,10 @@ public class EnemyHitFlash : MonoBehaviour
     List<Material> _materials = new List<Material>();
     List<Color> _originalColors = new List<Color>();
     List<string> _colorPropertyNames = new List<string>();
+
+    // 캐시된 HasProperty 결과 (Phase 2B)
+    List<int> _hitStrengthPropIndex = new List<int>();   // 각 머티리얼의 _HitStrength/_FlashAmount 프로퍼티 인덱스 (-1 = 없음)
+    List<bool> _hasEmissionColor = new List<bool>();     // 각 머티리얼의 _EmissionColor 보유 여부
 
     //알고 있는 Color 프로퍼티
     static readonly string[] _knownColorProps = new string[]
@@ -57,7 +58,7 @@ public class EnemyHitFlash : MonoBehaviour
         _controller = GetComponent<EnemyController>();
         if (_controller == null)
         {
-            Debug.LogWarning($"[HitFlash] {gameObject.name}에서 EnemyController를 찾을 수 없습니다");
+            DebugHelper.LogWarning($"[HitFlash] {gameObject.name}에서 EnemyController를 찾을 수 없습니다");
         }
     }
 
@@ -67,7 +68,7 @@ public class EnemyHitFlash : MonoBehaviour
         if (_controller != null)
         {
             _controller.OnHit += HandleHit;
-            Debug.Log($"[HitFlash] OnHit 이벤트 구독 완료");
+            DebugHelper.Log($"[HitFlash] OnHit 이벤트 구독 완료");
         }
     }
 
@@ -85,7 +86,7 @@ public class EnemyHitFlash : MonoBehaviour
     /// </summary>
     void HandleHit()
     {
-        Debug.Log($"[HitFlash] HandleHit 호출됨!");
+        DebugHelper.Log($"[HitFlash] HandleHit 호출됨!");
         Flash();
     }
 
@@ -98,10 +99,12 @@ public class EnemyHitFlash : MonoBehaviour
         _materials.Clear();
         _originalColors.Clear();
         _colorPropertyNames.Clear();
+        _hitStrengthPropIndex.Clear();
+        _hasEmissionColor.Clear();
 
         var renderers = GetComponentsInChildren<Renderer>(true);
 
-        Debug.Log($"[HitFlash] 찾은 렌더러 수: {renderers.Length}");
+        DebugHelper.Log($"[HitFlash] 찾은 렌더러 수: {renderers.Length}");
 
         foreach (var renderer in renderers)
         {
@@ -125,6 +128,19 @@ public class EnemyHitFlash : MonoBehaviour
                     _colorPropertyNames.Add(null);
                     _originalColors.Add(Color.white);
                 }
+
+                // HasProperty 결과 캐싱 (Phase 2B)
+                int hitPropIdx = -1;
+                for (int j = 0; j < _hitStrengthProps.Length; j++)
+                {
+                    if (mats[i].HasProperty(_hitStrengthProps[j]))
+                    {
+                        hitPropIdx = j;
+                        break;
+                    }
+                }
+                _hitStrengthPropIndex.Add(hitPropIdx);
+                _hasEmissionColor.Add(mats[i].HasProperty("_EmissionColor"));
             }
 
             //인스턴스 적용
@@ -132,7 +148,7 @@ public class EnemyHitFlash : MonoBehaviour
         }
 
         _isInitialized = true;
-        Debug.Log($"[HitFlash] 총 머티리얼 수: {_materials.Count}");
+        DebugHelper.Log($"[HitFlash] 총 머티리얼 수: {_materials.Count}");
     }
 
     /// <summary>
@@ -162,25 +178,6 @@ public class EnemyHitFlash : MonoBehaviour
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// 매터리얼 색상 설정
-    /// </summary>
-    /// <param name="mat"></param>
-    /// <param name="color"></param>
-    void SetMaterialColor(Material mat, Color color)
-    {
-        foreach (string propName in _knownColorProps)
-        {
-            if (mat.HasProperty(propName))
-            {
-                mat.SetColor(propName, color);
-                Debug.Log($"[HitFlash] 색상 변경: {propName} -> {color}");
-                return;
-            }
-        }
-        Debug.LogWarning($"[HitFlash] 색상 프로퍼티를 찾을 수 없음: {mat.name}");
     }
 
     /// <summary>
@@ -215,14 +212,11 @@ public class EnemyHitFlash : MonoBehaviour
             var mat = _materials[i];
             if (mat == null) continue;
 
-            //쉐이더 그래프 전용 (_HitStrength)
-            foreach (var hitProp in _hitStrengthProps)
+            //쉐이더 그래프 전용 (_HitStrength) - 캐시된 인덱스 사용
+            int hitIdx = _hitStrengthPropIndex[i];
+            if (hitIdx >= 0)
             {
-                if (mat.HasProperty(hitProp))
-                {
-                    mat.SetFloat(hitProp, 1f);
-                    continue;
-                }
+                mat.SetFloat(_hitStrengthProps[hitIdx], 1f);
             }
 
             //기본 색상 변경
@@ -230,8 +224,8 @@ public class EnemyHitFlash : MonoBehaviour
             if (!string.IsNullOrEmpty(prop))
                 mat.SetColor(prop, _flashColor);
 
-            //Emission 강화
-            if (mat.HasProperty("_EmissionColor"))
+            //Emission 강화 - 캐시된 결과 사용
+            if (_hasEmissionColor[i])
             {
                 mat.EnableKeyword("_EMISSION");
                 mat.SetColor("_EmissionColor", _flashColor * _emissionIntensity);
@@ -239,7 +233,7 @@ public class EnemyHitFlash : MonoBehaviour
         }
 
         //지속 시간 만큼 대기
-        yield return new WaitForSeconds(_flashDuration);
+        yield return WaitForSecondsCache.Get(_flashDuration);
 
         //원래 색상으로 복구
         for (int i = 0; i < _materials.Count; i++)
@@ -250,14 +244,22 @@ public class EnemyHitFlash : MonoBehaviour
             {
                 _materials[i].SetColor(_colorPropertyNames[i], _originalColors[i]);
 
-                if (_materials[i].HasProperty("_EmissionColor"))
+                // 캐시된 결과 사용
+                if (_hasEmissionColor[i])
                 {
                     _materials[i].SetColor("_EmissionColor", Color.black);
+                }
+
+                // 히트 강도 리셋
+                int hitIdx = _hitStrengthPropIndex[i];
+                if (hitIdx >= 0)
+                {
+                    _materials[i].SetFloat(_hitStrengthProps[hitIdx], 0f);
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"[HitFlash] 색상 복구 실패: {_materials[i].name} - {e.Message}");
+                DebugHelper.LogWarning($"[HitFlash] 색상 복구 실패: {_materials[i].name} - {e.Message}");
             }
         }
 
@@ -275,15 +277,4 @@ public class EnemyHitFlash : MonoBehaviour
             }
         }
     }
-
-    /*
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            Debug.Log("[HitFlash] 수동 테스트!");
-            Flash();
-        }
-    }
-    */
 }

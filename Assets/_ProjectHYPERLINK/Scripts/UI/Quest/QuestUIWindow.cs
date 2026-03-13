@@ -48,7 +48,7 @@ public class QuestUIWindow : MonoBehaviour
         _canvasGroup = GetComponent<CanvasGroup>();
         if (_canvasGroup == null)
         {
-            Debug.LogWarning("[QuestUIWindow] CanvasGroup이 없습니다! CharacterUIController에서 제어하려면 필요합니다.");
+            DebugHelper.LogWarning("[QuestUIWindow] CanvasGroup이 없습니다! CharacterUIController에서 제어하려면 필요합니다.");
         }
 
         InitializeUI();
@@ -227,7 +227,7 @@ public class QuestUIWindow : MonoBehaviour
                 yield break;
             }
 
-            yield return new WaitForSeconds(retryInterval);
+            yield return WaitForSecondsCache.Get(retryInterval);
             waitTime += retryInterval;
         }
 
@@ -523,25 +523,28 @@ public class QuestUIWindow : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[QuestUIWindow] {message}");
+            DebugHelper.Log($"[QuestUIWindow] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[QuestUIWindow] {message}");
+            DebugHelper.LogWarning($"[QuestUIWindow] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[QuestUIWindow] {message}");
+        DebugHelper.LogError($"[QuestUIWindow] {message}");
     }
 
     #endregion
@@ -560,12 +563,12 @@ public class QuestUIWindow : MonoBehaviour
 
         if (_questItemContainer == null)
         {
-            Debug.LogWarning("[QuestUIWindow] Quest Item Container가 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[QuestUIWindow] Quest Item Container가 할당되지 않았습니다!");
         }
 
         if (_questItemPrefab == null)
         {
-            Debug.LogWarning("[QuestUIWindow] Quest Item Prefab이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[QuestUIWindow] Quest Item Prefab이 할당되지 않았습니다!");
         }
     }
 #endif

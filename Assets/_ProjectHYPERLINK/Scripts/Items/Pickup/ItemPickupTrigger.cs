@@ -99,25 +99,28 @@ public class ItemPickupTrigger : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[ItemPickupTrigger] {message}");
+            DebugHelper.Log($"[ItemPickupTrigger] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[ItemPickupTrigger] {message}");
+            DebugHelper.LogWarning($"[ItemPickupTrigger] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[ItemPickupTrigger] {message}");
+        DebugHelper.LogError($"[ItemPickupTrigger] {message}");
     }
 
     private void OnDrawGizmosSelected()

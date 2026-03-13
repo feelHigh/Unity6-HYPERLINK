@@ -123,7 +123,7 @@ public class CloudSaveManager : MonoBehaviour
                 string characterDataJson = item.Value.GetAsString();
                 CharacterSaveData data = JsonConvert.DeserializeObject<CharacterSaveData>(characterDataJson);
 
-                Debug.Log($"캐릭터 로드 완료: {data.character.characterName}");
+                DebugHelper.Log($"캐릭터 로드 완료: {data.character.characterName}");
 
                 // 6. 이벤트 발생
                 OnCharacterDataLoaded?.Invoke(data);
@@ -131,30 +131,30 @@ public class CloudSaveManager : MonoBehaviour
             }
 
             // 데이터 없음
-            Debug.Log("저장된 캐릭터 데이터가 없습니다");
+            DebugHelper.Log("저장된 캐릭터 데이터가 없습니다");
             return null;
         }
         catch (CloudSaveValidationException e)
         {
-            Debug.LogError($"유효성 검사 오류: {e.Message}");
+            DebugHelper.LogError($"유효성 검사 오류: {e.Message}");
             OnCloudSaveError?.Invoke("잘못된 데이터 형식입니다");
             return null;
         }
         catch (CloudSaveRateLimitedException e)
         {
-            Debug.LogError($"속도 제한 초과: {e.Message}");
+            DebugHelper.LogError($"속도 제한 초과: {e.Message}");
             OnCloudSaveError?.Invoke("요청이 너무 많습니다. 잠시 후 다시 시도하세요.");
             return null;
         }
         catch (CloudSaveException e)
         {
-            Debug.LogError($"클라우드 저장 오류: {e.Message}");
+            DebugHelper.LogError($"클라우드 저장 오류: {e.Message}");
             OnCloudSaveError?.Invoke(e.Message);
             return null;
         }
         catch (Exception e)
         {
-            Debug.LogError($"캐릭터 로드 실패: {e.Message}");
+            DebugHelper.LogError($"캐릭터 로드 실패: {e.Message}");
             OnCloudSaveError?.Invoke(e.Message);
             return null;
         }
@@ -216,7 +216,7 @@ public class CloudSaveManager : MonoBehaviour
             // SaveAsync()는 기존 데이터를 덮어씀
             await CloudSaveService.Instance.Data.Player.SaveAsync(saveData);
 
-            Debug.Log($"캐릭터 저장 완료: {data.character.characterName}");
+            DebugHelper.Log($"캐릭터 저장 완료: {data.character.characterName}");
 
             // 5. 이벤트 발생
             OnCharacterDataSaved?.Invoke();
@@ -224,25 +224,25 @@ public class CloudSaveManager : MonoBehaviour
         }
         catch (CloudSaveValidationException e)
         {
-            Debug.LogError($"유효성 검사 오류: {e.Message}");
+            DebugHelper.LogError($"유효성 검사 오류: {e.Message}");
             OnCloudSaveError?.Invoke("잘못된 데이터 형식입니다");
             return false;
         }
         catch (CloudSaveRateLimitedException e)
         {
-            Debug.LogError($"속도 제한 초과: {e.Message}");
+            DebugHelper.LogError($"속도 제한 초과: {e.Message}");
             OnCloudSaveError?.Invoke("요청이 너무 많습니다. 잠시 후 다시 시도하세요.");
             return false;
         }
         catch (CloudSaveException e)
         {
-            Debug.LogError($"클라우드 저장 오류: {e.Message}");
+            DebugHelper.LogError($"클라우드 저장 오류: {e.Message}");
             OnCloudSaveError?.Invoke(e.Message);
             return false;
         }
         catch (Exception e)
         {
-            Debug.LogError($"캐릭터 저장 실패: {e.Message}");
+            DebugHelper.LogError($"캐릭터 저장 실패: {e.Message}");
             OnCloudSaveError?.Invoke(e.Message);
             return false;
         }
@@ -277,7 +277,7 @@ public class CloudSaveManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"캐릭터 존재 확인 실패: {e.Message}");
+            DebugHelper.LogError($"캐릭터 존재 확인 실패: {e.Message}");
             return false;
         }
     }
@@ -315,22 +315,22 @@ public class CloudSaveManager : MonoBehaviour
                 CloudSaveKeys.CHARACTER_DATA,
                 new Unity.Services.CloudSave.Models.Data.Player.DeleteOptions()
             );
-            Debug.Log("캐릭터 삭제 완료");
+            DebugHelper.Log("캐릭터 삭제 완료");
             return true;
         }
         catch (CloudSaveValidationException e)
         {
-            Debug.LogError($"유효성 검사 오류: {e.Message}");
+            DebugHelper.LogError($"유효성 검사 오류: {e.Message}");
             return false;
         }
         catch (CloudSaveException e)
         {
-            Debug.LogError($"클라우드 저장 오류: {e.Message}");
+            DebugHelper.LogError($"클라우드 저장 오류: {e.Message}");
             return false;
         }
         catch (Exception e)
         {
-            Debug.LogError($"캐릭터 삭제 실패: {e.Message}");
+            DebugHelper.LogError($"캐릭터 삭제 실패: {e.Message}");
             return false;
         }
     }

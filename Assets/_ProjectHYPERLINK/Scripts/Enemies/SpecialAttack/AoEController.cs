@@ -7,6 +7,9 @@ public class AoEController : MonoBehaviour
     [SerializeField] float _radius = 3f;            //공격 범위
     [SerializeField] LayerMask _playerLayerMask;    //플레이어 레이어 마스크
 
+    // GC 최적화: NonAlloc 버퍼
+    private Collider[] _overlapBuffer = new Collider[5];
+
     SpecialAttackBase _specialAttack;
 
     /// <summary>
@@ -25,12 +28,13 @@ public class AoEController : MonoBehaviour
     IEnumerator AttackCoroutine()
     {
         //1.5초 대기 (이펙트 재생 중)
-        yield return new WaitForSeconds(_delay);
+        yield return WaitForSecondsCache.Get(_delay);
 
         //범위 내 플레이어 탐지
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _radius, _playerLayerMask);
-        foreach (var col in colliders)
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _radius, _overlapBuffer, _playerLayerMask);
+        for (int i = 0; i < count; i++)
         {
+            var col = _overlapBuffer[i];
             PlayerCombat player = col.GetComponent<PlayerCombat>();
             if (player != null)
             {
@@ -39,7 +43,7 @@ public class AoEController : MonoBehaviour
             }
             else
             {
-                Debug.Log("[AoEController] 플레이어를 찾을 수 없습니다.");
+                DebugHelper.Log("[AoEController] 플레이어를 찾을 수 없습니다.");
             }
         }
     }

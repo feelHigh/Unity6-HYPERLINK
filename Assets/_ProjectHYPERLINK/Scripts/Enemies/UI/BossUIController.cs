@@ -43,7 +43,7 @@ public class BossUIController : MonoBehaviour
             _bossController = GetComponentInParent<EnemyController>();
             if (_bossController == null)
             {
-                Debug.LogError("[BossUI] 보스 컨트롤러를 찾을 수 없습니다");
+                DebugHelper.LogError("[BossUI] 보스 컨트롤러를 찾을 수 없습니다");
                 return;
             }
         }
@@ -84,13 +84,13 @@ public class BossUIController : MonoBehaviour
     {
         if (_bossController == null)
         {
-            Debug.LogError("[BossUI] 보스 컨트롤러를 찾을 수 없습니다");
+            DebugHelper.LogError("[BossUI] 보스 컨트롤러를 찾을 수 없습니다");
             return;
         }
 
         if (!_bossController.IsBoss)
         {
-            Debug.LogError("[BossUI] 보스가 아닌 적에게 Boss UI 존재");
+            DebugHelper.LogError("[BossUI] 보스가 아닌 적에게 Boss UI 존재");
             return;
         }
 
@@ -117,7 +117,7 @@ public class BossUIController : MonoBehaviour
             _bossHealthPanel.SetActive(true);
         }
 
-        Debug.Log($"[BossUI] 보스 '{_bossController.name}' UI 초기화 완료.");
+        DebugHelper.Log($"[BossUI] 보스 '{_bossController.name}' UI 초기화 완료.");
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class BossUIController : MonoBehaviour
     {
         if (_damageTextPrefab == null)
         {
-            Debug.LogWarning("[BossUI] DamageText 프리팹이 존재하지 않습니다.");
+            DebugHelper.LogWarning("[BossUI] DamageText 프리팹이 존재하지 않습니다.");
             return;
         }
 
@@ -157,8 +157,8 @@ public class BossUIController : MonoBehaviour
         //생성 위치 계산
         Vector3 spawnPos = _bossController.transform.position + _spawnOffset;
 
-        //생성
-        GameObject damageTextGO = Instantiate(_damageTextPrefab, spawnPos, Quaternion.identity);
+        //풀에서 가져오기
+        GameObject damageTextGO = GameObjectPool.Instance.Get(_damageTextPrefab, spawnPos, Quaternion.identity);
 
         //초기화
         DamageText damageText = damageTextGO.GetComponent<DamageText>();
@@ -190,6 +190,6 @@ public class BossUIController : MonoBehaviour
 
         _isActive = false;
 
-        Debug.Log("[BossUI] 보스 사망! 체력바 숨김");
+        DebugHelper.Log("[BossUI] 보스 사망! 체력바 숨김");
     }
 }

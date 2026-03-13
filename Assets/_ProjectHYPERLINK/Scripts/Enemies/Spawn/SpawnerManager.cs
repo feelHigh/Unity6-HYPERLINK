@@ -15,6 +15,7 @@ public class SpawnerManager : MonoBehaviour
 
     [SerializeField] private Transform _player;
     [SerializeField] float _activationDistance = 50f;  //스포너가 활성화될 범위
+    private float _activationDistanceSqr;                //sqrMagnitude 비교용 캐시
 
     List<EnemySpawner> _allSpawners = new List<EnemySpawner>();     //모든 스포너 리스트
     float _checkInterval = 1f;  //체크 시간 간격
@@ -38,6 +39,7 @@ public class SpawnerManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        _activationDistanceSqr = _activationDistance * _activationDistance;
     }
 
     /// <summary>
@@ -77,18 +79,18 @@ public class SpawnerManager : MonoBehaviour
             {
                 if (spawner == null) continue;
 
-                //플레이어와 스포너 사이의 거리를 체크
-                float distance = Vector3.Distance(_player.position, spawner.transform.position);
+                //플레이어와 스포너 사이의 거리를 체크 (sqrMagnitude로 sqrt 비용 절감)
+                float sqrDistance = (_player.position - spawner.transform.position).sqrMagnitude;
 
                 //만약 거리가 활성화 거리만큼 가까워지면
-                if (distance <= _activationDistance)
+                if (sqrDistance <= _activationDistanceSqr)
                 {
                     //스포너에게 그룹을 활성화하라고 명령
                     spawner.ActivateGroup();
                 }
             }
 
-            yield return new WaitForSeconds(_checkInterval);
+            yield return WaitForSecondsCache.Get(_checkInterval);
         }
     }
 }

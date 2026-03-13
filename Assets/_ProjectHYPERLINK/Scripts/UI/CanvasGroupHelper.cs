@@ -16,7 +16,7 @@ public static class CanvasGroupHelper
     {
         if (canvasGroup == null)
         {
-            Debug.LogWarning("[CanvasGroupHelper] CanvasGroup이 null입니다.");
+            DebugHelper.LogWarning("[CanvasGroupHelper] CanvasGroup이 null입니다.");
             return;
         }
 
@@ -47,7 +47,7 @@ public static class CanvasGroupHelper
     {
         if (canvasGroup == null)
         {
-            Debug.LogWarning("[CanvasGroupHelper] CanvasGroup이 null입니다.");
+            DebugHelper.LogWarning("[CanvasGroupHelper] CanvasGroup이 null입니다.");
             return false;
         }
 
@@ -66,7 +66,7 @@ public static class CanvasGroupHelper
     {
         if (canvasGroup == null)
         {
-            Debug.LogError($"[CanvasGroupHelper] {contextName} CanvasGroup이 할당되지 않았습니다!");
+            DebugHelper.LogError($"[CanvasGroupHelper] {contextName} CanvasGroup이 할당되지 않았습니다!");
             return false;
         }
         return true;

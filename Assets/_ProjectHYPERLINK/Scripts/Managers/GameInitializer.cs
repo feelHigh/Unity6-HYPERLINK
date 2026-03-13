@@ -414,25 +414,28 @@ public class GameInitializer : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[GameInitializer] {message}");
+            DebugHelper.Log($"[GameInitializer] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[GameInitializer] {message}");
+            DebugHelper.LogWarning($"[GameInitializer] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[GameInitializer] {message}");
+        DebugHelper.LogError($"[GameInitializer] {message}");
     }
 
     #endregion

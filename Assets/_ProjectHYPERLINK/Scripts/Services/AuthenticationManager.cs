@@ -74,7 +74,7 @@ public class AuthenticationManager : MonoBehaviour
             // 이미 로그인됨
             if (AuthenticationService.Instance.IsSignedIn)
             {
-                Debug.Log("이미 로그인되어 있습니다");
+                DebugHelper.Log("이미 로그인되어 있습니다");
                 OnSignInSuccess?.Invoke(AuthenticationService.Instance.PlayerId);
                 return true;
             }
@@ -83,26 +83,26 @@ public class AuthenticationManager : MonoBehaviour
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
             string playerId = AuthenticationService.Instance.PlayerId;
-            Debug.Log($"익명 로그인 성공: {playerId}");
+            DebugHelper.Log($"익명 로그인 성공: {playerId}");
 
             OnSignInSuccess?.Invoke(playerId);
             return true;
         }
         catch (AuthenticationException e)
         {
-            Debug.LogError($"익명 로그인 실패: {e.Message}");
+            DebugHelper.LogError($"익명 로그인 실패: {e.Message}");
             OnSignInFailed?.Invoke(e.Message);
             return false;
         }
         catch (RequestFailedException e)
         {
-            Debug.LogError($"요청 실패: {e.Message}");
+            DebugHelper.LogError($"요청 실패: {e.Message}");
             OnSignInFailed?.Invoke("연결 실패. 인터넷 연결을 확인하세요.");
             return false;
         }
         catch (Exception e)
         {
-            Debug.LogError($"로그인 오류: {e.Message}");
+            DebugHelper.LogError($"로그인 오류: {e.Message}");
             OnSignInFailed?.Invoke(e.Message);
             return false;
         }
@@ -133,26 +133,26 @@ public class AuthenticationManager : MonoBehaviour
             await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
 
             string playerId = AuthenticationService.Instance.PlayerId;
-            Debug.Log($"사용자명 로그인 성공: {playerId}");
+            DebugHelper.Log($"사용자명 로그인 성공: {playerId}");
 
             OnSignInSuccess?.Invoke(playerId);
             return true;
         }
         catch (AuthenticationException e)
         {
-            Debug.LogError($"사용자명 로그인 실패: {e.Message}");
+            DebugHelper.LogError($"사용자명 로그인 실패: {e.Message}");
             OnSignInFailed?.Invoke("잘못된 사용자명 또는 비밀번호입니다");
             return false;
         }
         catch (RequestFailedException e)
         {
-            Debug.LogError($"요청 실패: {e.Message}");
+            DebugHelper.LogError($"요청 실패: {e.Message}");
             OnSignInFailed?.Invoke("연결 실패. 인터넷 연결을 확인하세요.");
             return false;
         }
         catch (Exception e)
         {
-            Debug.LogError($"로그인 오류: {e.Message}");
+            DebugHelper.LogError($"로그인 오류: {e.Message}");
             OnSignInFailed?.Invoke(e.Message);
             return false;
         }
@@ -182,26 +182,26 @@ public class AuthenticationManager : MonoBehaviour
             await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
 
             string playerId = AuthenticationService.Instance.PlayerId;
-            Debug.Log($"계정 생성 성공: {playerId}");
+            DebugHelper.Log($"계정 생성 성공: {playerId}");
 
             OnSignInSuccess?.Invoke(playerId);
             return true;
         }
         catch (AuthenticationException e)
         {
-            Debug.LogError($"계정 생성 실패: {e.Message}");
+            DebugHelper.LogError($"계정 생성 실패: {e.Message}");
             OnSignInFailed?.Invoke("사용자명이 이미 존재하거나 유효하지 않습니다");
             return false;
         }
         catch (RequestFailedException e)
         {
-            Debug.LogError($"요청 실패: {e.Message}");
+            DebugHelper.LogError($"요청 실패: {e.Message}");
             OnSignInFailed?.Invoke("연결 실패. 인터넷 연결을 확인하세요.");
             return false;
         }
         catch (Exception e)
         {
-            Debug.LogError($"계정 생성 오류: {e.Message}");
+            DebugHelper.LogError($"계정 생성 오류: {e.Message}");
             OnSignInFailed?.Invoke(e.Message);
             return false;
         }
@@ -215,7 +215,7 @@ public class AuthenticationManager : MonoBehaviour
         if (AuthenticationService.Instance.IsSignedIn)
         {
             AuthenticationService.Instance.SignOut();
-            Debug.Log("로그아웃 완료");
+            DebugHelper.Log("로그아웃 완료");
             OnSignOutSuccess?.Invoke();
         }
     }

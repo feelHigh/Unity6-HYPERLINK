@@ -34,6 +34,9 @@ public class SkillAnimationController : MonoBehaviour
     private Coroutine _skillCoroutine = null;
     private Tweener _currentDashTween = null;
 
+    // GC 최적화: NonAlloc 버퍼
+    private Collider[] _skillHitBuffer = new Collider[30];
+
     private Dictionary<string, int> _animatorHashCache = new Dictionary<string, int>();
     private static readonly int HASH_HIT = Animator.StringToHash("Hit");
     private static readonly int HASH_DEAD = Animator.StringToHash("Dead");
@@ -60,19 +63,19 @@ public class SkillAnimationController : MonoBehaviour
 
         if (_animator == null || _navAgent == null)
         {
-            Debug.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
+            DebugHelper.LogError("[SkillAnimationController] 필수 컴포넌트 누락!");
             enabled = false;
         }
 
         if (_attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다!");
+            DebugHelper.LogWarning("[SkillAnimationController] PlayerAttackController가 없습니다!");
         }
 
         // StateController 확인
         if (_stateController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] PlayerStateController가 없습니다!");
+            DebugHelper.LogWarning("[SkillAnimationController] PlayerStateController가 없습니다!");
         }
     }
 
@@ -209,12 +212,12 @@ public class SkillAnimationController : MonoBehaviour
         if (useDOTweenDash)
         {
             float dashStartDelay = skill.AnimationDuration * skill.DashTiming;
-            yield return new WaitForSeconds(dashStartDelay);
+            yield return WaitForSecondsCache.Get(dashStartDelay);
             PerformDOTweenDash(skill);
         }
 
         // 애니메이션 종료 대기
-        yield return new WaitForSeconds(skill.AnimationDuration);
+        yield return WaitForSecondsCache.Get(skill.AnimationDuration);
 
         _animator.applyRootMotion = wasUsingRootMotion;
 
@@ -325,7 +328,7 @@ public class SkillAnimationController : MonoBehaviour
     {
         if (skill == null || string.IsNullOrWhiteSpace(skill.AnimatorTriggerName))
         {
-            Debug.LogError($"[SkillAnimationController] 트리거 이름 누락: {skill?.SkillName}");
+            DebugHelper.LogError($"[SkillAnimationController] 트리거 이름 누락: {skill?.SkillName}");
             return;
         }
 
@@ -366,7 +369,7 @@ public class SkillAnimationController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[{skill.SkillName}] 유효하지 않은 HitAreaConfig");
+                DebugHelper.LogWarning($"[{skill.SkillName}] 유효하지 않은 HitAreaConfig");
             }
         }
     }
@@ -374,27 +377,29 @@ public class SkillAnimationController : MonoBehaviour
     private IEnumerator ApplySingleHitArea(HitAreaConfig config, float delay, SkillData skill)
     {
         if (delay > 0)
-            yield return new WaitForSeconds(delay);
+            yield return WaitForSecondsCache.Get(delay);
 
         Vector3 centerPosition = transform.position + transform.TransformDirection(config.PositionOffset);
-        Collider[] hits;
+        int hitCount;
         int enemyCount = 0;
 
         if (config.Shape == HitAreaShape.Sphere)
         {
-            hits = Physics.OverlapSphere(centerPosition, config.SphereRadius);
+            hitCount = Physics.OverlapSphereNonAlloc(centerPosition, config.SphereRadius, _skillHitBuffer);
         }
         else // Box
         {
             Quaternion boxRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
-            hits = Physics.OverlapBox(centerPosition, config.BoxSize * 0.5f, boxRotation);
+            hitCount = Physics.OverlapBoxNonAlloc(centerPosition, config.BoxSize * 0.5f, _skillHitBuffer, boxRotation);
         }
 
         float baseDamage = CalculateSkillDamage(skill);
         float finalDamage = baseDamage * config.DamageMultiplier;
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = _skillHitBuffer[i];
+
             if (config.ShouldIgnoreTag(hit.tag))
                 continue;
 
@@ -438,7 +443,7 @@ public class SkillAnimationController : MonoBehaviour
     {
         if (skill == null || _playerCharacter == null || _attackController == null)
         {
-            Debug.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패");
+            DebugHelper.LogWarning("[SkillAnimationController] 스킬 데미지 계산 실패");
             return 0f;
         }
 
@@ -481,13 +486,13 @@ public class SkillAnimationController : MonoBehaviour
     private IEnumerator SpawnSingleVFX(VfxConfig config, float delay, string skillName)
     {
         if (delay > 0)
-            yield return new WaitForSeconds(delay);
+            yield return WaitForSecondsCache.Get(delay);
 
         Vector3 spawnPosition = transform.position + transform.TransformDirection(config.PositionOffset);
         Quaternion spawnRotation = transform.rotation * Quaternion.Euler(config.RotationOffset);
 
-        GameObject vfxInstance = Instantiate(config.VfxPrefab, spawnPosition, spawnRotation);
-        vfxInstance.transform.localScale *= config.Scale;
+        GameObject vfxInstance = GameObjectPool.Instance.Get(config.VfxPrefab, spawnPosition, spawnRotation);
+        vfxInstance.transform.localScale = config.VfxPrefab.transform.localScale * config.Scale;
 
         if (config.AttachToCharacter)
         {
@@ -510,7 +515,7 @@ public class SkillAnimationController : MonoBehaviour
             }
         }
 
-        Destroy(vfxInstance, lifetime);
+        GameObjectPool.Instance.Release(vfxInstance, lifetime);
     }
 
     private void CleanupAllVfxCoroutines()
@@ -552,11 +557,12 @@ public class SkillAnimationController : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[SkillAnimationController] {message}");
+            DebugHelper.Log($"[SkillAnimationController] {message}");
         }
     }
 

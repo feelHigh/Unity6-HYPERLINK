@@ -34,6 +34,8 @@ public class SkillActivationSystem : MonoBehaviour
 
     // 스킬 쿨다운 추적
     private Dictionary<SkillData, float> _skillCooldowns = new Dictionary<SkillData, float>();
+    private List<SkillData> _cooldownKeysCache = new List<SkillData>();
+    private List<SkillData> _completedCooldowns = new List<SkillData>();
 
     // 키 바인드 목록
     private KeyCode[] _skillKeys;
@@ -57,7 +59,7 @@ public class SkillActivationSystem : MonoBehaviour
             _playerCharacter = GetComponent<PlayerCharacter>();
             if (_playerCharacter == null)
             {
-                Debug.LogError("[SkillActivationSystem] PlayerCharacter를 찾을 수 없습니다!");
+                DebugHelper.LogError("[SkillActivationSystem] PlayerCharacter를 찾을 수 없습니다!");
             }
         }
 
@@ -66,7 +68,7 @@ public class SkillActivationSystem : MonoBehaviour
             _stateController = GetComponent<PlayerStateController>();
             if (_stateController == null)
             {
-                Debug.LogError("[SkillActivationSystem] PlayerStateController를 찾을 수 없습니다!");
+                DebugHelper.LogError("[SkillActivationSystem] PlayerStateController를 찾을 수 없습니다!");
             }
         }
 
@@ -75,7 +77,7 @@ public class SkillActivationSystem : MonoBehaviour
             _navController = GetComponent<PlayerNavController>();
             if (_navController == null)
             {
-                Debug.LogWarning("[SkillActivationSystem] PlayerNavController를 찾을 수 없습니다!");
+                DebugHelper.LogWarning("[SkillActivationSystem] PlayerNavController를 찾을 수 없습니다!");
             }
         }
 
@@ -124,28 +126,28 @@ public class SkillActivationSystem : MonoBehaviour
                 // 슬롯 null 체크
                 if (slot == null)
                 {
-                    Debug.LogWarning($"[SkillActivation] 슬롯 {i}가 null입니다!");
+                    DebugHelper.LogWarning($"[SkillActivation] 슬롯 {i}가 null입니다!");
                     continue;
                 }
 
                 // 빈 슬롯 체크
                 if (slot.IsEmpty)
                 {
-                    Debug.Log($"[SkillActivation] 슬롯 {i}가 비어있습니다!");
+                    DebugHelper.Log($"[SkillActivation] 슬롯 {i}가 비어있습니다!");
                     continue;
                 }
 
                 // SkillData null 체크
                 if (slot.SkillData == null)
                 {
-                    Debug.LogWarning($"[SkillActivation] 슬롯 {i}의 SkillData가 null입니다!");
+                    DebugHelper.LogWarning($"[SkillActivation] 슬롯 {i}의 SkillData가 null입니다!");
                     continue;
                 }
 
                 // 잠금 상태 체크
                 if (slot.IsLocked)
                 {
-                    Debug.Log($"[SkillActivation] {slot.SkillData.SkillName}이(가) 잠겨있습니다!");
+                    DebugHelper.Log($"[SkillActivation] {slot.SkillData.SkillName}이(가) 잠겨있습니다!");
                     continue;
                 }
 
@@ -167,7 +169,7 @@ public class SkillActivationSystem : MonoBehaviour
         if (slotIndex >= 0 && slotIndex < _skillKeys.Length)
         {
             _skillKeys[slotIndex] = newKey;
-            Debug.Log($"스킬 슬롯 {slotIndex + 1} 키 변경: {newKey}");
+            DebugHelper.Log($"스킬 슬롯 {slotIndex + 1} 키 변경: {newKey}");
         }
     }
 
@@ -186,42 +188,42 @@ public class SkillActivationSystem : MonoBehaviour
         // 사망 상태 체크
         if (!_playerCharacter.IsAlive)
         {
-            Debug.Log($"[SkillActivation] 플레이어가 사망 상태입니다!");
+            DebugHelper.Log($"[SkillActivation] 플레이어가 사망 상태입니다!");
             return;
         }
 
         // 기본 공격 중 체크 추가
         if (_stateController != null && _stateController.IsPerformingBaseAttack)
         {
-            Debug.Log($"[SkillActivation] 기본 공격 중이므로 스킬을 사용할 수 없습니다!");
+            DebugHelper.Log($"[SkillActivation] 기본 공격 중이므로 스킬을 사용할 수 없습니다!");
             return;
         }
 
         // 스킬 사용 불가 상태 체크
         if (_stateController != null && !_stateController.CanUseSkill)
         {
-            Debug.Log($"[침묵] 스킬 사용 불가 상태입니다!");
+            DebugHelper.Log($"[침묵] 스킬 사용 불가 상태입니다!");
             return;
         }
 
         // 속박 상태에서 대시 스킬(UseRootMotion=false) 차단
         if (_stateController != null && _stateController.IsRoot && !skill.UseRootMotion)
         {
-            Debug.Log($"[속박] {skill.SkillName}은(는) 이동을 수반하므로 사용할 수 없습니다!");
+            DebugHelper.Log($"[속박] {skill.SkillName}은(는) 이동을 수반하므로 사용할 수 없습니다!");
             return;
         }
 
         // 쿨다운 체크
         if (IsSkillOnCooldown(skill))
         {
-            Debug.Log($"{skill.SkillName}이 쿨다운 중입니다!");
+            DebugHelper.Log($"{skill.SkillName}이 쿨다운 중입니다!");
             return;
         }
 
         // 마나 체크 및 소비
         if (!_playerCharacter.ConsumeMana(skill.ManaCost))
         {
-            Debug.Log($"마나 부족! 필요: {skill.ManaCost}");
+            DebugHelper.Log($"마나 부족! 필요: {skill.ManaCost}");
             ShowManaCostWarning(skill);
             return;
         }
@@ -236,21 +238,22 @@ public class SkillActivationSystem : MonoBehaviour
         ExecuteSkill(skill);
 
         // 스킬 캐스팅 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audioMgr = AudioManager.Instance;
+        if (audioMgr?.SoundLibrary != null)
         {
             // SkillData에 커스텀 사운드가 있으면 사용, 없으면 기본 사운드
-            AudioClip castSound = skill.SkillCastSound != null ? skill.SkillCastSound : AudioManager.Instance.SoundLibrary.PlayerSkillCast;
+            AudioClip castSound = skill.SkillCastSound != null ? skill.SkillCastSound : audioMgr.SoundLibrary.PlayerSkillCast;
 
             if (castSound != null)
             {
-                AudioManager.Instance.PlaySFX(castSound);
+                audioMgr.PlaySFX(castSound);
             }
         }
 
         // 쿨다운 시작
         StartCooldown(skill);
 
-        Debug.Log($"{skill.SkillName} 사용!");
+        DebugHelper.Log($"{skill.SkillName} 사용!");
     }
 
     /// <summary>
@@ -268,7 +271,7 @@ public class SkillActivationSystem : MonoBehaviour
                 // SkillAnimationController에서 데미지 처리
                 OnSkillExecuted?.Invoke(skill);
                 OnSkillExecutedWithDamage?.Invoke(skill, damage);
-                Debug.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
+                DebugHelper.Log($"[{skill.SkillName}] 애니메이션 시작, 데미지: {damage:F1}");
                 break;
 
             case SkillType.Ranged:
@@ -279,12 +282,12 @@ public class SkillActivationSystem : MonoBehaviour
             case SkillType.Buff:
             case SkillType.Heal:
                 // TODO: Buff/Heal 구현
-                Debug.LogWarning($"[{skill.SkillName}] {skill.SkillType} 타입은 아직 구현되지 않았습니다!");
+                DebugHelper.LogWarning($"[{skill.SkillName}] {skill.SkillType} 타입은 아직 구현되지 않았습니다!");
                 OnSkillExecuted?.Invoke(skill);
                 break;
 
             default:
-                Debug.LogWarning($"알 수 없는 스킬 타입: {skill.SkillType}");
+                DebugHelper.LogWarning($"알 수 없는 스킬 타입: {skill.SkillType}");
                 break;
         }
     }
@@ -296,7 +299,7 @@ public class SkillActivationSystem : MonoBehaviour
     {
         if (skill.ProjectilePrefab == null)
         {
-            Debug.LogError($"[{skill.SkillName}] 투사체 프리팹이 없습니다!");
+            DebugHelper.LogError($"[{skill.SkillName}] 투사체 프리팹이 없습니다!");
             return;
         }
 
@@ -306,8 +309,8 @@ public class SkillActivationSystem : MonoBehaviour
         // 발사 방향
         Vector3 direction = transform.forward;
 
-        // 투사체 생성
-        GameObject projectileObj = Instantiate(skill.ProjectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
+        // 투사체 생성 (풀 사용)
+        GameObject projectileObj = GameObjectPool.Instance.Get(skill.ProjectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
 
         // 데미지 계산
         float damage = CalculateSkillDamage(skill);
@@ -319,7 +322,7 @@ public class SkillActivationSystem : MonoBehaviour
             projectile.Initialize(damage, skill.Range, _playerCharacter, skill.EnemyHitVfxConfig);
         }
 
-        Debug.Log($"[{skill.SkillName}] 투사체 발사 완료");
+        DebugHelper.Log($"[{skill.SkillName}] 투사체 발사 완료");
     }
 
     #endregion
@@ -343,14 +346,19 @@ public class SkillActivationSystem : MonoBehaviour
             slot.StartCooldown(skill.Cooldown);
         }
 
-        Debug.Log($"[{skill.SkillName}] 쿨다운 시작: {skill.Cooldown}초");
+        DebugHelper.Log($"[{skill.SkillName}] 쿨다운 시작: {skill.Cooldown}초");
     }
 
     private void UpdateCooldowns()
     {
-        List<SkillData> keys = new List<SkillData>(_skillCooldowns.Keys);
+        if (_skillCooldowns.Count == 0) return;
 
-        foreach (SkillData skill in keys)
+        _cooldownKeysCache.Clear();
+        foreach (var kvp in _skillCooldowns)
+            _cooldownKeysCache.Add(kvp.Key);
+        _completedCooldowns.Clear();
+
+        foreach (SkillData skill in _cooldownKeysCache)
         {
             if (_skillCooldowns[skill] > 0)
             {
@@ -358,10 +366,15 @@ public class SkillActivationSystem : MonoBehaviour
 
                 if (_skillCooldowns[skill] <= 0)
                 {
-                    _skillCooldowns[skill] = 0;
-                    Debug.Log($"[{skill.SkillName}] 쿨다운 완료");
+                    _completedCooldowns.Add(skill);
                 }
             }
+        }
+
+        foreach (SkillData skill in _completedCooldowns)
+        {
+            _skillCooldowns[skill] = 0;
+            DebugHelper.Log($"[{skill.SkillName}] 쿨다운 완료");
         }
     }
 
@@ -409,10 +422,10 @@ public class SkillActivationSystem : MonoBehaviour
         if (Random.Range(0f, 100f) < stats.CriticalChance)
         {
             damage *= (1f + stats.CriticalDamage / 100f);
-            Debug.Log($"[{skill.SkillName}] 크리티컬 히트!");
+            DebugHelper.Log($"[{skill.SkillName}] 크리티컬 히트!");
         }
 
-        Debug.Log($"[{skill.SkillName}] 데미지 계산: " +
+        DebugHelper.Log($"[{skill.SkillName}] 데미지 계산: " +
                   $"(({characterAttackDamage:F1} × {skillMultiplier:F1}) + {skillBaseDamage:F1}) × " +
                   $"(1 + ({mainStat} × {mainStatDamageIncrease:F2})) = {damage:F1}");
 
@@ -426,7 +439,7 @@ public class SkillActivationSystem : MonoBehaviour
             return _playerCharacter.GetAttackPower();
         }
 
-        Debug.LogWarning("[SkillActivation] PlayerCharacter가 없어 기본 공격력(25)을 사용합니다.");
+        DebugHelper.LogWarning("[SkillActivation] PlayerCharacter가 없어 기본 공격력(25)을 사용합니다.");
         return 25f;
     }
 
@@ -436,7 +449,7 @@ public class SkillActivationSystem : MonoBehaviour
 
     private void ShowManaCostWarning(SkillData skill)
     {
-        Debug.Log($"[마나 부족] 현재: {_playerCharacter.CurrentMana:F0} / 필요: {skill.ManaCost}");
+        DebugHelper.Log($"[마나 부족] 현재: {_playerCharacter.CurrentMana:F0} / 필요: {skill.ManaCost}");
 
         foreach (SkillSlotUI slot in _skillSlots)
         {
@@ -512,46 +525,46 @@ public class SkillActivationSystem : MonoBehaviour
     [ContextMenu("Debug: Print Skill System Status")]
     private void DebugPrintStatus()
     {
-        Debug.Log("===== SkillActivationSystem 상태 =====");
-        Debug.Log($"등록된 스킬 슬롯: {_skillSlots.Count}개");
-        Debug.Log($"쿨다운 추적 중: {_skillCooldowns.Count}개");
+        DebugHelper.Log("===== SkillActivationSystem 상태 =====");
+        DebugHelper.Log($"등록된 스킬 슬롯: {_skillSlots.Count}개");
+        DebugHelper.Log($"쿨다운 추적 중: {_skillCooldowns.Count}개");
 
-        Debug.Log("--- 키 바인드 ---");
+        DebugHelper.Log("--- 키 바인드 ---");
         for (int i = 0; i < _skillKeys.Length; i++)
         {
-            Debug.Log($"  슬롯 {i + 1}: {_skillKeys[i]}");
+            DebugHelper.Log($"  슬롯 {i + 1}: {_skillKeys[i]}");
         }
 
         if (_skillCooldowns.Count > 0)
         {
-            Debug.Log("--- 쿨다운 목록 ---");
+            DebugHelper.Log("--- 쿨다운 목록 ---");
             foreach (var cooldown in _skillCooldowns)
             {
                 if (cooldown.Value > 0)
                 {
-                    Debug.Log($"  - {cooldown.Key.SkillName}: {cooldown.Value:F1}초 남음");
+                    DebugHelper.Log($"  - {cooldown.Key.SkillName}: {cooldown.Value:F1}초 남음");
                 }
             }
         }
 
         if (_playerCharacter != null)
         {
-            Debug.Log($"플레이어 생존 여부: {_playerCharacter.IsAlive}");
+            DebugHelper.Log($"플레이어 생존 여부: {_playerCharacter.IsAlive}");
         }
 
         if (_stateController != null)
         {
-            Debug.Log($"스킬 사용 가능: {_stateController.CanUseSkill}");
-            Debug.Log($"기본 공격 중: {_stateController.IsPerformingBaseAttack}");
-            Debug.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
+            DebugHelper.Log($"스킬 사용 가능: {_stateController.CanUseSkill}");
+            DebugHelper.Log($"기본 공격 중: {_stateController.IsPerformingBaseAttack}");
+            DebugHelper.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
         }
 
         if (_playerCharacter != null)
         {
-            Debug.Log("--- 데미지 계산 정보 ---");
-            Debug.Log($"  캐릭터 공격력: {GetCharacterAttackDamage():F1}");
-            Debug.Log($"  주요 스탯: {_playerCharacter.GetMainStat()}");
-            Debug.Log($"  클래스: {_playerCharacter.CharacterClass}");
+            DebugHelper.Log("--- 데미지 계산 정보 ---");
+            DebugHelper.Log($"  캐릭터 공격력: {GetCharacterAttackDamage():F1}");
+            DebugHelper.Log($"  주요 스탯: {_playerCharacter.GetMainStat()}");
+            DebugHelper.Log($"  클래스: {_playerCharacter.CharacterClass}");
         }
     }
 

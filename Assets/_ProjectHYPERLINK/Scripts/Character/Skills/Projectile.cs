@@ -44,13 +44,13 @@ public class Projectile : MonoBehaviour
 
         if (!_rigidbody.isKinematic)
         {
-            Debug.LogWarning("[Projectile] Rigidbody는 Kinematic이어야 합니다!");
+            DebugHelper.LogWarning("[Projectile] Rigidbody는 Kinematic이어야 합니다!");
             _rigidbody.isKinematic = true;
         }
 
         if (!_collider.isTrigger)
         {
-            Debug.LogWarning("[Projectile] Collider는 Trigger여야 합니다!");
+            DebugHelper.LogWarning("[Projectile] Collider는 Trigger여야 합니다!");
             _collider.isTrigger = true;
         }
     }
@@ -67,7 +67,7 @@ public class Projectile : MonoBehaviour
         _startPosition = transform.position;
         _isInitialized = true;
 
-        Debug.Log($"투사체 발사: 데미지 {_damage}, 사거리 {_maxRange}m");
+        DebugHelper.Log($"투사체 발사: 데미지 {_damage}, 사거리 {_maxRange}m");
     }
 
     #endregion
@@ -95,7 +95,7 @@ public class Projectile : MonoBehaviour
 
         if (distanceTraveled >= _maxRange)
         {
-            Debug.Log($"투사체 사거리 초과: {distanceTraveled:F1}m / {_maxRange}m");
+            DebugHelper.Log($"투사체 사거리 초과: {distanceTraveled:F1}m / {_maxRange}m");
             DestroyProjectile(showEffect: false);
         }
     }
@@ -120,7 +120,7 @@ public class Projectile : MonoBehaviour
             _hitVfxConfig
         );
         enemy.TakeDamage(attackInfo);
-        Debug.Log($"투사체 명중: {enemy.name}에게 {_damage} 데미지");
+        DebugHelper.Log($"투사체 명중: {enemy.name}에게 {_damage} 데미지");
 
         SpawnHitEffect(other.ClosestPoint(transform.position));
         HandlePiercing();
@@ -132,7 +132,7 @@ public class Projectile : MonoBehaviour
 
         if (_destroyOnHit && _currentPierceCount > _maxPierceCount)
         {
-            Debug.Log($"투사체 관통 한계: {_currentPierceCount} / {_maxPierceCount}");
+            DebugHelper.Log($"투사체 관통 한계: {_currentPierceCount} / {_maxPierceCount}");
             DestroyProjectile(showEffect: true);
         }
     }
@@ -145,17 +145,19 @@ public class Projectile : MonoBehaviour
     {
         if (_hitEffectPrefab != null)
         {
-            GameObject effect = Instantiate(_hitEffectPrefab, position, Quaternion.identity);
+            GameObject effect = GameObjectPool.Instance.Get(_hitEffectPrefab, position, Quaternion.identity);
 
             ParticleSystem ps = effect.GetComponent<ParticleSystem>();
+            float lifetime;
             if (ps != null)
             {
-                Destroy(effect, ps.main.duration + ps.main.startLifetime.constantMax);
+                lifetime = ps.main.duration + ps.main.startLifetime.constantMax;
             }
             else
             {
-                Destroy(effect, 3f);
+                lifetime = 3f;
             }
+            GameObjectPool.Instance.Release(effect, lifetime);
         }
     }
 
@@ -198,17 +200,17 @@ public class Projectile : MonoBehaviour
     [ContextMenu("Debug: Print Projectile Info")]
     private void DebugPrintInfo()
     {
-        Debug.Log("===== 투사체 정보 =====");
-        Debug.Log($"초기화 상태: {_isInitialized}");
-        Debug.Log($"데미지: {_damage}");
-        Debug.Log($"속도: {_speed} m/s");
-        Debug.Log($"최대 사거리: {_maxRange}m");
+        DebugHelper.Log("===== 투사체 정보 =====");
+        DebugHelper.Log($"초기화 상태: {_isInitialized}");
+        DebugHelper.Log($"데미지: {_damage}");
+        DebugHelper.Log($"속도: {_speed} m/s");
+        DebugHelper.Log($"최대 사거리: {_maxRange}m");
 
         if (_isInitialized)
         {
             float distanceTraveled = Vector3.Distance(_startPosition, transform.position);
-            Debug.Log($"비행 거리: {distanceTraveled:F1}m / {_maxRange}m");
-            Debug.Log($"관통 횟수: {_currentPierceCount} / {_maxPierceCount}");
+            DebugHelper.Log($"비행 거리: {distanceTraveled:F1}m / {_maxRange}m");
+            DebugHelper.Log($"관통 횟수: {_currentPierceCount} / {_maxPierceCount}");
         }
     }
 

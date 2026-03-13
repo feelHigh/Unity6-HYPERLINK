@@ -182,7 +182,7 @@ public class InventoryItemEventHandler : MonoBehaviour
                     giveItem = true;
                     if (_ownerSlot is EquipSlot eslot1)
                     {
-                        Debug.Log("[InventoryItemEventHandler] 장비 해제 후 인벤토리로 이동");
+                        DebugHelper.Log("[InventoryItemEventHandler] 장비 해제 후 인벤토리로 이동");
                         _equipInventory.UnEquipItem(item);
                     }
                     _ownerSlot.RemoveData();
@@ -196,11 +196,11 @@ public class InventoryItemEventHandler : MonoBehaviour
                 {
                     giveItem = true;
                     _ownerSlot.RemoveData();
-                    Debug.Log($"[InventoryItemEventHandler] 아이템 장착 성공: {item.Data.ItemName}");
+                    DebugHelper.Log($"[InventoryItemEventHandler] 아이템 장착 성공: {item.Data.ItemName}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[InventoryItemEventHandler] 아이템 장착 실패: {item.Data.ItemName}");
+                    DebugHelper.LogWarning($"[InventoryItemEventHandler] 아이템 장착 실패: {item.Data.ItemName}");
                 }
                 break;
             case MousePos.Shop:

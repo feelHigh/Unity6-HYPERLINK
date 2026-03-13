@@ -172,7 +172,7 @@ public class MousePositionIndicator : MonoBehaviour
 
     private IEnumerator DeactivateAfterDelay(GameObject indicator, float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return WaitForSecondsCache.Get(delay);
 
         if (indicator != null)
         {
@@ -184,11 +184,12 @@ public class MousePositionIndicator : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[MousePositionIndicator] {message}");
+            DebugHelper.Log($"[MousePositionIndicator] {message}");
         }
     }
 

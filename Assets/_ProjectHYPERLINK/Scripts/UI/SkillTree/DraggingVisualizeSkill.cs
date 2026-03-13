@@ -227,7 +227,7 @@ public class DraggingVisualizeSkill : MonoBehaviour
 
         // 디버그: 좌표가 정확히 일치하는지 확인
         // 정상 동작 시: Screen 좌표와 Anchored 좌표가 동일해야 함
-        // Debug.Log($"[Visual] Screen:{screenPosition} → Anchored:{_rect.anchoredPosition}");
+        // DebugHelper.Log($"[Visual] Screen:{screenPosition} → Anchored:{_rect.anchoredPosition}");
     }
 
     /// <summary>
@@ -296,15 +296,15 @@ public class DraggingVisualizeSkill : MonoBehaviour
     [ContextMenu("Debug: Print State")]
     private void DebugPrintState()
     {
-        Debug.Log("═══ DraggingVisualizeSkill State ═══");
-        Debug.Log($"Current Skill: {_currentSkill?.SkillName ?? "None"}");
-        Debug.Log($"Image Enabled: {_image.enabled}");
-        Debug.Log($"Position: {_rect.position}");
-        Debug.Log($"Anchored Position: {_rect.anchoredPosition}");
-        Debug.Log($"Anchors: Min={_rect.anchorMin} Max={_rect.anchorMax}");
-        Debug.Log($"Pivot: {_rect.pivot}");
-        Debug.Log($"Size: {_rect.sizeDelta}");
-        Debug.Log($"Color: {_image.color}");
+        DebugHelper.Log("═══ DraggingVisualizeSkill State ═══");
+        DebugHelper.Log($"Current Skill: {_currentSkill?.SkillName ?? "None"}");
+        DebugHelper.Log($"Image Enabled: {_image.enabled}");
+        DebugHelper.Log($"Position: {_rect.position}");
+        DebugHelper.Log($"Anchored Position: {_rect.anchoredPosition}");
+        DebugHelper.Log($"Anchors: Min={_rect.anchorMin} Max={_rect.anchorMax}");
+        DebugHelper.Log($"Pivot: {_rect.pivot}");
+        DebugHelper.Log($"Size: {_rect.sizeDelta}");
+        DebugHelper.Log($"Color: {_image.color}");
     }
 
     #endregion

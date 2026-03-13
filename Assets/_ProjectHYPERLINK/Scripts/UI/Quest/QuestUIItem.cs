@@ -329,25 +329,28 @@ public class QuestUIItem : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[QuestUIItem] {message}");
+            DebugHelper.Log($"[QuestUIItem] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[QuestUIItem] {message}");
+            DebugHelper.LogWarning($"[QuestUIItem] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[QuestUIItem] {message}");
+        DebugHelper.LogError($"[QuestUIItem] {message}");
     }
 
     #endregion
@@ -365,13 +368,13 @@ public class QuestUIItem : MonoBehaviour
             return;
 
         if (_questNameText == null)
-            Debug.LogWarning("[QuestUIItem] Quest Name Text가 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[QuestUIItem] Quest Name Text가 할당되지 않았습니다!");
 
         if (_objectivesContainer == null)
-            Debug.LogWarning("[QuestUIItem] Objectives Container가 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[QuestUIItem] Objectives Container가 할당되지 않았습니다!");
 
         if (_objectiveTextPrefab == null)
-            Debug.LogWarning("[QuestUIItem] Objective Text Prefab이 할당되지 않았습니다!");
+            DebugHelper.LogWarning("[QuestUIItem] Objective Text Prefab이 할당되지 않았습니다!");
     }
 #endif
 

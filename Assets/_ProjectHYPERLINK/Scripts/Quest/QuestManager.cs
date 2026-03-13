@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -41,6 +40,7 @@ public class QuestManager : MonoBehaviour
     private List<string> _completedQuestIDs = new List<string>();
     private string _currentSceneName;
     private bool _isInitialized = false; // [NEW] 초기화 상태 추적
+    private readonly List<string> _questsToCompleteCache = new List<string>();
 
     // 이벤트
     public event Action<QuestData, QuestProgress> OnQuestStarted;
@@ -268,7 +268,7 @@ public class QuestManager : MonoBehaviour
         Log($"적 처치: {enemyType} in {sceneName}");
 
         // 모든 활성 퀘스트를 순회하며 진행 상황 업데이트
-        List<string> questsToComplete = new List<string>();
+        _questsToCompleteCache.Clear();
 
         foreach (var kvp in _activeQuests)
         {
@@ -302,18 +302,18 @@ public class QuestManager : MonoBehaviour
                 // 퀘스트 완료 체크
                 if (questData.IsObjectiveComplete(progress))
                 {
-                    questsToComplete.Add(questID);
+                    _questsToCompleteCache.Add(questID);
                 }
             }
         }
 
         // 완료된 퀘스트 처리
-        foreach (var questID in questsToComplete)
+        foreach (var questID in _questsToCompleteCache)
         {
             CompleteQuest(questID);
         }
 
-        if (questsToComplete.Count > 0 || _activeQuests.Count > 0)
+        if (_questsToCompleteCache.Count > 0 || _activeQuests.Count > 0)
         {
             SaveQuestProgress();
         }
@@ -353,7 +353,12 @@ public class QuestManager : MonoBehaviour
     /// </summary>
     private QuestData GetQuestData(string questID)
     {
-        return _allQuests.FirstOrDefault(q => q.QuestID == questID);
+        for (int i = 0; i < _allQuests.Count; i++)
+        {
+            if (_allQuests[i].QuestID == questID)
+                return _allQuests[i];
+        }
+        return null;
     }
 
     /// <summary>
@@ -472,25 +477,28 @@ public class QuestManager : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[QuestManager] {message}");
+            DebugHelper.Log($"[QuestManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[QuestManager] {message}");
+            DebugHelper.LogWarning($"[QuestManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[QuestManager] {message}");
+        DebugHelper.LogError($"[QuestManager] {message}");
     }
 
     /// <summary>
@@ -499,25 +507,25 @@ public class QuestManager : MonoBehaviour
     [ContextMenu("Print Quest Status")]
     public void PrintQuestStatus()
     {
-        Debug.Log("===== 퀘스트 시스템 상태 =====");
-        Debug.Log($"완료된 퀘스트: {_completedQuestIDs.Count}개");
+        DebugHelper.Log("===== 퀘스트 시스템 상태 =====");
+        DebugHelper.Log($"완료된 퀘스트: {_completedQuestIDs.Count}개");
         foreach (var id in _completedQuestIDs)
         {
-            Debug.Log($"  - {id}");
+            DebugHelper.Log($"  - {id}");
         }
 
-        Debug.Log($"진행 중인 퀘스트: {_activeQuests.Count}개");
+        DebugHelper.Log($"진행 중인 퀘스트: {_activeQuests.Count}개");
         foreach (var kvp in _activeQuests)
         {
             QuestData data = GetQuestData(kvp.Key);
             QuestProgress progress = kvp.Value;
 
-            Debug.Log($"  - {data.QuestName} ({kvp.Key})");
+            DebugHelper.Log($"  - {data.QuestName} ({kvp.Key})");
             foreach (var objective in data.Objectives)
             {
                 string key = QuestData.GetObjectiveKey(objective);
                 int current = progress.GetObjectiveProgress(key);
-                Debug.Log($"    {objective.SceneName}: {objective.EnemyType} {current}/{objective.RequiredCount}");
+                DebugHelper.Log($"    {objective.SceneName}: {objective.EnemyType} {current}/{objective.RequiredCount}");
             }
         }
     }

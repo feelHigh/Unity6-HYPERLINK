@@ -38,7 +38,7 @@ public class PlayerStateController : MonoBehaviour
         // 활성화 시도 시 스킬 실행 중이면 차단
         if (active && IsPerformingSkill)
         {
-            Debug.LogWarning("[상태] 스킬 실행 중이므로 기본 공격을 시작할 수 없습니다.");
+            DebugHelper.LogWarning("[상태] 스킬 실행 중이므로 기본 공격을 시작할 수 없습니다.");
             return;
         }
 
@@ -47,7 +47,7 @@ public class PlayerStateController : MonoBehaviour
         // 공격 상태에 따른 행동 제어
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 기본 공격 중: {active}");
+        DebugHelper.Log($"[상태] 기본 공격 중: {active}");
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class PlayerStateController : MonoBehaviour
         // 활성화 시도 시 기본 공격 중이면 차단
         if (active && IsPerformingBaseAttack)
         {
-            Debug.LogWarning("[상태] 기본 공격 중이므로 스킬을 시작할 수 없습니다.");
+            DebugHelper.LogWarning("[상태] 기본 공격 중이므로 스킬을 시작할 수 없습니다.");
             return;
         }
 
@@ -71,7 +71,7 @@ public class PlayerStateController : MonoBehaviour
         // 공격 상태에 따른 행동 제어
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 스킬 실행 중: {active}");
+        DebugHelper.Log($"[상태] 스킬 실행 중: {active}");
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class PlayerStateController : MonoBehaviour
         IsStunned = active;
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 히트 스턴: {active}");
+        DebugHelper.Log($"[상태] 히트 스턴: {active}");
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class PlayerStateController : MonoBehaviour
         IsStunned = active;
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 빙결: {active}");
+        DebugHelper.Log($"[상태] 빙결: {active}");
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class PlayerStateController : MonoBehaviour
         IsRoot = active;
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 속박: {active}");
+        DebugHelper.Log($"[상태] 속박: {active}");
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class PlayerStateController : MonoBehaviour
         IsSilenced = active;
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 침묵: {active}");
+        DebugHelper.Log($"[상태] 침묵: {active}");
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class PlayerStateController : MonoBehaviour
         IsSlowed = active;
         SlowPercent = active ? slowPercent : 0f;
 
-        Debug.Log($"[상태] 둔화: {active} ({slowPercent}%)");
+        DebugHelper.Log($"[상태] 둔화: {active} ({slowPercent}%)");
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class PlayerStateController : MonoBehaviour
         IsWeakened = active;
         WeakenPercent = active ? weakenPercent : 0f;
 
-        Debug.Log($"[상태] 약화: {active} ({weakenPercent}%)");
+        DebugHelper.Log($"[상태] 약화: {active} ({weakenPercent}%)");
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class PlayerStateController : MonoBehaviour
         IsStunned = active;
         UpdateActionFlags();
 
-        Debug.Log($"[상태] 넉다운: {active}");
+        DebugHelper.Log($"[상태] 넉다운: {active}");
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public class PlayerStateController : MonoBehaviour
         SlowPercent = 0f;
         WeakenPercent = 0f;
 
-        Debug.Log("[상태] 모든 상태이상 초기화");
+        DebugHelper.Log("[상태] 모든 상태이상 초기화");
     }
 
     /// <summary>
@@ -250,23 +250,23 @@ public class PlayerStateController : MonoBehaviour
     [ContextMenu("Debug: Print Current States")]
     private void DebugPrintStates()
     {
-        Debug.Log("===== PlayerStateController 상태 =====");
-        Debug.Log($"이동 가능: {CanMove}");
-        Debug.Log($"공격 가능: {CanAttack}");
-        Debug.Log($"스킬 사용 가능: {CanUseSkill}");
-        Debug.Log("--- 공격 상태 ---");
-        Debug.Log($"기본 공격 중: {IsPerformingBaseAttack}");
-        Debug.Log($"스킬 실행 중: {IsPerformingSkill}");
-        Debug.Log("--- 상태이상 ---");
-        Debug.Log($"빙결: {IsFrozen}");
-        Debug.Log($"속박: {IsRoot}");
-        Debug.Log($"침묵: {IsSilenced}");
-        Debug.Log($"둔화: {IsSlowed} ({SlowPercent}%)");
-        Debug.Log($"약화: {IsWeakened} ({WeakenPercent}%)");
-        Debug.Log($"넉다운: {IsStunned}");
-        Debug.Log($"히트 스턴: {IsHitStunned}");
-        Debug.Log($"이동속도 배율: {GetMovementSpeedMultiplier():P0}");
-        Debug.Log($"방어력 배율: {GetDefenseMultiplier():P0}");
+        DebugHelper.Log("===== PlayerStateController 상태 =====");
+        DebugHelper.Log($"이동 가능: {CanMove}");
+        DebugHelper.Log($"공격 가능: {CanAttack}");
+        DebugHelper.Log($"스킬 사용 가능: {CanUseSkill}");
+        DebugHelper.Log("--- 공격 상태 ---");
+        DebugHelper.Log($"기본 공격 중: {IsPerformingBaseAttack}");
+        DebugHelper.Log($"스킬 실행 중: {IsPerformingSkill}");
+        DebugHelper.Log("--- 상태이상 ---");
+        DebugHelper.Log($"빙결: {IsFrozen}");
+        DebugHelper.Log($"속박: {IsRoot}");
+        DebugHelper.Log($"침묵: {IsSilenced}");
+        DebugHelper.Log($"둔화: {IsSlowed} ({SlowPercent}%)");
+        DebugHelper.Log($"약화: {IsWeakened} ({WeakenPercent}%)");
+        DebugHelper.Log($"넉다운: {IsStunned}");
+        DebugHelper.Log($"히트 스턴: {IsHitStunned}");
+        DebugHelper.Log($"이동속도 배율: {GetMovementSpeedMultiplier():P0}");
+        DebugHelper.Log($"방어력 배율: {GetDefenseMultiplier():P0}");
     }
 
     [ContextMenu("Test: Reset All States")]

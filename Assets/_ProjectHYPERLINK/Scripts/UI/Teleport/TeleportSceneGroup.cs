@@ -55,7 +55,7 @@ public class TeleportSceneGroup : MonoBehaviour
     {
         if (_destinationButtonPrefab == null)
         {
-            Debug.LogError("[TeleportSceneGroup] DestinationButtonPrefab이 설정되지 않았습니다");
+            DebugHelper.LogError("[TeleportSceneGroup] DestinationButtonPrefab이 설정되지 않았습니다");
             return;
         }
 
@@ -69,7 +69,7 @@ public class TeleportSceneGroup : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[TeleportSceneGroup] DestinationButtonPrefab에 TeleportDestinationButton 컴포넌트가 없습니다");
+            DebugHelper.LogError("[TeleportSceneGroup] DestinationButtonPrefab에 TeleportDestinationButton 컴포넌트가 없습니다");
             Destroy(buttonObj);
         }
     }
