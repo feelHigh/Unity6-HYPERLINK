@@ -20,7 +20,7 @@ public class PlayerInputController : MonoBehaviour
 
         if (_playerCharacter == null)
         {
-            Debug.LogError("[PlayerInputController] PlayerCharacter 컴포넌트가 필요합니다!");
+            DebugHelper.LogError("[PlayerInputController] PlayerCharacter 컴포넌트가 필요합니다!");
             enabled = false;
         }
     }

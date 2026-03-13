@@ -73,7 +73,7 @@ public static class InputHelper
     /// GameObject uiObject = InputHelper.GetUIObjectUnderPointer();
     /// if (uiObject != null)
     /// {
-    ///     Debug.Log($"UI 클릭: {uiObject.name}");
+    ///     DebugHelper.Log($"UI 클릭: {uiObject.name}");
     /// }
     /// </summary>
     public static GameObject GetUIObjectUnderPointer()
@@ -110,7 +110,7 @@ public static class InputHelper
     {
         if (EventSystem.current == null)
         {
-            Debug.Log("[InputHelper] EventSystem이 없습니다!");
+            DebugHelper.Log("[InputHelper] EventSystem이 없습니다!");
             return;
         }
 
@@ -124,14 +124,14 @@ public static class InputHelper
 
         if (results.Count == 0)
         {
-            Debug.Log("[InputHelper] UI 없음");
+            DebugHelper.Log("[InputHelper] UI 없음");
             return;
         }
 
-        Debug.Log($"[InputHelper] 감지된 UI: {results.Count}개");
+        DebugHelper.Log($"[InputHelper] 감지된 UI: {results.Count}개");
         for (int i = 0; i < results.Count; i++)
         {
-            Debug.Log($"  [{i}] {results[i].gameObject.name} (Depth: {results[i].depth})");
+            DebugHelper.Log($"  [{i}] {results[i].gameObject.name} (Depth: {results[i].depth})");
         }
     }
 }

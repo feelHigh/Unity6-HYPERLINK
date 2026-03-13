@@ -61,11 +61,11 @@ public class TargetDetector : MonoBehaviour
         if (_detectorColl != null)
         {
             _detectorColl.enabled = true;
-            Debug.Log("[TergetDetector] 콜라이더 활성화");
+            DebugHelper.Log("[TergetDetector] 콜라이더 활성화");
         }
         else
         {
-            Debug.Log("[TergetDetector] 콜라이더가 없습니다.");
+            DebugHelper.Log("[TergetDetector] 콜라이더가 없습니다.");
         }
     }
 
@@ -82,7 +82,7 @@ public class TargetDetector : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.gameObject.name + other.gameObject.transform);
+        DebugHelper.Log(other.gameObject.name + other.gameObject.transform);
 
         int otherLayer = other.gameObject.layer;
         int otherLayerBit = 1 << otherLayer;
@@ -90,7 +90,7 @@ public class TargetDetector : MonoBehaviour
         //플레이어와 충돌했을 때
         if ((_playerLayerMask.value & otherLayerBit) != 0)
         {
-            Debug.Log("[TergetDetector] 플레이어 감지");
+            DebugHelper.Log("[TergetDetector] 플레이어 감지");
             PlayerCombat player = other.GetComponent<PlayerCombat>();
 
             if (player != null)
@@ -100,7 +100,7 @@ public class TargetDetector : MonoBehaviour
                 {
                     player.ApplySpecialEffect(_specialAttack, transform.position);
 
-                    Debug.Log("[TergetDetector] 특수 공격!");
+                    DebugHelper.Log("[TergetDetector] 특수 공격!");
                 }
                 //없으면 그냥 일반 공격 (AttackInfo 사용)
                 else
@@ -112,7 +112,7 @@ public class TargetDetector : MonoBehaviour
                     );
                     player.TakeDamage(attackInfo);
 
-                    Debug.Log("[TergetDetector] 기본 공격!");
+                    DebugHelper.Log("[TergetDetector] 기본 공격!");
                 }
 
                 //타격 성공 시 콜라이더 비활성화
@@ -126,7 +126,7 @@ public class TargetDetector : MonoBehaviour
             }
             else
             {
-                Debug.Log("[TergetDetector] PlayerCombat을 찾을 수 없습니다.");
+                DebugHelper.Log("[TergetDetector] PlayerCombat을 찾을 수 없습니다.");
             }
         }
         //적 동료와 아이템은 무시
@@ -141,7 +141,7 @@ public class TargetDetector : MonoBehaviour
             if (GetComponent<EnemyProjectile>() != null)
             {
                 Destroy(gameObject);
-                Debug.Log(other.gameObject.name + other.gameObject.transform);
+                DebugHelper.Log(other.gameObject.name + other.gameObject.transform);
             }
         }
     }

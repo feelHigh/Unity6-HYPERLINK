@@ -33,6 +33,10 @@ public class PlayerAttackController : MonoBehaviour
     private bool _isAttacking = false;
     private bool _isOnCooldown = false;
 
+    // GC 최적화: 캐시된 리스트 및 NonAlloc 버퍼
+    private readonly List<EnemyController> _enemyConeCache = new List<EnemyController>();
+    private Collider[] _attackOverlapBuffer = new Collider[20];
+
     // 쿨다운 관리
     private float _baseCooldown;
     private float _currentAttackCooldown;
@@ -101,22 +105,22 @@ public class PlayerAttackController : MonoBehaviour
 
         if (_playerCharacter == null)
         {
-            Debug.LogError("[PlayerAttackController] PlayerCharacter가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] PlayerCharacter가 없습니다!");
         }
 
         if (_stateController == null)
         {
-            Debug.LogError("[PlayerAttackController] PlayerStateController가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] PlayerStateController가 없습니다!");
         }
 
         if (_animator == null)
         {
-            Debug.LogError("[PlayerAttackController] Animator가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] Animator가 없습니다!");
         }
 
         if (_agent == null)
         {
-            Debug.LogError("[PlayerAttackController] NavMeshAgent가 없습니다!");
+            DebugHelper.LogError("[PlayerAttackController] NavMeshAgent가 없습니다!");
         }
 
         // 기본값 저장
@@ -291,13 +295,13 @@ public class PlayerAttackController : MonoBehaviour
     /// </summary>
     private List<EnemyController> GetEnemiesInFrontCone()
     {
-        List<EnemyController> result = new List<EnemyController>();
+        _enemyConeCache.Clear();
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, _attackRange);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _attackRange, _attackOverlapBuffer);
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < count; i++)
         {
-            EnemyController enemy = hit.GetComponent<EnemyController>();
+            EnemyController enemy = _attackOverlapBuffer[i].GetComponent<EnemyController>();
 
             if (enemy != null)
             {
@@ -306,12 +310,12 @@ public class PlayerAttackController : MonoBehaviour
 
                 if (angle <= _attackAngle / 2f)
                 {
-                    result.Add(enemy);
+                    _enemyConeCache.Add(enemy);
                 }
             }
         }
 
-        return result;
+        return _enemyConeCache;
     }
 
     /// <summary>
@@ -343,9 +347,10 @@ public class PlayerAttackController : MonoBehaviour
         OnAttackTrigger?.Invoke(ATTACK_HASH);
 
         // 기본 공격 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audio = AudioManager.Instance;
+        if (audio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.PlayerBasicAttack);
+            audio.PlaySFX(audio.SoundLibrary.PlayerBasicAttack);
         }
 
         Log($"공격 시작! 타겟: {enemies.Count}마리");
@@ -354,7 +359,7 @@ public class PlayerAttackController : MonoBehaviour
         StartCoroutine(SpawnAttackVFXCoroutine());
 
         // 애니메이션 재생 대기
-        yield return new WaitForSeconds(ATTACK_DAMAGE_TIMING);
+        yield return WaitForSecondsCache.Get(ATTACK_DAMAGE_TIMING);
 
         // 데미지 적용 (AttackInfo 사용)
         if (_playerCharacter != null)
@@ -380,7 +385,7 @@ public class PlayerAttackController : MonoBehaviour
 
         // 애니메이션 완료 대기
         float remainingTime = _attackAnimationDuration - ATTACK_DAMAGE_TIMING;
-        yield return new WaitForSeconds(remainingTime);
+        yield return WaitForSecondsCache.Get(remainingTime);
 
         // 공격 종료
         _isAttacking = false;
@@ -403,7 +408,7 @@ public class PlayerAttackController : MonoBehaviour
         Log("공격 완료");
 
         // 쿨다운 시작
-        yield return new WaitForSeconds(_currentAttackCooldown);
+        yield return WaitForSecondsCache.Get(_currentAttackCooldown);
         _isOnCooldown = false;
 
         Log("쿨다운 완료");
@@ -416,7 +421,7 @@ public class PlayerAttackController : MonoBehaviour
     {
         // VFX 생성 타이밍까지 대기
         float delay = _attackAnimationDuration * _vfxSpawnTiming;
-        yield return new WaitForSeconds(delay);
+        yield return WaitForSecondsCache.Get(delay);
 
         // 플레이어 위치에 공격 VFX 생성
         SpawnAttackVFX(transform.position);
@@ -437,11 +442,11 @@ public class PlayerAttackController : MonoBehaviour
         // 회전 계산
         Quaternion vfxRotation = transform.rotation * Quaternion.Euler(_vfxRotationOffset);
 
-        // VFX 생성
-        GameObject vfx = Instantiate(_baseAttackVfxPrefab, vfxPosition, vfxRotation);
+        // VFX 생성 (풀 사용)
+        GameObject vfx = GameObjectPool.Instance.Get(_baseAttackVfxPrefab, vfxPosition, vfxRotation);
 
-        // 수명 후 제거
-        Destroy(vfx, _vfxLifetime);
+        // 수명 후 풀에 반환
+        GameObjectPool.Instance.Release(vfx, _vfxLifetime);
 
         Log($"VFX 생성: 위치={vfxPosition}, 회전={_vfxRotationOffset}");
     }
@@ -450,11 +455,12 @@ public class PlayerAttackController : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[PlayerAttackController] {message}");
+            DebugHelper.Log($"[PlayerAttackController] {message}");
         }
     }
 
@@ -530,25 +536,25 @@ public class PlayerAttackController : MonoBehaviour
     [ContextMenu("Debug: Print Attack Info")]
     private void DebugPrintAttackInfo()
     {
-        Debug.Log("===== PlayerAttackController 정보 =====");
-        Debug.Log($"기본 쿨다운: {_baseCooldown:F2}초");
-        Debug.Log($"현재 쿨다운: {_currentAttackCooldown:F2}초");
-        Debug.Log($"공격 중: {_isAttacking}");
-        Debug.Log($"쿨다운 중: {_isOnCooldown}");
-        Debug.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
-        Debug.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2}");
+        DebugHelper.Log("===== PlayerAttackController 정보 =====");
+        DebugHelper.Log($"기본 쿨다운: {_baseCooldown:F2}초");
+        DebugHelper.Log($"현재 쿨다운: {_currentAttackCooldown:F2}초");
+        DebugHelper.Log($"공격 중: {_isAttacking}");
+        DebugHelper.Log($"쿨다운 중: {_isOnCooldown}");
+        DebugHelper.Log($"VFX 회전 오프셋: {_vfxRotationOffset}");
+        DebugHelper.Log($"VFX 생성 타이밍: {_vfxSpawnTiming:F2}");
 
         if (_playerCharacter != null)
         {
             CharacterStats stats = _playerCharacter.CurrentStats;
             float attackPower = _playerCharacter.GetAttackPower();
-            Debug.Log($"공격 속도 스탯: {stats.AttackSpeed:F2}");
-            Debug.Log($"최종 공격력: {attackPower:F1}");
+            DebugHelper.Log($"공격 속도 스탯: {stats.AttackSpeed:F2}");
+            DebugHelper.Log($"최종 공격력: {attackPower:F1}");
         }
 
         if (_stateController != null)
         {
-            Debug.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
+            DebugHelper.Log($"스킬 실행 중: {_stateController.IsPerformingSkill}");
         }
     }
 

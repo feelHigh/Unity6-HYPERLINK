@@ -29,6 +29,7 @@ public class EnemyUIController : MonoBehaviour
     Camera _mainCam;                //메인 카메라
     float _lastDamageTime;          //마지막 피격 시간
     bool _isFullHealth = true;  //체력이 풀인지 여부
+    bool _healthDirty = false;  //체력바 갱신 필요 여부
 
     private void Awake()
     {
@@ -82,8 +83,15 @@ public class EnemyUIController : MonoBehaviour
     {
         if (_enemy == null || _enemy.IsDead) return;
 
-        //체력바 업데이트
-        UpdateHealthBar();
+        //캔버스가 비활성화면 회전/페이드 처리 불필요
+        if (!_canvas.enabled) return;
+
+        //체력바 업데이트 (피격 시에만 dirty 플래그 설정됨)
+        if (_healthDirty)
+        {
+            UpdateHealthBar();
+            _healthDirty = false;
+        }
 
         //카메라를 향해 회전
         if (_mainCam != null)
@@ -134,15 +142,15 @@ public class EnemyUIController : MonoBehaviour
     {
         if (_damageTextPrefab == null)
         {
-            Debug.LogWarning("[EnemyUI] DamageText 프리팹이 존재하지 않습니다.");
+            DebugHelper.LogWarning("[EnemyUI] DamageText 프리팹이 존재하지 않습니다.");
             return;
         }
 
         //생성 위치 계산
         Vector3 spawnPos = _enemy.transform.position + _spawnOffset;
 
-        //생성
-        GameObject damageTextGO = Instantiate(_damageTextPrefab, spawnPos, Quaternion.identity);
+        //풀에서 가져오기
+        GameObject damageTextGO = GameObjectPool.Instance.Get(_damageTextPrefab, spawnPos, Quaternion.identity);
 
         //초기화
         DamageText damageText = damageTextGO.GetComponent<DamageText>();
@@ -160,6 +168,9 @@ public class EnemyUIController : MonoBehaviour
     {
         //마지막 피격 시간 갱신
         _lastDamageTime = Time.time;
+
+        //체력바 갱신 플래그 설정
+        _healthDirty = true;
 
         //캔버스 활성화
         if (_canvasGroup != null && _canvas != null)

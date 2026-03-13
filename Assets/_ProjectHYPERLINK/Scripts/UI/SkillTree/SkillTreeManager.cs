@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Localization.Settings;
 
 /// <summary>
@@ -101,10 +100,10 @@ public class SkillTreeManager : MonoBehaviour
 
         // 검증
         if (_playerCharacter == null)
-            Debug.LogError("[SkillTreeManager] PlayerCharacter를 찾을 수 없습니다!");
+            DebugHelper.LogError("[SkillTreeManager] PlayerCharacter를 찾을 수 없습니다!");
 
         if (_experienceManager == null)
-            Debug.LogError("[SkillTreeManager] ExperienceManager를 찾을 수 없습니다!");
+            DebugHelper.LogError("[SkillTreeManager] ExperienceManager를 찾을 수 없습니다!");
 
         // 패시브 스탯 초기화
         _totalPassiveStats = ScriptableObject.CreateInstance<CharacterStats>();
@@ -134,7 +133,7 @@ public class SkillTreeManager : MonoBehaviour
         _currentSkillPoints = _startingSkillPoints;
         _unlockedNodes.Clear();
 
-        Debug.Log($"[SkillTreeManager] 초기화 완료 - SP: {_currentSkillPoints}, 노드: {_allNodes.Count}개");
+        DebugHelper.Log($"[SkillTreeManager] 초기화 완료 - SP: {_currentSkillPoints}, 노드: {_allNodes.Count}개");
 
         OnSkillPointsChanged?.Invoke(_currentSkillPoints);
     }
@@ -153,7 +152,7 @@ public class SkillTreeManager : MonoBehaviour
 
         AddSkillPoints(spGained);
 
-        Debug.Log($"[SkillTreeManager] 레벨업 ({oldLevel} → {newLevel}): +{spGained} SP");
+        DebugHelper.Log($"[SkillTreeManager] 레벨업 ({oldLevel} → {newLevel}): +{spGained} SP");
     }
 
     /// <summary>
@@ -195,28 +194,28 @@ public class SkillTreeManager : MonoBehaviour
     {
         if (nodeData == null)
         {
-            Debug.LogWarning("[SkillTreeManager] nodeData가 null입니다!");
+            DebugHelper.LogWarning("[SkillTreeManager] nodeData가 null입니다!");
             return false;
         }
 
         // 이미 언락됨
         if (IsNodeUnlocked(nodeData.NodeID))
         {
-            Debug.Log($"[SkillTreeManager] {nodeData.NodeName}은(는) 이미 언락되었습니다.");
+            DebugHelper.Log($"[SkillTreeManager] {nodeData.NodeName}은(는) 이미 언락되었습니다.");
             return false;
         }
 
         // 조건 검증
         if (!CanUnlockNode(nodeData, out string failReason))
         {
-            Debug.Log($"[SkillTreeManager] {nodeData.NodeName} 언락 실패: {failReason}");
+            DebugHelper.Log($"[SkillTreeManager] {nodeData.NodeName} 언락 실패: {failReason}");
             return false;
         }
 
         // SP 소비
         if (!SpendSkillPoints(nodeData.RequiredSkillPoints))
         {
-            Debug.LogWarning("[SkillTreeManager] SP 부족!");
+            DebugHelper.LogWarning("[SkillTreeManager] SP 부족!");
             return false;
         }
 
@@ -307,7 +306,7 @@ public class SkillTreeManager : MonoBehaviour
             _playerCharacter?.UnlockSkill(nodeData.SkillData);
         }
 
-        Debug.Log($"[SkillTreeManager] {nodeData.NodeName} 언락 완료!");
+        DebugHelper.Log($"[SkillTreeManager] {nodeData.NodeName} 언락 완료!");
 
         OnNodeUnlocked?.Invoke(nodeData);
         OnNodeStateChanged?.Invoke(nodeData);
@@ -324,7 +323,7 @@ public class SkillTreeManager : MonoBehaviour
     {
         if (nodeData.PassiveStatBonuses == null || nodeData.PassiveStatBonuses.Count == 0)
         {
-            Debug.LogWarning($"[SkillTreeManager] {nodeData.NodeName}에 패시브 보너스가 없습니다!");
+            DebugHelper.LogWarning($"[SkillTreeManager] {nodeData.NodeName}에 패시브 보너스가 없습니다!");
             return;
         }
 
@@ -349,7 +348,7 @@ public class SkillTreeManager : MonoBehaviour
             _playerCharacter.AddTemporaryStats(_totalPassiveStats);
         }
 
-        Debug.Log($"[SkillTreeManager] 패시브 스탯 적용: {nodeData.NodeName}");
+        DebugHelper.Log($"[SkillTreeManager] 패시브 스탯 적용: {nodeData.NodeName}");
     }
 
     /// <summary>
@@ -419,7 +418,13 @@ public class SkillTreeManager : MonoBehaviour
     /// </summary>
     public List<SkillTreeNodeData> GetNodesByTier(int tier)
     {
-        return _allNodes.Where(node => node.Tier == tier).ToList();
+        var result = new List<SkillTreeNodeData>();
+        for (int i = 0; i < _allNodes.Count; i++)
+        {
+            if (_allNodes[i].Tier == tier)
+                result.Add(_allNodes[i]);
+        }
+        return result;
     }
 
     /// <summary>
@@ -427,7 +432,12 @@ public class SkillTreeManager : MonoBehaviour
     /// </summary>
     public SkillTreeNodeData GetNodeByID(string nodeID)
     {
-        return _allNodes.FirstOrDefault(node => node.NodeID == nodeID);
+        for (int i = 0; i < _allNodes.Count; i++)
+        {
+            if (_allNodes[i].NodeID == nodeID)
+                return _allNodes[i];
+        }
+        return null;
     }
 
     /// <summary>
@@ -465,7 +475,7 @@ public class SkillTreeManager : MonoBehaviour
     {
         if (saveData == null)
         {
-            Debug.LogWarning("[SkillTreeManager] 로드할 데이터가 없습니다!");
+            DebugHelper.LogWarning("[SkillTreeManager] 로드할 데이터가 없습니다!");
             return;
         }
 
@@ -475,13 +485,13 @@ public class SkillTreeManager : MonoBehaviour
         // 언락된 노드들의 효과 재적용
         RecalculateAllPassiveStats();
 
-        Debug.Log($"[SkillTreeManager] 스킬 트리 로드 완료 - SP: {_currentSkillPoints}, 언락: {_unlockedNodes.Count}개");
+        DebugHelper.Log($"[SkillTreeManager] 스킬 트리 로드 완료 - SP: {_currentSkillPoints}, 언락: {_unlockedNodes.Count}개");
 
         OnSkillPointsChanged?.Invoke(_currentSkillPoints);
 
         // [NEW] 로드 완료 이벤트 발생 - UI 갱신 트리거
         OnSkillTreeLoaded?.Invoke();
-        Debug.Log($"[SkillTreeManager] OnSkillTreeLoaded 이벤트 발생");
+        DebugHelper.Log($"[SkillTreeManager] OnSkillTreeLoaded 이벤트 발생");
     }
 
     /// <summary>
@@ -520,18 +530,18 @@ public class SkillTreeManager : MonoBehaviour
     [ContextMenu("Debug: Print Skill Tree State")]
     private void DebugPrintState()
     {
-        Debug.Log("===== 스킬 트리 상태 =====");
-        Debug.Log($"현재 SP: {_currentSkillPoints}");
-        Debug.Log($"총 노드: {_allNodes.Count}개");
-        Debug.Log($"언락 노드: {_unlockedNodes.Count}개");
+        DebugHelper.Log("===== 스킬 트리 상태 =====");
+        DebugHelper.Log($"현재 SP: {_currentSkillPoints}");
+        DebugHelper.Log($"총 노드: {_allNodes.Count}개");
+        DebugHelper.Log($"언락 노드: {_unlockedNodes.Count}개");
 
-        Debug.Log("--- 언락된 노드 ---");
+        DebugHelper.Log("--- 언락된 노드 ---");
         foreach (string nodeID in _unlockedNodes)
         {
             SkillTreeNodeData node = GetNodeByID(nodeID);
             if (node != null)
             {
-                Debug.Log($"  - {node.NodeName} (Tier {node.Tier}, {(node.IsPassive ? "패시브" : "액티브")})");
+                DebugHelper.Log($"  - {node.NodeName} (Tier {node.Tier}, {(node.IsPassive ? "패시브" : "액티브")})");
             }
         }
     }
@@ -540,7 +550,7 @@ public class SkillTreeManager : MonoBehaviour
     private void DebugAddSkillPoints()
     {
         AddSkillPoints(5);
-        Debug.Log($"[DEBUG] +5 SP 추가 (현재: {_currentSkillPoints})");
+        DebugHelper.Log($"[DEBUG] +5 SP 추가 (현재: {_currentSkillPoints})");
     }
 
     #endregion

@@ -37,7 +37,7 @@ public class SA_Water : SpecialAttackBase
     {
         if (_attackEffect == null)
         {
-            Debug.LogError("공격 이펙트 프리팹이 연결되지 않았습니다.");
+            DebugHelper.LogError("공격 이펙트 프리팹이 연결되지 않았습니다.");
             return;
         }
 
@@ -47,7 +47,7 @@ public class SA_Water : SpecialAttackBase
         //플레이어를 바라보도록 회전
         Quaternion spawnRot = Quaternion.LookRotation(target.position - attacker.position);
 
-        GameObject waveGO = Instantiate(_attackEffect, spawnPos, spawnRot);
+        GameObject waveGO = GameObjectPool.Instance.Get(_attackEffect, spawnPos, spawnRot);
 
         WaveAttackController controller = waveGO.GetComponent<WaveAttackController>();
         if (controller != null)

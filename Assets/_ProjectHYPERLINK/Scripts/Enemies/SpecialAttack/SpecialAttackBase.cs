@@ -9,6 +9,9 @@ using UnityEngine;
 /// </summary>
 public abstract class SpecialAttackBase : ScriptableObject
 {
+    // GC 최적화: 공유 NonAlloc 버퍼 (SpecialAttack 자식 클래스에서 사용)
+    protected static Collider[] _sharedOverlapBuffer = new Collider[10];
+
     [Header("----- 에픽 몬스터 이펙트 -----")]
     [SerializeField] GameObject _epicEffect;
 
@@ -83,12 +86,12 @@ public abstract class SpecialAttackBase : ScriptableObject
 
         if (firePos == null)
         {
-            Debug.LogWarning($"[{attacker.name}] firePos를 찾을 수 없습니다. 기본 위치에서 발사합니다.");
+            DebugHelper.LogWarning($"[{attacker.name}] firePos를 찾을 수 없습니다. 기본 위치에서 발사합니다.");
             return null;
         }
 
         _cachedFirePos = firePos;
-        Debug.Log("Cached Fire Pos : " + _cachedFirePos);
+        DebugHelper.Log("Cached Fire Pos : " + _cachedFirePos);
 
         return _cachedFirePos;
     }

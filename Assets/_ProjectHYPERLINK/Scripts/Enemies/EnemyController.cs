@@ -48,6 +48,10 @@ public class EnemyController : MonoBehaviour, IDamageable
     int _expReward;         //보상 경험치
     int _goldReward;        //보상 골드
 
+    // 캐시된 컴포넌트 참조 (GC 최적화) //
+    private ExperienceManager _cachedExpManager;
+    private PlayerCharacter _cachedPlayer;
+
 
     // 프로퍼티 //
     public string EnemyName => _enemyName;
@@ -62,6 +66,15 @@ public class EnemyController : MonoBehaviour, IDamageable
     public float MaxHp => _maxHp;
     public float CurHp => _curHp;
     public bool IsDead => _isDead;
+
+    private void Awake()
+    {
+        // 콜라이더 캐시 (Die에서의 GetComponent 폴백 제거)
+        if (_collider == null)
+        {
+            _collider = GetComponent<Collider>();
+        }
+    }
 
     private void Start()
     {
@@ -144,15 +157,16 @@ public class EnemyController : MonoBehaviour, IDamageable
 
         //에픽 크기 변경
         transform.localScale *= 1.2f;
-        Debug.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
+        DebugHelper.Log($"{name}이(가) {_specialAttack.Type}타입 에픽 몬스터로 등장!");
 
         //오브 생성
         CreateEpicOrbs();
 
         // 에픽 스폰 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audio = AudioManager.Instance;
+        if (audio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EpicSpawn);
+            audio.PlaySFX(audio.SoundLibrary.EpicSpawn);
         }
 
         OnInitialized?.Invoke();
@@ -165,7 +179,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     {
         if (_bossData == null)
         {
-            Debug.LogError($"[Boss] {name}: BossData가 없습니다.");
+            DebugHelper.LogError($"[Boss] {name}: BossData가 없습니다.");
             return;
         }
 
@@ -183,14 +197,15 @@ public class EnemyController : MonoBehaviour, IDamageable
         _isDead = false;
 
         // 보스 스폰 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var audio = AudioManager.Instance;
+        if (audio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.BossSpawn);
+            audio.PlaySFX(audio.SoundLibrary.BossSpawn);
         }
 
         OnInitialized?.Invoke();
 
-        Debug.Log("[EnemyController.Boss] 보스 초기화 완료!");
+        DebugHelper.Log("[EnemyController.Boss] 보스 초기화 완료!");
     }
 
     /// <summary>
@@ -205,9 +220,10 @@ public class EnemyController : MonoBehaviour, IDamageable
         _curHp = Mathf.Max(_curHp, 0);
 
         // 피격 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var hitAudio = AudioManager.Instance;
+        if (hitAudio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EnemyHit);
+            hitAudio.PlaySFX(hitAudio.SoundLibrary.EnemyHit);
         }
 
         OnHit?.Invoke();
@@ -232,9 +248,10 @@ public class EnemyController : MonoBehaviour, IDamageable
         _curHp = Mathf.Max(_curHp, 0);
 
         // 피격 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var hitAudio = AudioManager.Instance;
+        if (hitAudio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.EnemyHit);
+            hitAudio.PlaySFX(hitAudio.SoundLibrary.EnemyHit);
         }
 
         //히트 VFX 생성
@@ -267,7 +284,7 @@ public class EnemyController : MonoBehaviour, IDamageable
     {
         if (hitVfxConfig == null || !hitVfxConfig.IsValid())
         {
-            Debug.LogWarning("[EnemyController] HitVfxConfig가 유효하지 않습니다.");
+            DebugHelper.LogWarning("[EnemyController] HitVfxConfig가 유효하지 않습니다.");
             return;
         }
 
@@ -277,13 +294,13 @@ public class EnemyController : MonoBehaviour, IDamageable
         // 회전 계산: 오일러 각도로 회전
         Quaternion spawnRotation = Quaternion.Euler(hitVfxConfig.RotationOffset);
 
-        // VFX 생성
-        GameObject vfx = Instantiate(hitVfxConfig.VfxPrefab, spawnPosition, spawnRotation);
+        // VFX 생성 (풀 사용)
+        GameObject vfx = GameObjectPool.Instance.Get(hitVfxConfig.VfxPrefab, spawnPosition, spawnRotation);
 
         // 크기 적용
-        vfx.transform.localScale *= hitVfxConfig.Scale;
+        vfx.transform.localScale = hitVfxConfig.VfxPrefab.transform.localScale * hitVfxConfig.Scale;
 
-        // 수명 계산 및 자동 제거
+        // 수명 계산 및 풀에 자동 반환
         float lifetime = hitVfxConfig.Lifetime;
         if (lifetime <= 0)
         {
@@ -298,9 +315,9 @@ public class EnemyController : MonoBehaviour, IDamageable
             }
         }
 
-        Destroy(vfx, lifetime);
+        GameObjectPool.Instance.Release(vfx, lifetime);
 
-        Debug.Log($"[EnemyController] 히트 VFX 생성: {vfx.name} (Scale: {hitVfxConfig.Scale})");
+        DebugHelper.Log($"[EnemyController] 히트 VFX 생성: {vfx.name} (Scale: {hitVfxConfig.Scale})");
     }
 
     /// <summary>
@@ -313,30 +330,19 @@ public class EnemyController : MonoBehaviour, IDamageable
         _isDead = true;
 
         // 사망 사운드 재생 (적 타입별)
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var deathAudio = AudioManager.Instance;
+        if (deathAudio?.SoundLibrary != null)
         {
-            AudioClip deathSound;
+            AudioClip deathSound = _enemyType == EnemyType.Boss
+                ? deathAudio.SoundLibrary.BossDeath
+                : deathAudio.SoundLibrary.EnemyDeath;
 
-            if (_enemyType == EnemyType.Boss)
-            {
-                deathSound = AudioManager.Instance.SoundLibrary.BossDeath;
-            }
-            else
-            {
-                deathSound = AudioManager.Instance.SoundLibrary.EnemyDeath;
-            }
-
-            AudioManager.Instance.PlaySFX(deathSound);
+            deathAudio.PlaySFX(deathSound);
         }
 
         //콜라이더 비활성화
         if (_collider != null)
         {
-            _collider.enabled = false;
-        }
-        else
-        {
-            _collider = GetComponent<Collider>();
             _collider.enabled = false;
         }
 
@@ -422,21 +428,23 @@ public class EnemyController : MonoBehaviour, IDamageable
     void GiveRewards()
     {
         // 경험치
-        ExperienceManager playerExpManager = FindFirstObjectByType<ExperienceManager>();
-        if (playerExpManager != null)
+        if (_cachedExpManager == null)
+            _cachedExpManager = FindFirstObjectByType<ExperienceManager>();
+        if (_cachedExpManager != null)
         {
-            playerExpManager.GainExperience(_expReward);
+            _cachedExpManager.GainExperience(_expReward);
         }
 
         // 골드
-        PlayerCharacter player = FindFirstObjectByType<PlayerCharacter>();
-        if (player != null && _goldReward > 0)
+        if (_cachedPlayer == null)
+            _cachedPlayer = FindFirstObjectByType<PlayerCharacter>();
+        if (_cachedPlayer != null && _goldReward > 0)
         {
-            player.AddGold(_goldReward);
-            Debug.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
+            _cachedPlayer.AddGold(_goldReward);
+            DebugHelper.Log($"[EnemyController] {name} 처치 - 골드 보상: {_goldReward}");
 
             // 귀염뽀짝 포션
-            player.RandomRedSodaDrop();
+            _cachedPlayer.RandomRedSodaDrop();
         }
     }
 
@@ -453,7 +461,7 @@ public class EnemyController : MonoBehaviour, IDamageable
             {
                 //적의 현재 위치에 아이템 드랍
                 ItemSpawner.Instance.SpawnItem(transform.position, _dropTable);
-                Debug.Log($"아이템 드랍!");
+                DebugHelper.Log($"아이템 드랍!");
             }
         }
     }

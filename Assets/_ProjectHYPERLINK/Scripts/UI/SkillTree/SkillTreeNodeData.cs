@@ -125,24 +125,24 @@ public class SkillTreeNodeData : ScriptableObject
         {
             if (_skillData != null)
             {
-                Debug.LogWarning($"[{_nodeName}] 패시브 노드는 SkillData를 사용하지 않습니다. PassiveStatBonuses를 설정하세요.", this);
+                DebugHelper.LogWarning($"[{_nodeName}] 패시브 노드는 SkillData를 사용하지 않습니다. PassiveStatBonuses를 설정하세요.");
             }
 
             if (_passiveStatBonuses == null || _passiveStatBonuses.Count == 0)
             {
-                Debug.LogWarning($"[{_nodeName}] 패시브 노드에 스탯 보너스가 설정되지 않았습니다!", this);
+                DebugHelper.LogWarning($"[{_nodeName}] 패시브 노드에 스탯 보너스가 설정되지 않았습니다!");
             }
         }
         else // 액티브 스킬
         {
             if (_skillData == null)
             {
-                Debug.LogWarning($"[{_nodeName}] 액티브 노드는 SkillData가 필요합니다!", this);
+                DebugHelper.LogWarning($"[{_nodeName}] 액티브 노드는 SkillData가 필요합니다!");
             }
 
             if (_passiveStatBonuses != null && _passiveStatBonuses.Count > 0)
             {
-                Debug.LogWarning($"[{_nodeName}] 액티브 노드는 PassiveStatBonuses를 사용하지 않습니다.", this);
+                DebugHelper.LogWarning($"[{_nodeName}] 액티브 노드는 PassiveStatBonuses를 사용하지 않습니다.");
             }
         }
 
@@ -151,12 +151,12 @@ public class SkillTreeNodeData : ScriptableObject
         {
             if (_requiredNodeData == this)
             {
-                Debug.LogError($"[{_nodeName}] 자기 자신을 선행 노드로 설정할 수 없습니다!", this);
+                DebugHelper.LogError($"[{_nodeName}] 자기 자신을 선행 노드로 설정할 수 없습니다!");
                 _requiredNodeData = null;
             }
             else if (_requiredNodeData._tier >= _tier)
             {
-                Debug.LogWarning($"[{_nodeName}] 선행 노드의 티어가 현재 노드보다 낮거나 같습니다. 티어를 확인하세요.", this);
+                DebugHelper.LogWarning($"[{_nodeName}] 선행 노드의 티어가 현재 노드보다 낮거나 같습니다. 티어를 확인하세요.");
             }
         }
     }

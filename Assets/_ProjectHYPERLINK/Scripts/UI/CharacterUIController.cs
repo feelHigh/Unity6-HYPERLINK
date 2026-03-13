@@ -21,10 +21,7 @@ using UnityEngine.Localization.Settings;
 /// </summary>
 public class CharacterUIController : MonoBehaviour
 {
-    [Header("자동 검색 설정")]
-    [SerializeField] private string _playerTag = "Player";
-    [SerializeField] private float _retryInterval = 0.5f;
-    [SerializeField] private int _maxRetries = 20;
+    [Header("디버그")]
     [SerializeField] private bool _enableDebugLogs = true;
 
     [Header("참조")]
@@ -82,7 +79,6 @@ public class CharacterUIController : MonoBehaviour
     private int _previousRedSoda;
 
     private bool _isInitialized = false;
-    private int _retryCount = 0;
 
     #region 초기화
 
@@ -108,6 +104,7 @@ public class CharacterUIController : MonoBehaviour
 
     private void OnEnable()
     {
+        PlayerInitializationManager.OnPlayerSpawned += OnPlayerSpawned;
         if (_isInitialized)
         {
             SubscribeToEvents();
@@ -116,17 +113,12 @@ public class CharacterUIController : MonoBehaviour
 
     private void OnDisable()
     {
+        PlayerInitializationManager.OnPlayerSpawned -= OnPlayerSpawned;
         UnsubscribeFromEvents();
-    }
-
-    private void Start()
-    {
-        InvokeRepeating(nameof(TryFindPlayerAndSystems), 0.1f, _retryInterval);
     }
 
     private void OnDestroy()
     {
-        CancelInvoke(nameof(TryFindPlayerAndSystems));
         UnsubscribeFromEvents();
         ClearSkillSlots();
     }
@@ -145,39 +137,25 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
-    private void TryFindPlayerAndSystems()
+    private void OnPlayerSpawned(GameObject playerObject)
     {
-        _retryCount++;
+        if (_isInitialized || playerObject == null) return;
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag(_playerTag);
+        _playerCharacter = playerObject.GetComponent<PlayerCharacter>();
 
-        if (playerObject != null)
+        if (_playerCharacter != null)
         {
-            _playerCharacter = playerObject.GetComponent<PlayerCharacter>();
+            Log($"플레이어 찾음: {playerObject.name} (이벤트)");
 
-            if (_playerCharacter != null)
-            {
-                Log($"플레이어 찾음: {playerObject.name} (시도: {_retryCount}회)");
+            FindRelatedSystems();
+            SubscribeToEvents();
+            InitializeUI();
+            InitializeSkillSlots();
+            _isInitialized = true;
 
-                FindRelatedSystems();
-                SubscribeToEvents();
-                InitializeUI();
-                InitializeSkillSlots();
-                _isInitialized = true;
+            ForceUpdateAll();
 
-                ForceUpdateAll();
-
-                CancelInvoke(nameof(TryFindPlayerAndSystems));
-
-                Log($"CharacterUIController 초기화 완료!");
-                return;
-            }
-        }
-
-        if (_retryCount >= _maxRetries)
-        {
-            LogError($"플레이어를 {_maxRetries}회 시도 후에도 찾지 못했습니다!");
-            CancelInvoke(nameof(TryFindPlayerAndSystems));
+            Log($"CharacterUIController 초기화 완료!");
         }
     }
 
@@ -575,6 +553,7 @@ public class CharacterUIController : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
@@ -583,6 +562,7 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
@@ -591,6 +571,7 @@ public class CharacterUIController : MonoBehaviour
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
         Debug.LogError($"[CharacterUIController] {message}");

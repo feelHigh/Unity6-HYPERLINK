@@ -224,7 +224,7 @@ public class CharacterSelectionController : MonoBehaviour
         _createCharacterButton.gameObject.SetActive(true);
         _characterNameInput.Select();
 
-        Debug.Log($"직업 선택: {characterClass}");
+        DebugHelper.Log($"직업 선택: {characterClass}");
     }
 
     /// <summary>
@@ -349,7 +349,7 @@ public class CharacterSelectionController : MonoBehaviour
                 _currentCharacterData = null;
                 HideAllPanels();
                 ShowClassSelection();
-                Debug.Log("캐릭터 삭제 완료");
+                DebugHelper.Log("캐릭터 삭제 완료");
             }
             else
             {
@@ -384,26 +384,26 @@ public class CharacterSelectionController : MonoBehaviour
             case CharacterClass.Laon:
                 if (_laonBaseStats == null)
                 {
-                    Debug.LogError("[CharacterSelection] Laon Base Stats가 할당되지 않았습니다!");
+                    DebugHelper.LogError("[CharacterSelection] Laon Base Stats가 할당되지 않았습니다!");
                 }
                 return _laonBaseStats;
 
             case CharacterClass.Sian:
                 if (_sianBaseStats == null)
                 {
-                    Debug.LogError("[CharacterSelection] Sian Base Stats가 할당되지 않았습니다!");
+                    DebugHelper.LogError("[CharacterSelection] Sian Base Stats가 할당되지 않았습니다!");
                 }
                 return _sianBaseStats;
 
             case CharacterClass.Yujin:
                 if (_yujinBaseStats == null)
                 {
-                    Debug.LogError("[CharacterSelection] Yujin Base Stats가 할당되지 않았습니다!");
+                    DebugHelper.LogError("[CharacterSelection] Yujin Base Stats가 할당되지 않았습니다!");
                 }
                 return _yujinBaseStats;
 
             default:
-                Debug.LogError($"[CharacterSelection] 알 수 없는 직업: {characterClass}");
+                DebugHelper.LogError($"[CharacterSelection] 알 수 없는 직업: {characterClass}");
                 return null;
         }
     }
@@ -426,12 +426,12 @@ public class CharacterSelectionController : MonoBehaviour
         // 씬 정보가 없거나 빈 값이면 기본 씬 사용
         if (string.IsNullOrEmpty(lastScene))
         {
-            Debug.Log($"[CharacterSelection] 씬 정보 없음 - 기본 씬 로드: {_gameScene}");
+            DebugHelper.Log($"[CharacterSelection] 씬 정보 없음 - 기본 씬 로드: {_gameScene}");
             TransitionManager.Instance().Transition(_gameScene, _transition, _transTime);
         }
         else
         {
-            Debug.Log($"[CharacterSelection] 마지막 씬 로드: {lastScene}");
+            DebugHelper.Log($"[CharacterSelection] 마지막 씬 로드: {lastScene}");
             TransitionManager.Instance().Transition(lastScene, _transition, _transTime);
         }
     }
@@ -474,7 +474,7 @@ public class CharacterSelectionController : MonoBehaviour
                 _errorText.text = message;
             }
         }
-        Debug.LogError($"[CharacterSelection] {message}");
+        DebugHelper.LogError($"[CharacterSelection] {message}");
     }
 
     private void HideError()
@@ -488,7 +488,7 @@ public class CharacterSelectionController : MonoBehaviour
     private async Task<bool> ShowConfirmDialog(string message)
     {
         // 간단한 확인 창 구현 (실제로는 별도 UI 패널 사용 권장)
-        Debug.LogWarning($"확인 다이얼로그: {message}");
+        DebugHelper.LogWarning($"확인 다이얼로그: {message}");
         await Task.Delay(100);
         return true;  // 테스트용: 항상 true 반환
     }

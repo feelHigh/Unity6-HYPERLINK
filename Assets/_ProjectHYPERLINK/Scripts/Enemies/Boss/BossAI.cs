@@ -71,6 +71,14 @@ public class BossAI : MonoBehaviour
     Vector3 _chargeDirection;       //돌진 방향
     Vector3 _chargeStartPos;        //돌진 시작 위치
 
+    // Physics NonAlloc 버퍼
+    private Collider[] _detectionBuffer = new Collider[5];
+    private Collider[] _slamBuffer = new Collider[5];
+
+    // GC 최적화: 패턴 선택용 인덱스 배열 (List+lambda 할당 제거)
+    private int _availablePatternCount;
+    private int[] _availablePatternIndices = new int[4];
+
     // 애니메이터 해시
     private readonly int _hashMoveSpeed = Animator.StringToHash("MoveSpeed");
     private readonly int _hashBasicAttack = Animator.StringToHash("Attack");
@@ -122,7 +130,7 @@ public class BossAI : MonoBehaviour
             _basicAttackDetector.Initialize(_controller.Atk * _data.BasicAttackDamageMultiplier);
         }
 
-        Debug.Log("[BossAI] AI 시작!");
+        DebugHelper.Log("[BossAI] AI 시작!");
     }
 
     private void Update()
@@ -170,13 +178,13 @@ public class BossAI : MonoBehaviour
     void UpdateIdleState()
     {
         // 플레이어 탐지
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _data.DetectionRange, _playerLayerMask);
+        int count = Physics.OverlapSphereNonAlloc(transform.position, _data.DetectionRange, _detectionBuffer, _playerLayerMask);
 
-        if (colliders.Length > 0)
+        if (count > 0)
         {
-            _target = colliders[0].transform;
+            _target = _detectionBuffer[0].transform;
             ChangeState(BossState.Chase);
-            Debug.Log("[BossAI] 플레이어 발견! 전투 시작!");
+            DebugHelper.Log("[BossAI] 플레이어 발견! 전투 시작!");
         }
     }
 
@@ -305,35 +313,34 @@ public class BossAI : MonoBehaviour
             return;
         }
 
-        //사용 가능한 패턴 리스트
-        List<System.Action> availablePatterns = new List<System.Action>();
+        //사용 가능한 패턴 인덱스 수집 (GC 최적화: List+lambda 할당 제거)
+        // Pattern 0 = Slam, 1 = Charge, 2 = Combo, 3 = Breath
+        _availablePatternCount = 0;
 
         //개별 패턴 쿨타임 체크
         if (Time.time >= _lastSlamTime + _data.SlamCooldown)
-        {
-            availablePatterns.Add(() => StartCoroutine(SlamPattern()));
-        }
+            _availablePatternIndices[_availablePatternCount++] = 0;
 
         if (Time.time >= _lastChargeTime + _data.ChargeCooldown)
-        {
-            availablePatterns.Add(() => StartCoroutine(ChargePattern()));
-        }
+            _availablePatternIndices[_availablePatternCount++] = 1;
 
         if (Time.time >= _lastComboTime + _data.ComboCooldown)
-        {
-            availablePatterns.Add(() => StartCoroutine(ComboPattern()));
-        }
+            _availablePatternIndices[_availablePatternCount++] = 2;
 
         if (Time.time >= _lastBreathTime + _data.BreathCooldown)
-        {
-            availablePatterns.Add(() => StartCoroutine(BreathPattern()));
-        }
+            _availablePatternIndices[_availablePatternCount++] = 3;
 
         //사용 가능한 패턴이 있으면 랜덤 선택
-        if (availablePatterns.Count > 0)
+        if (_availablePatternCount > 0)
         {
-            int randomIndex = Random.Range(0, availablePatterns.Count);
-            availablePatterns[randomIndex]?.Invoke();
+            int selected = _availablePatternIndices[Random.Range(0, _availablePatternCount)];
+            switch (selected)
+            {
+                case 0: StartCoroutine(SlamPattern()); break;
+                case 1: StartCoroutine(ChargePattern()); break;
+                case 2: StartCoroutine(ComboPattern()); break;
+                case 3: StartCoroutine(BreathPattern()); break;
+            }
 
             //전역 패턴 쿨타임 갱신
             _lastPatternTime = Time.time;
@@ -359,11 +366,11 @@ public class BossAI : MonoBehaviour
         _isExecutingPattern = true;
         _lastBasicAttackTime = Time.time;
 
-        Debug.Log("[BossAI] 기본 공격!");
+        DebugHelper.Log("[BossAI] 기본 공격!");
 
         _animator.SetTrigger(_hashBasicAttack);
 
-        yield return new WaitForSeconds(2f);
+        yield return WaitForSecondsCache.Get(2f);
 
         _isExecutingPattern = false;
     }
@@ -390,7 +397,7 @@ public class BossAI : MonoBehaviour
         _lastSlamTime = Time.time;
         ChangeState(BossState.Pattern);
 
-        Debug.Log("[BossAI] 패턴 1: 내려찍기 준비!");
+        DebugHelper.Log("[BossAI] 패턴 1: 내려찍기 준비!");
 
         //애니메이션 재생
         _animator.SetTrigger(_hashSlam);
@@ -402,11 +409,11 @@ public class BossAI : MonoBehaviour
             slamEffect = Instantiate(_data.SlamEffect, transform.position, Quaternion.identity);
         }
 
-        yield return new WaitForSeconds(_data.SlamPrepareTime);
+        yield return WaitForSecondsCache.Get(_data.SlamPrepareTime);
 
-        Debug.Log("[BossAI] 내려찍기 발동!");
+        DebugHelper.Log("[BossAI] 내려찍기 발동!");
 
-        yield return new WaitForSeconds(0.5f);
+        yield return WaitForSecondsCache.Get(0.5f);
 
         //이펙트 제거
         if (slamEffect != null)
@@ -423,19 +430,19 @@ public class BossAI : MonoBehaviour
     /// </summary>
     public void OnSlamHit()
     {
-        Debug.Log("[BossAI] 내려찍기 타격!");
+        DebugHelper.Log("[BossAI] 내려찍기 타격!");
 
         //범위 내 모든 플레이어에게 피해
-        Collider[] hits = Physics.OverlapSphere(transform.position, _data.SlamRadius, _playerLayerMask);
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, _data.SlamRadius, _slamBuffer, _playerLayerMask);
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            PlayerCombat player = hit.GetComponent<PlayerCombat>();
+            PlayerCombat player = _slamBuffer[i].GetComponent<PlayerCombat>();
             if (player != null)
             {
                 float damage = _controller.Atk * _data.SlamDamageMultiplier;
                 player.TakeDamage(damage);
-                Debug.Log($"[BossAI] 내려찍기 피해: {damage}");
+                DebugHelper.Log($"[BossAI] 내려찍기 피해: {damage}");
             }
         }
     }
@@ -452,13 +459,13 @@ public class BossAI : MonoBehaviour
         _lastChargeTime = Time.time;
         ChangeState(BossState.Pattern);
 
-        Debug.Log("[BossAI] 패턴 2: 돌진 준비!");
+        DebugHelper.Log("[BossAI] 패턴 2: 돌진 준비!");
 
         //돌진 방향은 이미 RotateAndAttack()에서 설정 완료
         _chargeDirection = transform.forward;
         _chargeStartPos = transform.position;
 
-        yield return new WaitForSeconds(0.5f);  // 준비 동작
+        yield return WaitForSecondsCache.Get(0.5f);  // 준비 동작
 
         //돌진 애니메이션
         _animator.SetBool(_hashCharge, true);
@@ -467,11 +474,11 @@ public class BossAI : MonoBehaviour
         _isCharging = true;
         _agent.enabled = false;  // NavMesh 비활성화
 
-        Debug.Log("[BossAI] 돌진 시작!");
+        DebugHelper.Log("[BossAI] 돌진 시작!");
 
         //돌진은 Update에서 처리
         //여기서는 최대 시간만 대기 (안전장치)
-        yield return new WaitForSeconds(5f);
+        yield return WaitForSecondsCache.Get(5f);
 
         //만약 아직 돌진 중이면 강제 종료
         if (_isCharging)
@@ -492,7 +499,7 @@ public class BossAI : MonoBehaviour
         float checkDistance = _data.ChargeSpeed * Time.deltaTime + 1f;
         if (Physics.Raycast(transform.position, _chargeDirection, out RaycastHit hit, checkDistance, _obstacleLayerMask))
         {
-            Debug.Log($"[BossAI] 장애물 충돌! ({hit.collider.name}) 기절!");
+            DebugHelper.Log($"[BossAI] 장애물 충돌! ({hit.collider.name}) 기절!");
             Debug.DrawRay(transform.position, _chargeDirection * checkDistance, Color.red, 2f);
             EndCharge(true);
             return;
@@ -503,7 +510,7 @@ public class BossAI : MonoBehaviour
         //플레이어 충돌 체크
         if (Physics.SphereCast(transform.position, 2f, _chargeDirection, out RaycastHit playerHit, 1f, _playerLayerMask))
         {
-            Debug.Log("[BossAI] 돌진 플레이어 명중!");
+            DebugHelper.Log("[BossAI] 돌진 플레이어 명중!");
 
             //플레이어에게 피해
             PlayerCombat player = playerHit.collider.GetComponent<PlayerCombat>();
@@ -511,7 +518,7 @@ public class BossAI : MonoBehaviour
             {
                 float damage = _controller.Atk * _data.ChargeDamageMultiplier;
                 player.TakeDamage(damage);
-                Debug.Log($"[BossAI] 돌진 피해: {damage}");
+                DebugHelper.Log($"[BossAI] 돌진 피해: {damage}");
 
                 //넉백 및 기절
                 PlayerStateController stateController = playerHit.collider.GetComponent<PlayerStateController>();
@@ -536,7 +543,7 @@ public class BossAI : MonoBehaviour
         float chargeDistance = Vector3.Distance(_chargeStartPos, transform.position);
         if (chargeDistance > 50f)
         {
-            Debug.Log("[BossAI] 돌진 최대 거리 도달!");
+            DebugHelper.Log("[BossAI] 돌진 최대 거리 도달!");
             EndCharge(true);
         }
     }
@@ -570,9 +577,9 @@ public class BossAI : MonoBehaviour
         ChangeState(BossState.Stunned);
         _animator.SetTrigger(_hashStun);
 
-        Debug.Log($"[BossAI] 보스 기절 ({duration}초)");
+        DebugHelper.Log($"[BossAI] 보스 기절 ({duration}초)");
 
-        yield return new WaitForSeconds(duration);
+        yield return WaitForSecondsCache.Get(duration);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -584,7 +591,7 @@ public class BossAI : MonoBehaviour
     IEnumerator PlayerStunCoroutine(PlayerStateController stateController, float duration)
     {
         stateController.SetKnockState(true);
-        yield return new WaitForSeconds(duration);
+        yield return WaitForSecondsCache.Get(duration);
         stateController.SetKnockState(false);
     }
 
@@ -599,11 +606,11 @@ public class BossAI : MonoBehaviour
         _lastComboTime = Time.time;
         ChangeState(BossState.Pattern);
 
-        Debug.Log("[BossAI] 패턴 3: 3연타 준비!");
+        DebugHelper.Log("[BossAI] 패턴 3: 3연타 준비!");
 
         //포효
         _animator.SetTrigger(_hashRoar);
-        yield return new WaitForSeconds(_data.ComboRoarDuration);
+        yield return WaitForSecondsCache.Get(_data.ComboRoarDuration);
 
         //공격 애니메이션
         _animator.SetTrigger(_hashCombo);
@@ -611,7 +618,7 @@ public class BossAI : MonoBehaviour
         //3연타
         for (int i = 0; i < 3; i++)
         {
-            Debug.Log($"[BossAI] 3연타 {i + 1}번째 공격!");
+            DebugHelper.Log($"[BossAI] 3연타 {i + 1}번째 공격!");
 
             //전진
             Vector3 moveDir = transform.forward;
@@ -625,12 +632,12 @@ public class BossAI : MonoBehaviour
                 _agent.SetDestination(hit.position);
             }
 
-            yield return new WaitForSeconds(_data.ComboAttackInterval);
+            yield return WaitForSecondsCache.Get(_data.ComboAttackInterval);
 
             _agent.isStopped = true;
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return WaitForSecondsCache.Get(0.5f);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -646,7 +653,7 @@ public class BossAI : MonoBehaviour
             _comboDetector.EnableDetector();
         }
 
-        Debug.Log("[BossAI] 3연타 타격!");
+        DebugHelper.Log("[BossAI] 3연타 타격!");
     }
 
     /// <summary>
@@ -660,18 +667,18 @@ public class BossAI : MonoBehaviour
         _lastBreathTime = Time.time;
         ChangeState(BossState.Pattern);
 
-        Debug.Log("[BossAI] 패턴 4: 화염 브레스 준비!");
+        DebugHelper.Log("[BossAI] 패턴 4: 화염 브레스 준비!");
 
         //포효
         _animator.SetTrigger(_hashRoar);
-        yield return new WaitForSeconds(_data.BreathRoarDuration);
+        yield return WaitForSecondsCache.Get(_data.BreathRoarDuration);
 
         //브레스 애니메이션
         _animator.SetTrigger(_hashBreath);
 
-        yield return new WaitForSeconds(1f);
+        yield return WaitForSecondsCache.Get(1f);
 
-        Debug.Log("[BossAI] 화염 브레스 발사!");
+        DebugHelper.Log("[BossAI] 화염 브레스 발사!");
 
         //브레스 이펙트 생성
         if (_breath != null && _breathSpawnPos != null)
@@ -688,9 +695,9 @@ public class BossAI : MonoBehaviour
             }
         }
 
-        Debug.Log("[BossAI] 화염 브레스 종료!");
+        DebugHelper.Log("[BossAI] 화염 브레스 종료!");
 
-        yield return new WaitForSeconds(1f);
+        yield return WaitForSecondsCache.Get(1f);
 
         _isExecutingPattern = false;
         ChangeState(BossState.Attack);
@@ -708,7 +715,7 @@ public class BossAI : MonoBehaviour
         if (_curState == newState) return;
 
         _curState = newState;
-        Debug.Log($"[BossAI] 상태 변경: {newState}");
+        DebugHelper.Log($"[BossAI] 상태 변경: {newState}");
     }
 
     /// <summary>
@@ -770,7 +777,7 @@ public class BossAI : MonoBehaviour
 
         _animator.SetTrigger(_hashDie);
 
-        Debug.Log("[BossAI] 보스 사망!");
+        DebugHelper.Log("[BossAI] 보스 사망!");
     }
 
     #endregion

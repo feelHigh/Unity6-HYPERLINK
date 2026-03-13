@@ -941,7 +941,7 @@ NavMeshAgent:
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 1000
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
@@ -994,8 +994,7 @@ MonoBehaviour:
     m_Bits: 28672
   _basicAttackDetector: {fileID: 2801089668653888217}
   _comboDetector: {fileID: 2801089668653888217}
-  _slamEffect: {fileID: 2167517850332989189, guid: 596d15c1148043e468bba0f90aa025c2, type: 3}
-  _breathEffect: {fileID: 8596153277932893302, guid: 5400f0284d23716488474937e2ee2971, type: 3}
+  _breath: {fileID: 8596153277932893302, guid: 5400f0284d23716488474937e2ee2971, type: 3}
   _breathSpawnPos: {fileID: 1223740560707285025}
   _curState: 0
 --- !u!114 &8730749822137525472

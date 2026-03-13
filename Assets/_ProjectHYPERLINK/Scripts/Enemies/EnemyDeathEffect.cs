@@ -47,6 +47,9 @@ public class EnemyDeathEffect : MonoBehaviour
 
     Vector3 _originalPos;
 
+    // GC 최적화: 인스턴스화된 Material 캐싱 (ApplyFade에서 .material 반복 접근 방지)
+    private Material[] _cachedMaterials;
+
     private void Awake()
     {
         if (_controller == null)
@@ -63,14 +66,16 @@ public class EnemyDeathEffect : MonoBehaviour
             _targetModel = transform;
         }
 
-        //매터리얼 인스턴스 생성 (원본 보호)
+        //매터리얼 인스턴스 생성 (원본 보호) + 캐싱
         if (_enableFadeOut && _targetRenderers != null)
         {
-            foreach (var renderer in _targetRenderers)
+            _cachedMaterials = new Material[_targetRenderers.Length];
+            for (int i = 0; i < _targetRenderers.Length; i++)
             {
-                if (renderer != null)
+                if (_targetRenderers[i] != null)
                 {
-                    renderer.material = new Material(renderer.material);
+                    _targetRenderers[i].material = new Material(_targetRenderers[i].material);
+                    _cachedMaterials[i] = _targetRenderers[i].material;
                 }
             }
         }
@@ -107,7 +112,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //시작 딜레이 대기
         if (_startDelay > 0)
         {
-            yield return new WaitForSeconds(_startDelay);
+            yield return WaitForSecondsCache.Get(_startDelay);
         }
 
         //각 연출 별 코루틴 실행
@@ -130,7 +135,7 @@ public class EnemyDeathEffect : MonoBehaviour
         float maxDuration = CaculateMaxDuration();
         if (maxDuration > 0)
         {
-            yield return new WaitForSeconds(maxDuration);
+            yield return WaitForSecondsCache.Get(maxDuration);
         }
 
         //연출 완료 후 오브젝트 비활성화
@@ -138,7 +143,7 @@ public class EnemyDeathEffect : MonoBehaviour
         {
             if (_disableDuration > 0)
             {
-                yield return new WaitForSeconds(_disableDuration);
+                yield return WaitForSecondsCache.Get(_disableDuration);
             }
 
             gameObject.SetActive(false);
@@ -157,7 +162,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //비활성화 딜레이 대기
         if (_objectDisableDelay > 0)
         {
-            yield return new WaitForSeconds(_objectDisableDelay);
+            yield return WaitForSecondsCache.Get(_objectDisableDelay);
         }
 
         //비활성화
@@ -175,7 +180,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //생성 딜레이 대기
         if (_objectSpawnDelay > 0)
         {
-            yield return new WaitForSeconds(_objectSpawnDelay);
+            yield return WaitForSecondsCache.Get(_objectSpawnDelay);
         }
 
         //생성
@@ -212,7 +217,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_fadeOutDelay > 0)
         {
-            yield return new WaitForSeconds(_fadeOutDelay);
+            yield return WaitForSecondsCache.Get(_fadeOutDelay);
         }
 
         //그림자 비활성화
@@ -243,7 +248,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_shadowDisableDelay > 0)
         {
-            yield return new WaitForSeconds(_shadowDisableDelay);
+            yield return WaitForSecondsCache.Get(_shadowDisableDelay);
         }
 
         //그림자 비활성화
@@ -265,18 +270,17 @@ public class EnemyDeathEffect : MonoBehaviour
     /// <param name="alpha"></param>
     void ApplyFade(float alpha)
     {
-        if (_targetRenderers == null) return;
+        if (_cachedMaterials == null) return;
 
-        foreach (var renderer in _targetRenderers)
+        for (int i = 0; i < _cachedMaterials.Length; i++)
         {
-            if (renderer == null || renderer.material == null) continue;
-
-            Material mat = renderer.material;
+            Material mat = _cachedMaterials[i];
+            if (mat == null) continue;
 
             //쉐이더 그래프
             if (mat.HasProperty(_shaderGraphPropertyName))
             {
-                renderer.material.SetFloat(_shaderGraphPropertyName, alpha);
+                mat.SetFloat(_shaderGraphPropertyName, alpha);
             }
             //URP Lit 쉐이더
             else if (mat.HasProperty("_BaseColor"))
@@ -310,9 +314,9 @@ public class EnemyDeathEffect : MonoBehaviour
                 mat.SetColor("_Color", color);
             }
             //위의 모든 경우가 아닐 때
-            else
+            else if (_targetRenderers[i] != null)
             {
-                Debug.LogWarning($"{renderer.gameObject.name}의 Material 알파 조정 불가.");
+                DebugHelper.LogWarning($"{_targetRenderers[i].gameObject.name}의 Material 알파 조정 불가.");
             }
         }
     }
@@ -326,7 +330,7 @@ public class EnemyDeathEffect : MonoBehaviour
         //딜레이 대기
         if (_positionChangeDelay > 0)
         {
-            yield return new WaitForSeconds(_positionChangeDelay);
+            yield return WaitForSecondsCache.Get(_positionChangeDelay);
         }
 
         if (_targetModel == null) yield break;

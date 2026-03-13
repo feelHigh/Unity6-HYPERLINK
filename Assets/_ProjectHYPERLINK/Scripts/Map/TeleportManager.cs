@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -116,9 +115,14 @@ public class TeleportManager : MonoBehaviour
     /// </summary>
     public List<TeleportDestinationData> GetAvailableDestinations()
     {
-        return _allDestinations
-            .Where(d => IsDestinationDiscovered(d.SceneName, d.SpawnPointName) && d.IsUnlocked())
-            .ToList();
+        var result = new List<TeleportDestinationData>();
+        for (int i = 0; i < _allDestinations.Count; i++)
+        {
+            var d = _allDestinations[i];
+            if (IsDestinationDiscovered(d.SceneName, d.SpawnPointName) && d.IsUnlocked())
+                result.Add(d);
+        }
+        return result;
     }
 
     /// <summary>
@@ -126,9 +130,14 @@ public class TeleportManager : MonoBehaviour
     /// </summary>
     public List<TeleportDestinationData> GetDiscoveredDestinations()
     {
-        return _allDestinations
-            .Where(d => IsDestinationDiscovered(d.SceneName, d.SpawnPointName))
-            .ToList();
+        var result = new List<TeleportDestinationData>();
+        for (int i = 0; i < _allDestinations.Count; i++)
+        {
+            var d = _allDestinations[i];
+            if (IsDestinationDiscovered(d.SceneName, d.SpawnPointName))
+                result.Add(d);
+        }
+        return result;
     }
 
     /// <summary>
@@ -137,10 +146,18 @@ public class TeleportManager : MonoBehaviour
     public Dictionary<string, List<TeleportDestinationData>> GetDestinationsGroupedByScene()
     {
         var discovered = GetDiscoveredDestinations();
-
-        return discovered
-            .GroupBy(d => d.SceneName)
-            .ToDictionary(g => g.Key, g => g.ToList());
+        var grouped = new Dictionary<string, List<TeleportDestinationData>>();
+        for (int i = 0; i < discovered.Count; i++)
+        {
+            var d = discovered[i];
+            if (!grouped.TryGetValue(d.SceneName, out var list))
+            {
+                list = new List<TeleportDestinationData>();
+                grouped[d.SceneName] = list;
+            }
+            list.Add(d);
+        }
+        return grouped;
     }
 
     #endregion
@@ -240,25 +257,28 @@ public class TeleportManager : MonoBehaviour
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[TeleportManager] {message}");
+            DebugHelper.Log($"[TeleportManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[TeleportManager] {message}");
+            DebugHelper.LogWarning($"[TeleportManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[TeleportManager] {message}");
+        DebugHelper.LogError($"[TeleportManager] {message}");
     }
 
     #endregion

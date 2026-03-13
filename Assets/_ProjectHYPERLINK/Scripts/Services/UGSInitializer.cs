@@ -159,17 +159,19 @@ public class UGSInitializer : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[UGSInitializer] {message}");
+            DebugHelper.Log($"[UGSInitializer] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[UGSInitializer] {message}");
+        DebugHelper.LogError($"[UGSInitializer] {message}");
     }
 
     #endregion
@@ -181,23 +183,23 @@ public class UGSInitializer : MonoBehaviour
     private void ForceReinitialize()
     {
         _isInitialized = false;
-        Debug.Log("[UGSInitializer] 초기화 플래그 리셋 완료. 게임을 재시작하세요.");
+        DebugHelper.Log("[UGSInitializer] 초기화 플래그 리셋 완료. 게임을 재시작하세요.");
     }
 
     [ContextMenu("현재 상태 확인")]
     private void CheckStatus()
     {
-        Debug.Log("=== UGS 상태 확인 ===");
-        Debug.Log($"초기화 완료: {_isInitialized}");
-        Debug.Log($"UGSInitializer.Instance: {(Instance != null ? "존재" : "null")}");
-        Debug.Log($"AuthenticationManager.Instance: {(AuthenticationManager.Instance != null ? "존재" : "null")}");
-        Debug.Log($"CloudSaveManager.Instance: {(CloudSaveManager.Instance != null ? "존재" : "null")}");
-        Debug.Log($"로그인 상태: {AuthenticationManager.IsSignedIn}");
+        DebugHelper.Log("=== UGS 상태 확인 ===");
+        DebugHelper.Log($"초기화 완료: {_isInitialized}");
+        DebugHelper.Log($"UGSInitializer.Instance: {(Instance != null ? "존재" : "null")}");
+        DebugHelper.Log($"AuthenticationManager.Instance: {(AuthenticationManager.Instance != null ? "존재" : "null")}");
+        DebugHelper.Log($"CloudSaveManager.Instance: {(CloudSaveManager.Instance != null ? "존재" : "null")}");
+        DebugHelper.Log($"로그인 상태: {AuthenticationManager.IsSignedIn}");
         if (AuthenticationManager.IsSignedIn)
         {
-            Debug.Log($"Player ID: {AuthenticationManager.PlayerId}");
+            DebugHelper.Log($"Player ID: {AuthenticationManager.PlayerId}");
         }
-        Debug.Log("==================");
+        DebugHelper.Log("==================");
     }
 #endif
 

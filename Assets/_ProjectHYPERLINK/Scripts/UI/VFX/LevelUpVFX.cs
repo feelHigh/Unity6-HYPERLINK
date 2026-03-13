@@ -128,7 +128,7 @@ public class LevelUpVFX : MonoBehaviour
             _levelUpCanvas.gameObject.SetActive(true);
             _levelUpText.text = $"레벨 업!\n레벨 {newLevel}";
 
-            yield return new WaitForSeconds(_levelUpDisplayDuration);
+            yield return WaitForSecondsCache.Get(_levelUpDisplayDuration);
 
             _levelUpCanvas.gameObject.SetActive(false);
         }
@@ -168,7 +168,7 @@ public class LevelUpVFX : MonoBehaviour
                 _skillUnlockIcon.gameObject.SetActive(true);
             }
 
-            yield return new WaitForSeconds(_skillUnlockDisplayDuration);
+            yield return WaitForSecondsCache.Get(_skillUnlockDisplayDuration);
 
             _skillUnlockCanvas.gameObject.SetActive(false);
 

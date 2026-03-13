@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// 캐릭터 데이터 중앙 관리 시스템
@@ -523,25 +522,28 @@ public class CharacterDataManager : MonoBehaviour
 
     #region 로깅
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[CharacterDataManager] {message}");
+            DebugHelper.Log($"[CharacterDataManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[CharacterDataManager] {message}");
+            DebugHelper.LogWarning($"[CharacterDataManager] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[CharacterDataManager] {message}");
+        DebugHelper.LogError($"[CharacterDataManager] {message}");
     }
 
     #endregion

@@ -38,17 +38,17 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         if (_playerCharacter == null)
         {
-            Debug.LogError("[PlayerCombat] PlayerCharacter 참조가 없습니다!");
+            DebugHelper.LogError("[PlayerCombat] PlayerCharacter 참조가 없습니다!");
         }
 
         if (_stateController == null)
         {
-            Debug.LogError("[PlayerCombat] PlayerStateController 참조가 없습니다!");
+            DebugHelper.LogError("[PlayerCombat] PlayerStateController 참조가 없습니다!");
         }
 
         if (_navController == null)
         {
-            Debug.LogError("[PlayerCombat] PlayerNavController 참조가 없습니다!");
+            DebugHelper.LogError("[PlayerCombat] PlayerNavController 참조가 없습니다!");
         }
     }
 
@@ -66,7 +66,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
         else
         {
-            Debug.LogError("[PlayerCombat] PlayerCharacter 참조가 없습니다!");
+            DebugHelper.LogError("[PlayerCombat] PlayerCharacter 참조가 없습니다!");
         }
     }
 
@@ -81,12 +81,13 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _playerCharacter.TakeDamage(attackInfo.Damage);
 
             // 피격 사운드 재생
-            if (AudioManager.Instance?.SoundLibrary != null)
+            var audio = AudioManager.Instance;
+            if (audio?.SoundLibrary != null)
             {
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.SoundLibrary.PlayerHit);
+                audio.PlaySFX(audio.SoundLibrary.PlayerHit);
             }
 
-            Debug.Log($"[PlayerCombat] {attackInfo.Type} 공격 받음: {attackInfo.Damage:F1} 데미지");
+            DebugHelper.Log($"[PlayerCombat] {attackInfo.Type} 공격 받음: {attackInfo.Damage:F1} 데미지");
 
             // 히트 VFX 생성
             if (attackInfo.HitVfxConfig != null && attackInfo.HitVfxConfig.IsValid())
@@ -105,15 +106,15 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     {
         if (config == null || !config.IsValid())
         {
-            Debug.LogWarning("[PlayerCombat] HitVfxConfig가 유효하지 않습니다.");
+            DebugHelper.LogWarning("[PlayerCombat] HitVfxConfig가 유효하지 않습니다.");
             return;
         }
 
         Vector3 spawnPosition = basePosition + config.PositionOffset;
         Quaternion spawnRotation = Quaternion.Euler(config.RotationOffset);
 
-        GameObject vfx = Instantiate(config.VfxPrefab, spawnPosition, spawnRotation);
-        vfx.transform.localScale *= config.Scale;
+        GameObject vfx = GameObjectPool.Instance.Get(config.VfxPrefab, spawnPosition, spawnRotation);
+        vfx.transform.localScale = config.VfxPrefab.transform.localScale * config.Scale;
 
         float lifetime = config.Lifetime;
         if (lifetime <= 0)
@@ -129,19 +130,18 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             }
         }
 
-        Destroy(vfx, lifetime);
+        GameObjectPool.Instance.Release(vfx, lifetime);
     }
 
     public void Die()
     {
-        Debug.Log("[PlayerCombat] 플레이어 사망!");
+        DebugHelper.Log("[PlayerCombat] 플레이어 사망!");
 
         // 사망 사운드 재생
-        if (AudioManager.Instance?.SoundLibrary != null)
+        var deathAudio = AudioManager.Instance;
+        if (deathAudio?.SoundLibrary != null)
         {
-            AudioManager.Instance.PlaySFX(
-                AudioManager.Instance.SoundLibrary.PlayerDeath
-            );
+            deathAudio.PlaySFX(deathAudio.SoundLibrary.PlayerDeath);
         }
 
         CleanupAllEffects();
@@ -169,7 +169,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         _lastAttackerPosition = attackerPosition;
 
-        Debug.Log($"[PlayerCombat] 특수 공격 받음: {attack.Type}");
+        DebugHelper.Log($"[PlayerCombat] 특수 공격 받음: {attack.Type}");
 
         // 즉시 데미지 적용
         float maxHp = _playerCharacter.MaxHealth;
@@ -211,7 +211,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
     private IEnumerator BurnCoroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 화상 시작");
+        DebugHelper.Log("[상태이상] 화상 시작");
 
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
@@ -222,22 +222,22 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
 
         while (timer < attack.DotDuration)
         {
-            yield return new WaitForSeconds(tick);
+            yield return WaitForSecondsCache.Get(tick);
             timer += tick;
 
             if (!IsAlive()) break;
 
             _playerCharacter.TakeDamage(dotDamage);
-            Debug.Log($"[화상] DoT 데미지: {dotDamage:F1}");
+            DebugHelper.Log($"[화상] DoT 데미지: {dotDamage:F1}");
         }
 
         CleanupDebuffEffect();
-        Debug.Log("[상태이상] 화상 종료");
+        DebugHelper.Log("[상태이상] 화상 종료");
     }
 
     private IEnumerator FreezeCoroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 빙결 시작");
+        DebugHelper.Log("[상태이상] 빙결 시작");
 
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
@@ -246,7 +246,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _stateController.SetFreeze(true);
         }
 
-        yield return new WaitForSeconds(attack.FreezeDuration);
+        yield return WaitForSecondsCache.Get(attack.FreezeDuration);
 
         if (_stateController != null)
         {
@@ -267,9 +267,9 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _stateController.SetSlow(true, slowPercent);
             }
 
-            Debug.Log($"[둔화] {slowPercent:F0}% 감소, {slowDuration}초");
+            DebugHelper.Log($"[둔화] {slowPercent:F0}% 감소, {slowDuration}초");
 
-            yield return new WaitForSeconds(slowDuration);
+            yield return WaitForSecondsCache.Get(slowDuration);
 
             if (_stateController != null)
             {
@@ -277,15 +277,15 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             }
 
             CleanupAdditionalEffect();
-            Debug.Log("[둔화] 종료");
+            DebugHelper.Log("[둔화] 종료");
         }
 
-        Debug.Log("[상태이상] 빙결 종료");
+        DebugHelper.Log("[상태이상] 빙결 종료");
     }
 
     private IEnumerator SilenceCroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 침묵 시작");
+        DebugHelper.Log("[상태이상] 침묵 시작");
         /*
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
@@ -294,7 +294,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _stateController.SetFreeze(true);
         }
 
-        yield return new WaitForSeconds(attack.BlindDuration);
+        yield return WaitForSecondsCache.Get(attack.BlindDuration);
 
         if (_stateController != null)
         {
@@ -314,9 +314,9 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _stateController.SetSilence(true);
             }
 
-            Debug.Log($"[침묵] {attack.SilenceDuration}초");
+            DebugHelper.Log($"[침묵] {attack.SilenceDuration}초");
 
-            yield return new WaitForSeconds(attack.SilenceDuration);
+            yield return WaitForSecondsCache.Get(attack.SilenceDuration);
 
             if (_stateController != null)
             {
@@ -324,15 +324,15 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             }
 
             CleanupDebuffEffect();
-            Debug.Log("[침묵] 종료");
+            DebugHelper.Log("[침묵] 종료");
         }
 
-        //Debug.Log("[상태이상] 시야 방해 종료");
+        //DebugHelper.Log("[상태이상] 시야 방해 종료");
     }
 
     private IEnumerator RootCoroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 속박 시작");
+        DebugHelper.Log("[상태이상] 속박 시작");
 
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
@@ -346,7 +346,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _navController.ForceStop();
         }
 
-        yield return new WaitForSeconds(attack.RootDuration);
+        yield return WaitForSecondsCache.Get(attack.RootDuration);
 
         if (_stateController != null)
         {
@@ -368,9 +368,9 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
                 _stateController.SetWeaken(true, debuffPercent);
             }
 
-            Debug.Log($"[약화] 방어력 {debuffPercent:F0}% 감소, {debuffDuration}초");
+            DebugHelper.Log($"[약화] 방어력 {debuffPercent:F0}% 감소, {debuffDuration}초");
 
-            yield return new WaitForSeconds(debuffDuration);
+            yield return WaitForSecondsCache.Get(debuffDuration);
 
             if (_stateController != null)
             {
@@ -378,15 +378,15 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             }
 
             CleanupAdditionalEffect();
-            Debug.Log("[약화] 종료");
+            DebugHelper.Log("[약화] 종료");
         }
 
-        Debug.Log("[상태이상] 속박 종료");
+        DebugHelper.Log("[상태이상] 속박 종료");
     }
 
     private IEnumerator KnockbackCoroutine(SpecialAttackBase attack)
     {
-        Debug.Log("[상태이상] 넉백 시작");
+        DebugHelper.Log("[상태이상] 넉백 시작");
 
         _currentDebuffEffect = SpawnDebuffEffect(attack.DebuffEffect);
 
@@ -403,7 +403,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
             _navController.ApplyKnockback(attack.KnockbackPower, knockbackDir);
         }
 
-        yield return new WaitForSeconds(attack.StunDuration);
+        yield return WaitForSecondsCache.Get(attack.StunDuration);
 
         if (_stateController != null)
         {
@@ -411,7 +411,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         }
 
         CleanupDebuffEffect();
-        Debug.Log("[상태이상] 넉백 종료");
+        DebugHelper.Log("[상태이상] 넉백 종료");
     }
 
     #endregion
@@ -434,7 +434,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     {
         _stateController.SetHitStun(true);
 
-        yield return new WaitForSeconds(_hitStunDuration);
+        yield return WaitForSecondsCache.Get(_hitStunDuration);
 
         _stateController.SetHitStun(false);
         _hitStunCoroutine = null;
@@ -512,7 +512,7 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
     public void AddGold(int amount)
     {
         _currentGold += amount;
-        Debug.Log($"[PlayerCombat] 골드 획득: +{amount} (총: {_currentGold})");
+        DebugHelper.Log($"[PlayerCombat] 골드 획득: +{amount} (총: {_currentGold})");
     }
 
     public bool SpendGold(int amount)
@@ -520,11 +520,11 @@ public class PlayerCombat : MonoBehaviour, IDamageable, IMonsterDamageable
         if (_currentGold >= amount)
         {
             _currentGold -= amount;
-            Debug.Log($"[PlayerCombat] 골드 사용: -{amount} (남은 골드: {_currentGold})");
+            DebugHelper.Log($"[PlayerCombat] 골드 사용: -{amount} (남은 골드: {_currentGold})");
             return true;
         }
 
-        Debug.Log($"[PlayerCombat] 골드 부족: 필요={amount}, 현재={_currentGold}");
+        DebugHelper.Log($"[PlayerCombat] 골드 부족: 필요={amount}, 현재={_currentGold}");
         return false;
     }
 

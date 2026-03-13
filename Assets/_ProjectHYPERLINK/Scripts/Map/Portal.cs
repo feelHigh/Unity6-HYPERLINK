@@ -63,6 +63,10 @@ public class Portal : MonoBehaviour, IInteractable
     private bool _isActivating = false;
     private Transform _playerTransform;
 
+    // GC 최적화: Renderer / Material 캐싱 (UpdateVisuals에서 반복 접근 방지)
+    private Renderer _portalRenderer;
+    private Material _portalMaterialInstance;
+
     // TeleportUIWindow 캐싱
     private TeleportUIWindow _cachedTeleportUI;
     private bool _hasSearchedForUI = false;
@@ -75,6 +79,16 @@ public class Portal : MonoBehaviour, IInteractable
     {
         _collider = GetComponent<Collider>();
         _collider.isTrigger = true;
+
+        // 포탈 이펙트의 Renderer / Material 캐싱
+        if (_portalEffect != null)
+        {
+            _portalRenderer = _portalEffect.GetComponent<Renderer>();
+            if (_portalRenderer != null)
+            {
+                _portalMaterialInstance = _portalRenderer.material;
+            }
+        }
 
         ValidateConfiguration();
     }
@@ -383,7 +397,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (QuestManager.Instance != null)
         {
             Log("퀘스트 데이터 저장 중...");
-            QuestManager.Instance.SaveQuestProgressAsync();
+            await QuestManager.Instance.SaveQuestProgressAsync();
             Log("퀘스트 데이터 저장 완료");
         }
 
@@ -496,7 +510,7 @@ public class Portal : MonoBehaviour, IInteractable
         if (!_hasSearchedForUI)
         {
             Log("TeleportUIWindow 검색 중...");
-            _cachedTeleportUI = FindObjectOfType<TeleportUIWindow>(true); // includeInactive = true
+            _cachedTeleportUI = FindFirstObjectByType<TeleportUIWindow>(FindObjectsInactive.Include);
             _hasSearchedForUI = true;
 
             if (_cachedTeleportUI != null)
@@ -527,13 +541,11 @@ public class Portal : MonoBehaviour, IInteractable
             bool isUsable = _portalData.IsActive && IsQuestRequirementMet();
             _portalEffect.SetActive(isUsable);
 
-            // 색상 적용 (Material이 있는 경우)
-            Renderer renderer = _portalEffect.GetComponent<Renderer>();
-            if (renderer != null && renderer.material != null)
+            // 색상 적용 (캐싱된 Material 사용 - GetComponent / .material 반복 호출 방지)
+            if (_portalMaterialInstance != null)
             {
-                // 퀘스트 미완료 시 회색으로 표시
                 Color targetColor = isUsable ? _portalData.PortalColor : Color.gray;
-                renderer.material.color = targetColor;
+                _portalMaterialInstance.color = targetColor;
             }
         }
     }
@@ -581,25 +593,28 @@ public class Portal : MonoBehaviour, IInteractable
 
     #region 디버그
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void Log(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.Log($"[Portal '{name}'] {message}");
+            DebugHelper.Log($"[Portal '{name}'] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogWarning(string message)
     {
         if (_enableDebugLogs)
         {
-            Debug.LogWarning($"[Portal '{name}'] {message}");
+            DebugHelper.LogWarning($"[Portal '{name}'] {message}");
         }
     }
 
+    [System.Diagnostics.Conditional("ENABLE_DEBUG_LOG")]
     private void LogError(string message)
     {
-        Debug.LogError($"[Portal '{name}'] {message}");
+        DebugHelper.LogError($"[Portal '{name}'] {message}");
     }
 
     private void OnDrawGizmos()

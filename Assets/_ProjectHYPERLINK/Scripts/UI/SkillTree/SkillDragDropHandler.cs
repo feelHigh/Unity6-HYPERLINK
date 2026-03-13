@@ -128,16 +128,16 @@ public class SkillDragDropHandler : MonoBehaviour
             _skillActivationSystem = FindFirstObjectByType<SkillActivationSystem>();
             if (_skillActivationSystem != null)
             {
-                Debug.Log("[SkillDragDropHandler] SkillActivationSystem 연결 완료");
+                DebugHelper.Log("[SkillDragDropHandler] SkillActivationSystem 연결 완료");
                 yield break;
             }
             attempts++;
-            yield return new WaitForSeconds(0.5f);
+            yield return WaitForSecondsCache.Get(0.5f);
         }
 
         if (_skillActivationSystem == null)
         {
-            Debug.LogWarning("[SkillDragDropHandler] SkillActivationSystem을 찾지 못했습니다. 중복 체크 제한될 수 있음.");
+            DebugHelper.LogWarning("[SkillDragDropHandler] SkillActivationSystem을 찾지 못했습니다. 중복 체크 제한될 수 있음.");
         }
     }
 
@@ -166,7 +166,7 @@ public class SkillDragDropHandler : MonoBehaviour
     {
         if (skillData == null)
         {
-            Debug.LogWarning("[SkillDragDropHandler] SkillData가 null입니다!");
+            DebugHelper.LogWarning("[SkillDragDropHandler] SkillData가 null입니다!");
             return;
         }
 
@@ -301,11 +301,11 @@ public class SkillDragDropHandler : MonoBehaviour
             if (CanPlaceSkillInSlot(_draggedSkill, dropSlot, out string reason))
             {
                 dropSlot.AssignSkill(_draggedSkill);
-                Debug.Log($"[SkillDragDropHandler] EndDrag를 통해 배치: {_draggedSkill.SkillName} → {dropSlot.name}");
+                DebugHelper.Log($"[SkillDragDropHandler] EndDrag를 통해 배치: {_draggedSkill.SkillName} → {dropSlot.name}");
             }
             else
             {
-                Debug.LogWarning($"[SkillDragDropHandler] 배치 불가: {reason}");
+                DebugHelper.LogWarning($"[SkillDragDropHandler] 배치 불가: {reason}");
             }
         }
 
@@ -551,7 +551,7 @@ public class SkillDragDropHandler : MonoBehaviour
     [ContextMenu("Debug: Print All Slots")]
     private void DebugPrintSlots()
     {
-        Debug.Log("═══ REGISTERED SKILL SLOTS ═══");
+        DebugHelper.Log("═══ REGISTERED SKILL SLOTS ═══");
         for (int i = 0; i < _skillSlots.Count; i++)
         {
             if (_skillSlots[i] != null)
@@ -561,13 +561,13 @@ public class SkillDragDropHandler : MonoBehaviour
                 Vector3[] corners = new Vector3[4];
                 rect.GetWorldCorners(corners);
 
-                Debug.Log($"[{i}] {slot.name} (SlotIndex:{slot.SlotIndex})");
-                Debug.Log($"    Position: {rect.position}");
-                Debug.Log($"    Corners: BL={corners[0]} TR={corners[2]}");
-                Debug.Log($"    Skill: {slot.SkillData?.SkillName ?? "Empty"}");
+                DebugHelper.Log($"[{i}] {slot.name} (SlotIndex:{slot.SlotIndex})");
+                DebugHelper.Log($"    Position: {rect.position}");
+                DebugHelper.Log($"    Corners: BL={corners[0]} TR={corners[2]}");
+                DebugHelper.Log($"    Skill: {slot.SkillData?.SkillName ?? "Empty"}");
             }
         }
-        Debug.Log($"Total: {_skillSlots.Count} slots");
+        DebugHelper.Log($"Total: {_skillSlots.Count} slots");
     }
 
     /// <summary>
@@ -576,14 +576,14 @@ public class SkillDragDropHandler : MonoBehaviour
     [ContextMenu("Debug: Print Drag State")]
     private void DebugPrintDragState()
     {
-        Debug.Log("═══ DRAG STATE ═══");
-        Debug.Log($"IsDragging: {_isDragging}");
-        Debug.Log($"DraggedSkill: {_draggedSkill?.SkillName ?? "None"}");
-        Debug.Log($"SourceNode: {_sourceNode?.name ?? "None"}");
-        Debug.Log($"HoveredSlot: {_hoveredSlot?.name ?? "None"}");
-        Debug.Log($"SlotDragActive: {_slotDragActive}");
-        Debug.Log($"DropHandledBySlot: {_dropHandledBySlot}");
-        Debug.Log($"SkillActivationSystem: {(_skillActivationSystem != null ? "Connected" : "Not Found")}");
+        DebugHelper.Log("═══ DRAG STATE ═══");
+        DebugHelper.Log($"IsDragging: {_isDragging}");
+        DebugHelper.Log($"DraggedSkill: {_draggedSkill?.SkillName ?? "None"}");
+        DebugHelper.Log($"SourceNode: {_sourceNode?.name ?? "None"}");
+        DebugHelper.Log($"HoveredSlot: {_hoveredSlot?.name ?? "None"}");
+        DebugHelper.Log($"SlotDragActive: {_slotDragActive}");
+        DebugHelper.Log($"DropHandledBySlot: {_dropHandledBySlot}");
+        DebugHelper.Log($"SkillActivationSystem: {(_skillActivationSystem != null ? "Connected" : "Not Found")}");
     }
 
     #endregion

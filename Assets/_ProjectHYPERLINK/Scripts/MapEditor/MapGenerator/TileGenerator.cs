@@ -3,7 +3,6 @@
 [System.Serializable]
 public abstract class TileGenerator : MonoBehaviour
 {
-    [SerializeField] bool _tile2X2 = false;
     [SerializeField] TileType _type;
     public TileType Type => _type;
 
